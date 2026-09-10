@@ -164,8 +164,11 @@ namespace SpotifyWpf.Client.ViewModels
             var uri = new Uri($"pack://application:,,,/SpotifyWpf.Client;component/Resources/Themes/{themeFile}", UriKind.Absolute);
 
             var newDict = new ResourceDictionary { Source = uri };
-            Application.Current.Resources.MergedDictionaries.Clear();
-            Application.Current.Resources.MergedDictionaries.Add(newDict);
+            if (Application.Current != null && Application.Current.Resources != null)
+            {
+                Application.Current.Resources.MergedDictionaries.Clear();
+                Application.Current.Resources.MergedDictionaries.Add(newDict);
+            }
         }
 
         public void Dispose()

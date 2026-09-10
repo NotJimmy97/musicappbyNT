@@ -166,10 +166,18 @@ namespace SpotifyWpf.Client.ViewModels
 
         private void OnAudioStateChanged(object sender, PlaybackState state)
         {
-            Application.Current?.Dispatcher?.InvokeAsync(() =>
+            var dispatcher = Application.Current != null ? Application.Current.Dispatcher : null;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.InvokeAsync(() =>
+                {
+                    PlaybackState = state;
+                });
+            }
+            else
             {
                 PlaybackState = state;
-            });
+            }
         }
 
         private void OnSpectrumDataReady(object sender, float[] bins)
@@ -179,25 +187,46 @@ namespace SpotifyWpf.Client.ViewModels
                 return;
             }
 
-            // Update equalizer bars on Render priority to maintain fluid 30fps animation without UI lag
-            Application.Current?.Dispatcher?.InvokeAsync(() =>
+            var dispatcher = Application.Current != null ? Application.Current.Dispatcher : null;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.InvokeAsync(() =>
+                {
+                    for (int i = 0; i < 16; i++)
+                    {
+                        EqualizerBins[i] = bins[i];
+                    }
+                }, DispatcherPriority.Render);
+            }
+            else
             {
                 for (int i = 0; i < 16; i++)
                 {
                     EqualizerBins[i] = bins[i];
                 }
-            }, DispatcherPriority.Render);
+            }
         }
 
         private void ResetEqualizer()
         {
-            Application.Current?.Dispatcher?.InvokeAsync(() =>
+            var dispatcher = Application.Current != null ? Application.Current.Dispatcher : null;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.InvokeAsync(() =>
+                {
+                    for (int i = 0; i < 16; i++)
+                    {
+                        EqualizerBins[i] = 0.0;
+                    }
+                });
+            }
+            else
             {
                 for (int i = 0; i < 16; i++)
                 {
                     EqualizerBins[i] = 0.0;
                 }
-            });
+            }
         }
 
         private static string FormatSeconds(double totalSeconds)

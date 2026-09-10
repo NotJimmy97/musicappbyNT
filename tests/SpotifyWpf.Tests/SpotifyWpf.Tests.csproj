@@ -40,6 +40,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
     <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
       <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
@@ -59,11 +60,16 @@
       <Project>{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}</Project>
       <Name>SpotifyWpf.AudioEngine</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\SpotifyWpf.Client\SpotifyWpf.Client.csproj">
+      <Project>{E4A6B155-B5EF-4299-C2DB-8D5FB8E1D404}</Project>
+      <Name>SpotifyWpf.Client</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RelayCommandTests.cs" />
     <Compile Include="BffEndpointTests.cs" />
     <Compile Include="FftCalculatorTests.cs" />
+    <Compile Include="ViewModelTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
