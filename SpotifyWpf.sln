@@ -1,0 +1,50 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.37530.8
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyWpf.Core", "src\SpotifyWpf.Core\SpotifyWpf.Core.csproj", "{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyWpf.Bff", "src\SpotifyWpf.Bff\SpotifyWpf.Bff.csproj", "{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyWpf.AudioEngine", "src\SpotifyWpf.AudioEngine\SpotifyWpf.AudioEngine.csproj", "{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpotifyWpf.Client", "src\SpotifyWpf.Client\SpotifyWpf.Client.csproj", "{E4A6B155-B5EF-4299-C2DB-8D5FB8E1D404}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4A6B155-B5EF-4299-C2DB-8D5FB8E1D404}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4A6B155-B5EF-4299-C2DB-8D5FB8E1D404}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4A6B155-B5EF-4299-C2DB-8D5FB8E1D404}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4A6B155-B5EF-4299-C2DB-8D5FB8E1D404}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+		{E4A6B155-B5EF-4299-C2DB-8D5FB8E1D404} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A8B9C0D-1E2F-3A4B-5C6D-7E8F9A0B1C2D}
+	EndGlobalSection
+EndGlobal
