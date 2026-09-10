@@ -12,3 +12,4 @@ namespace SpotifyWpf.Core.Dtos
         public string License { get; set; }
     }
 }
+

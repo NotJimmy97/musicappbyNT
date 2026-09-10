@@ -9,3 +9,4 @@ namespace SpotifyWpf.Core.Models
         Faulted
     }
 }
+

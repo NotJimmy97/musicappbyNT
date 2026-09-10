@@ -12,7 +12,11 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <Deterministic>true</Deterministic>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
@@ -47,9 +51,18 @@
       <Project>{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}</Project>
       <Name>SpotifyWpf.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\SpotifyWpf.Bff\SpotifyWpf.Bff.csproj">
+      <Project>{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}</Project>
+      <Name>SpotifyWpf.Bff</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="RelayCommandTests.cs" />
+    <Compile Include="BffEndpointTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
+

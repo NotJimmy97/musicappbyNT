@@ -82,3 +82,4 @@ namespace SpotifyWpf.Tests
         }
     }
 }
+

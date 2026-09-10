@@ -15,3 +15,4 @@ namespace SpotifyWpf.Core.Dtos
         }
     }
 }
+

@@ -27,3 +27,4 @@ namespace SpotifyWpf.Core.Models
         }
     }
 }
+

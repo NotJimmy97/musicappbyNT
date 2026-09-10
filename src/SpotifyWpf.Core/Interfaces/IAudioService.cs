@@ -22,3 +22,4 @@ namespace SpotifyWpf.Core.Interfaces
         void SetVolume(float volume);
     }
 }
+

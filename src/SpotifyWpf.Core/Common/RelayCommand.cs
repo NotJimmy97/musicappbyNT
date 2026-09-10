@@ -45,3 +45,4 @@ namespace SpotifyWpf.Core.Common
         }
     }
 }
+
