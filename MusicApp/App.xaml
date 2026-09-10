@@ -1,9 +1,12 @@
-﻿<Application x:Class="MusicApp.App"
+<Application x:Class="MusicApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:MusicApp"
-             StartupUri="MainWindow.xaml">
+             xmlns:local="clr-namespace:MusicApp">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MusicApp;component/Resources/Themes/DarkTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,9 +1,21 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.37530.8
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicApp.Core", "src\MusicApp.Core\MusicApp.Core.csproj", "{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicApp.Bff", "src\MusicApp.Bff\MusicApp.Bff.csproj", "{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicApp.AudioEngine", "src\MusicApp.AudioEngine\MusicApp.AudioEngine.csproj", "{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicApp", "MusicApp\MusicApp.csproj", "{ADB9FF58-69BA-4926-A6B9-D70311AF7407}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E1F2A3B4-C5D6-4E7F-8A9B-0C1D2E3F4A5B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MusicApp.Tests", "tests\MusicApp.Tests\MusicApp.Tests.csproj", "{A6C8D377-D7A1-44BB-E4FD-0F71DA03F606}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,13 +23,36 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ADB9FF58-69BA-4926-A6B9-D70311AF7407}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{ADB9FF58-69BA-4926-A6B9-D70311AF7407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADB9FF58-69BA-4926-A6B9-D70311AF7407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADB9FF58-69BA-4926-A6B9-D70311AF7407}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6C8D377-D7A1-44BB-E4FD-0F71DA03F606}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6C8D377-D7A1-44BB-E4FD-0F71DA03F606}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6C8D377-D7A1-44BB-E4FD-0F71DA03F606}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6C8D377-D7A1-44BB-E4FD-0F71DA03F606}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B1D38E22-82BC-4F66-9FA8-5A2C85BEA101} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+		{C2E49F33-93CD-4077-A0B9-6B3D96CFB202} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+		{D3F5A044-A4DE-4188-B1CA-7C4EA7D0C303} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+		{ADB9FF58-69BA-4926-A6B9-D70311AF7407} = {F5B7C266-C6F0-43AA-D3EC-9E60C9F2E505}
+		{A6C8D377-D7A1-44BB-E4FD-0F71DA03F606} = {E1F2A3B4-C5D6-4E7F-8A9B-0C1D2E3F4A5B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {939D97FE-390A-42B2-A676-DAAAD8B60DB9}
