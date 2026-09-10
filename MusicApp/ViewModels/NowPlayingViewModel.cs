@@ -91,12 +91,68 @@ namespace MusicApp.ViewModels
         public string FormattedPosition => FormatSeconds(CurrentPositionSeconds);
         public string FormattedDuration => FormatSeconds(TrackDurationSeconds);
 
+        public bool HasTrackSelected => CurrentTrack != null;
+
+        private bool _isSpinEnabled = true;
+        public bool IsSpinEnabled
+        {
+            get => _isSpinEnabled;
+            set => SetProperty(ref _isSpinEnabled, value);
+        }
+
+        private bool _isRainbowEq = true;
+        public bool IsRainbowEq
+        {
+            get => _isRainbowEq;
+            set
+            {
+                if (SetProperty(ref _isRainbowEq, value))
+                {
+                    ApplyEqualizerColors();
+                }
+            }
+        }
+
+        private double _volume = 0.8;
+        public double Volume
+        {
+            get => _volume;
+            set
+            {
+                if (SetProperty(ref _volume, Math.Max(0.0, Math.Min(1.0, value))))
+                {
+                    if (_audioService != null)
+                    {
+                        _audioService.SetVolume((float)value);
+                    }
+                }
+            }
+        }
+
+        // 16 rainbow spectrum colors matching tthn0/Spotify-Readme modules/colors.py
+        private static readonly string[] SpectrumColors = new[]
+        {
+            "#FF0000", "#FF4000", "#FF8000", "#FFBF00",
+            "#FFFF00", "#BFFF00", "#80FF00", "#40FF00",
+            "#00FF00", "#00FF80", "#00FFFF", "#00BFFF",
+            "#0080FF", "#0040FF", "#0000FF", "#8000FF"
+        };
+        private const string SpotifyGreen = "#1ED760";
+
         public ObservableCollection<double> EqualizerBins { get; } = new ObservableCollection<double>();
+        public ObservableCollection<EqualizerBarViewModel> EqualizerBars { get; } = new ObservableCollection<EqualizerBarViewModel>();
+
+        public Action PlayNextAction { get; set; }
+        public Action PlayPreviousAction { get; set; }
 
         public RelayCommand PlayCommand { get; }
         public RelayCommand PauseCommand { get; }
         public RelayCommand StopCommand { get; }
         public RelayCommand SeekCommand { get; }
+        public RelayCommand NextTrackCommand { get; }
+        public RelayCommand PreviousTrackCommand { get; }
+        public RelayCommand ToggleSpinCommand { get; }
+        public RelayCommand ToggleRainbowCommand { get; }
 
         public NowPlayingViewModel(IAudioService audioService)
         {
@@ -105,6 +161,7 @@ namespace MusicApp.ViewModels
             for (int i = 0; i < 16; i++)
             {
                 EqualizerBins.Add(0.0);
+                EqualizerBars.Add(new EqualizerBarViewModel(2.0, SpectrumColors[i]));
             }
 
             PlayCommand = new RelayCommand(_ => _audioService.Play(), _ => PlaybackState == PlaybackState.Paused || PlaybackState == PlaybackState.Stopped);
@@ -118,6 +175,11 @@ namespace MusicApp.ViewModels
                 }
             });
 
+            NextTrackCommand = new RelayCommand(_ => PlayNextAction?.Invoke());
+            PreviousTrackCommand = new RelayCommand(_ => PlayPreviousAction?.Invoke());
+            ToggleSpinCommand = new RelayCommand(_ => IsSpinEnabled = !IsSpinEnabled);
+            ToggleRainbowCommand = new RelayCommand(_ => IsRainbowEq = !IsRainbowEq);
+
             _audioService.SpectrumDataReady += OnSpectrumDataReady;
             _audioService.StateChanged += OnAudioStateChanged;
 
@@ -126,6 +188,14 @@ namespace MusicApp.ViewModels
                 Interval = TimeSpan.FromMilliseconds(250)
             };
             _positionTimer.Tick += OnPositionTimerTick;
+        }
+
+        private void ApplyEqualizerColors()
+        {
+            for (int i = 0; i < EqualizerBars.Count; i++)
+            {
+                EqualizerBars[i].ColorHex = IsRainbowEq ? SpectrumColors[i % SpectrumColors.Length] : SpotifyGreen;
+            }
         }
 
         public async Task PlayTrackAsync(TrackModel track)
@@ -194,7 +264,12 @@ namespace MusicApp.ViewModels
                 {
                     for (int i = 0; i < 16; i++)
                     {
-                        EqualizerBins[i] = bins[i];
+                        double val = Math.Max(2.0, (double)bins[i]);
+                        EqualizerBins[i] = val;
+                        if (i < EqualizerBars.Count)
+                        {
+                            EqualizerBars[i].Value = val;
+                        }
                     }
                 }, DispatcherPriority.Render);
             }
@@ -202,7 +277,12 @@ namespace MusicApp.ViewModels
             {
                 for (int i = 0; i < 16; i++)
                 {
-                    EqualizerBins[i] = bins[i];
+                    double val = Math.Max(2.0, (double)bins[i]);
+                    EqualizerBins[i] = val;
+                    if (i < EqualizerBars.Count)
+                    {
+                        EqualizerBars[i].Value = val;
+                    }
                 }
             }
         }
@@ -216,7 +296,11 @@ namespace MusicApp.ViewModels
                 {
                     for (int i = 0; i < 16; i++)
                     {
-                        EqualizerBins[i] = 0.0;
+                        EqualizerBins[i] = 2.0;
+                        if (i < EqualizerBars.Count)
+                        {
+                            EqualizerBars[i].Value = 2.0;
+                        }
                     }
                 });
             }
@@ -224,7 +308,11 @@ namespace MusicApp.ViewModels
             {
                 for (int i = 0; i < 16; i++)
                 {
-                    EqualizerBins[i] = 0.0;
+                    EqualizerBins[i] = 2.0;
+                    if (i < EqualizerBars.Count)
+                    {
+                        EqualizerBars[i].Value = 2.0;
+                    }
                 }
             }
         }
@@ -243,3 +331,4 @@ namespace MusicApp.ViewModels
         }
     }
 }
+

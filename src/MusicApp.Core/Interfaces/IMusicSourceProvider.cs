@@ -13,3 +13,4 @@ namespace MusicApp.Core.Interfaces
         Task<Stream> GetAudioStreamAsync(string trackId, long? startByte, long? endByte, CancellationToken cancellationToken);
     }
 }
+

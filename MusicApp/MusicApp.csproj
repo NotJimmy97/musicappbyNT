@@ -106,6 +106,7 @@
     <Compile Include="Converters\PlaybackStateToVisibilityConverter.cs" />
     <Compile Include="Services\MusicApiClient.cs" />
     <Compile Include="ViewModels\TrackItemViewModel.cs" />
+    <Compile Include="ViewModels\EqualizerBarViewModel.cs" />
     <Compile Include="ViewModels\NowPlayingViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
   </ItemGroup>

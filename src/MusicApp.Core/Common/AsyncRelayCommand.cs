@@ -50,3 +50,4 @@ namespace MusicApp.Core.Common
         }
     }
 }
+

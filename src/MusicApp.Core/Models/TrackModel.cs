@@ -10,5 +10,7 @@ namespace MusicApp.Core.Models
         public string CoverImageUrl { get; set; }
         public string StreamUrl { get; set; }
         public string License { get; set; }
+        public string Genre { get; set; }
     }
 }
+

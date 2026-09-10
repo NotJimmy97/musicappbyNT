@@ -28,7 +28,7 @@ namespace MusicApp.Services
 
             HttpClientInstance = new HttpClient(handler)
             {
-                Timeout = TimeSpan.FromSeconds(15)
+                Timeout = TimeSpan.FromSeconds(4)
             };
 
             HttpClientInstance.DefaultRequestHeaders.Accept.Clear();
@@ -70,3 +70,4 @@ namespace MusicApp.Services
         }
     }
 }
+

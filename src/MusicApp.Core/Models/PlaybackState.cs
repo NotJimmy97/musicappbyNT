@@ -9,3 +9,4 @@ namespace MusicApp.Core.Models
         Faulted = 4
     }
 }
+

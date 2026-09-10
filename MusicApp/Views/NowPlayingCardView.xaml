@@ -5,13 +5,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:converters="clr-namespace:MusicApp.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="180" d:DesignWidth="800">
+             d:DesignHeight="200" d:DesignWidth="850">
 
     <UserControl.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
 
-        <!-- 10s Continuous Vinyl Spin Storyboard -->
+        <!-- 10s Continuous Vinyl Spin Storyboard (matching Spotify-Readme CSS: animation: spin 10s linear infinite) -->
         <Storyboard x:Key="VinylSpinStoryboard" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="VinylRotation"
                              Storyboard.TargetProperty="Angle"
@@ -23,206 +23,318 @@
     <Border Background="{DynamicResource CardBackgroundBrush}"
             BorderBrush="{DynamicResource CardBorderBrush}"
             BorderThickness="1"
-            CornerRadius="16"
-            Padding="20"
-            Margin="0,8,0,0">
+            CornerRadius="12"
+            Padding="16"
+            Margin="0,4,0,0">
         <Border.Effect>
             <DropShadowEffect Color="{DynamicResource CardShadowColor}"
-                              BlurRadius="20"
-                              ShadowDepth="4"
-                              Opacity="0.35" />
+                              BlurRadius="18"
+                              ShadowDepth="3"
+                              Opacity="0.3" />
         </Border.Effect>
 
         <Grid>
-            <Grid.ColumnDefinitions>
-                <!-- Vinyl Disc Area -->
-                <ColumnDefinition Width="130" />
-                <!-- Metadata, Controls & Visualizer Area -->
-                <ColumnDefinition Width="*" />
-                <!-- 16-Bar Equalizer Area -->
-                <ColumnDefinition Width="160" />
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <!-- Main Widget Card Content (faithful to Spotify-Readme widget.html) -->
+                <RowDefinition Height="*" />
+                <!-- Timeline & Transport Controls -->
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
 
-            <!-- Column 0: Circular Vinyl Disc with Center Pivot Rotation -->
-            <Grid Grid.Column="0" Width="120" Height="120" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Border Width="120" Height="120"
-                        CornerRadius="60"
-                        Background="#0D0D0D"
-                        BorderBrush="#2A2A2A"
-                        BorderThickness="2">
-                    <Grid>
-                        <!-- Grooves -->
-                        <Ellipse Width="100" Height="100" Stroke="#1F1F1F" StrokeThickness="1" />
-                        <Ellipse Width="80" Height="80" Stroke="#1F1F1F" StrokeThickness="1" />
-                        <Ellipse Width="60" Height="60" Stroke="#1F1F1F" StrokeThickness="1" />
+            <!-- Row 0: Spotify-Readme Core Widget -->
+            <Grid Grid.Row="0" Margin="0,0,0,12">
+                <Grid.ColumnDefinitions>
+                    <!-- Column 0: 120x120 Album Cover / Vinyl Disc -->
+                    <ColumnDefinition Width="130" />
+                    <!-- Column 1: Info (Logo + Title + Artist) & Equalizer Bars -->
+                    <ColumnDefinition Width="*" />
+                    <!-- Column 2: Player Controls & Quick Settings -->
+                    <ColumnDefinition Width="220" />
+                </Grid.ColumnDefinitions>
 
-                        <!-- Center Album Art with EllipseGeometry Clip -->
-                        <Image Width="60" Height="60"
-                               Source="{Binding CurrentTrack.CoverImageUrl, Converter={StaticResource FrozenImageConverter}}"
-                               Stretch="UniformToFill">
-                            <Image.Clip>
-                                <EllipseGeometry Center="30,30" RadiusX="30" RadiusY="30" />
-                            </Image.Clip>
-                        </Image>
+                <!-- Column 0: Cover Image with Vinyl Spin or Rounded Cover -->
+                <Grid Grid.Column="0" Width="120" Height="120" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <!-- Spinning Vinyl Mode -->
+                    <Grid x:Name="VinylContainer">
+                        <Grid.RenderTransformOrigin>
+                            <Point X="0.5" Y="0.5" />
+                        </Grid.RenderTransformOrigin>
+                        <Grid.RenderTransform>
+                            <RotateTransform x:Name="VinylRotation" Angle="0" />
+                        </Grid.RenderTransform>
 
-                        <!-- Center Hole Spindle -->
-                        <Ellipse Width="10" Height="10" Fill="#121212" Stroke="#333333" StrokeThickness="1" />
+                        <!-- Outer Vinyl Base -->
+                        <Border Width="120" Height="120"
+                                CornerRadius="60"
+                                Background="#121212"
+                                BorderBrush="#282828"
+                                BorderThickness="2">
+                            <Grid>
+                                <!-- Grooves -->
+                                <Ellipse Width="106" Height="106" Stroke="#1E1E1E" StrokeThickness="1" />
+                                <Ellipse Width="92" Height="92" Stroke="#242424" StrokeThickness="1" />
+                                <Ellipse Width="78" Height="78" Stroke="#1E1E1E" StrokeThickness="1" />
+
+                                <!-- Center Album Art (Circular) -->
+                                <Image Width="64" Height="64"
+                                       Source="{Binding CurrentTrack.CoverImageUrl, Converter={StaticResource FrozenImageConverter}}"
+                                       Stretch="UniformToFill">
+                                    <Image.Clip>
+                                        <EllipseGeometry Center="32,32" RadiusX="32" RadiusY="32" />
+                                    </Image.Clip>
+                                </Image>
+
+                                <!-- Spindle Hole -->
+                                <Ellipse Width="12" Height="12" Fill="#0D1117" Stroke="#30363D" StrokeThickness="1.5" />
+                            </Grid>
+                        </Border>
                     </Grid>
-                </Border>
-
-                <!-- Center-pivoted RenderTransform for continuous rotation -->
-                <Grid.RenderTransformOrigin>
-                    <Point X="0.5" Y="0.5" />
-                </Grid.RenderTransformOrigin>
-                <Grid.RenderTransform>
-                    <RotateTransform x:Name="VinylRotation" Angle="0" />
-                </Grid.RenderTransform>
-            </Grid>
-
-            <!-- Column 1: Track Details, Timeline Slider & Controls -->
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="24,0,20,0">
-                <!-- Track Title -->
-                <TextBlock Text="{Binding CurrentTrack.Title, FallbackValue='No Track Selected'}"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           Foreground="{DynamicResource TitleForegroundBrush}"
-                           TextTrimming="CharacterEllipsis" />
-
-                <!-- Artist and Album -->
-                <TextBlock FontSize="13"
-                           Foreground="{DynamicResource SubtitleForegroundBrush}"
-                           TextTrimming="CharacterEllipsis"
-                           Margin="0,4,0,12">
-                    <Run Text="{Binding CurrentTrack.Artist, FallbackValue='Select a track from the catalog'}" />
-                    <Run Text=" • " />
-                    <Run Text="{Binding CurrentTrack.Album, FallbackValue='Jamendo Music'}" />
-                </TextBlock>
-
-                <!-- Timeline Slider -->
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Column="0"
-                               Text="{Binding FormattedPosition}"
-                               FontSize="11"
-                               Foreground="{DynamicResource SubtitleForegroundBrush}"
-                               VerticalAlignment="Center"
-                               Margin="0,0,8,0" />
-
-                    <Slider Grid.Column="1"
-                            x:Name="TimelineSlider"
-                            Minimum="0"
-                            Maximum="{Binding TrackDurationSeconds}"
-                            Value="{Binding CurrentPositionSeconds, Mode=TwoWay}"
-                            IsEnabled="{Binding CanSeek}"
-                            VerticalAlignment="Center"
-                            PreviewMouseDown="TimelineSlider_PreviewMouseDown"
-                            PreviewMouseUp="TimelineSlider_PreviewMouseUp"
-                            Cursor="Hand" />
-
-                    <TextBlock Grid.Column="2"
-                               Text="{Binding FormattedDuration}"
-                               FontSize="11"
-                               Foreground="{DynamicResource SubtitleForegroundBrush}"
-                               VerticalAlignment="Center"
-                               Margin="8,0,0,0" />
                 </Grid>
 
-                <!-- Playback Buttons Panel -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
-                    <!-- Play Button -->
-                    <Button Command="{Binding PlayCommand}"
-                            Width="44" Height="44"
-                            Margin="8,0"
-                            Background="{DynamicResource AccentBrandBrush}"
-                            Foreground="#FFFFFF"
-                            FontWeight="Bold"
-                            BorderThickness="0"
-                            Cursor="Hand">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="22">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <Path Fill="#FFFFFF" Data="M 0 0 L 14 8 L 0 16 Z" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,0,0" />
-                    </Button>
+                <!-- Column 1: Spotify Info & Equalizer Bars (Exact layout from widget.html) -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="16,0,16,0">
+                    <!-- Top: Spotify Logo + Track Name -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Spotify Official Logo Icon -->
+                        <Viewbox Width="22" Height="22" Margin="0,0,10,0" VerticalAlignment="Center">
+                            <Canvas Width="24" Height="24">
+                                <Ellipse Width="24" Height="24" Fill="#1ED760" />
+                                <Path Fill="#121212"
+                                      Data="M 6.2 8.5 C 10.4 7.2 15.6 7.6 18.6 9.4 C 18.2 10.0 17.4 10.2 16.8 9.8 C 14.1 8.2 9.5 7.8 5.7 9.0 C 5.1 9.2 4.4 8.8 4.2 8.2 C 4.0 7.6 4.4 6.9 5.0 6.7 C 5.4 6.6 5.8 6.5 6.2 8.5 Z" />
+                                <Path Fill="#121212"
+                                      Data="M 6.8 11.5 C 10.2 10.4 14.4 10.8 17.0 12.4 C 16.5 13.0 15.8 13.2 15.2 12.8 C 13.0 11.5 9.4 11.2 6.4 12.1 C 5.8 12.3 5.2 11.9 5.0 11.3 C 4.8 10.7 5.2 10.1 5.8 9.9 C 6.1 9.8 6.5 9.7 6.8 11.5 Z" />
+                                <Path Fill="#121212"
+                                      Data="M 7.5 14.5 C 10.1 13.7 13.3 14.0 15.4 15.3 C 14.9 15.8 14.3 16.0 13.8 15.7 C 12.1 14.6 9.3 14.4 7.1 15.1 C 6.5 15.3 5.9 14.9 5.7 14.3 C 5.5 13.7 5.9 13.1 6.5 12.9 C 6.8 12.8 7.1 12.7 7.5 14.5 Z" />
+                            </Canvas>
+                        </Viewbox>
 
-                    <!-- Pause Button -->
-                    <Button Command="{Binding PauseCommand}"
-                            Width="44" Height="44"
-                            Margin="8,0"
-                            Background="{DynamicResource CardBorderBrush}"
-                            Foreground="{DynamicResource TitleForegroundBrush}"
-                            BorderThickness="0"
-                            Cursor="Hand">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="22">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Rectangle Width="4" Height="14" Fill="{DynamicResource TitleForegroundBrush}" Margin="1,0" RadiusX="1" RadiusY="1" />
-                            <Rectangle Width="4" Height="14" Fill="{DynamicResource TitleForegroundBrush}" Margin="1,0" RadiusX="1" RadiusY="1" />
-                        </StackPanel>
-                    </Button>
+                        <!-- Track Title (20px bold per widget.html h1) -->
+                        <TextBlock Text="{Binding CurrentTrack.Title, FallbackValue='No Track Playing'}"
+                                   FontSize="19"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TitleForegroundBrush}"
+                                   TextTrimming="CharacterEllipsis"
+                                   MaxWidth="380"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
 
-                    <!-- Stop Button -->
-                    <Button Command="{Binding StopCommand}"
-                            Width="44" Height="44"
-                            Margin="8,0"
-                            Background="{DynamicResource CardBorderBrush}"
-                            Foreground="{DynamicResource TitleForegroundBrush}"
-                            BorderThickness="0"
-                            Cursor="Hand">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="22">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                        <Rectangle Width="12" Height="12" Fill="{DynamicResource TitleForegroundBrush}" RadiusX="2" RadiusY="2" />
-                    </Button>
+                    <!-- Subtitle: Artist & Album (16px per widget.html p) -->
+                    <TextBlock FontSize="15"
+                               FontWeight="Medium"
+                               Foreground="{DynamicResource SubtitleForegroundBrush}"
+                               TextTrimming="CharacterEllipsis"
+                               Margin="32,3,0,10">
+                        <Run Text="{Binding CurrentTrack.Artist, FallbackValue='Select a song from the playlist above'}" />
+                        <Run Text=" • " />
+                        <Run Text="{Binding CurrentTrack.Album, FallbackValue='Spotify-Readme Edition'}" />
+                    </TextBlock>
+
+                    <!-- Equalizer Bars Container (Faithful to widget.html .bar-container) -->
+                    <Border Background="{DynamicResource CardSurfaceBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8,4"
+                            Height="38"
+                            HorizontalAlignment="Left">
+                        <ItemsControl ItemsSource="{Binding EqualizerBars}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <!-- Bar: Width 18px, Height up to 30px, border-radius: 3px 3px 0 0 -->
+                                    <Border Width="16"
+                                            Height="{Binding Value}"
+                                            MaxHeight="30"
+                                            CornerRadius="3,3,0,0"
+                                            Margin="2,0"
+                                            VerticalAlignment="Bottom">
+                                        <Border.Background>
+                                            <SolidColorBrush Color="{Binding ColorHex}" />
+                                        </Border.Background>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
                 </StackPanel>
-            </StackPanel>
 
-            <!-- Column 2: 16-Bar Real-Time Equalizer Spectrum Display -->
-            <Border Grid.Column="2"
-                    Background="{DynamicResource InputBackgroundBrush}"
-                    BorderBrush="{DynamicResource CardBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="6"
-                    Height="80"
-                    VerticalAlignment="Center">
-                <ItemsControl ItemsSource="{Binding EqualizerBins}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid VerticalAlignment="Bottom">
-                                <Rectangle Width="6"
-                                           Height="{Binding}"
-                                           MaxHeight="68"
-                                           Fill="{DynamicResource AccentBrandBrush}"
-                                           RadiusX="2" RadiusY="2"
-                                           Margin="1.5,0" />
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </Border>
+                <!-- Column 2: Controls & Options -->
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                    <!-- Transport Buttons (Previous, Play/Pause, Next, Stop) -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                        <!-- Previous Button -->
+                        <Button Command="{Binding PreviousTrackCommand}"
+                                Width="34" Height="34"
+                                Margin="4,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                ToolTip="Previous Track">
+                            <Path Fill="{DynamicResource TitleForegroundBrush}"
+                                  Data="M 12 4 L 4 10 L 12 16 Z M 4 4 L 2 4 L 2 16 L 4 16 Z"
+                                  Stretch="Uniform" Width="14" Height="14" />
+                        </Button>
+
+                        <!-- Play Button (shown when not playing) -->
+                        <Button Command="{Binding PlayCommand}"
+                                Width="42" Height="42"
+                                Margin="6,0"
+                                Background="{DynamicResource AccentBrandBrush}"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                ToolTip="Play">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="21">
+                                        <Path Fill="#FFFFFF" Data="M 0 0 L 12 7 L 0 14 Z" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3,0,0,0" />
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- Pause Button (shown when playing) -->
+                        <Button Command="{Binding PauseCommand}"
+                                Width="42" Height="42"
+                                Margin="6,0"
+                                Background="{DynamicResource AccentBrandBrush}"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                ToolTip="Pause">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPlaying}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="21">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                            <Rectangle Width="4" Height="14" Fill="#FFFFFF" Margin="1.5,0" RadiusX="1" RadiusY="1" />
+                                            <Rectangle Width="4" Height="14" Fill="#FFFFFF" Margin="1.5,0" RadiusX="1" RadiusY="1" />
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- Next Button -->
+                        <Button Command="{Binding NextTrackCommand}"
+                                Width="34" Height="34"
+                                Margin="4,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                ToolTip="Next Track">
+                            <Path Fill="{DynamicResource TitleForegroundBrush}"
+                                  Data="M 2 4 L 10 10 L 2 16 Z M 10 4 L 12 4 L 12 16 L 10 16 Z"
+                                  Stretch="Uniform" Width="14" Height="14" />
+                        </Button>
+
+                        <!-- Stop Button -->
+                        <Button Command="{Binding StopCommand}"
+                                Width="34" Height="34"
+                                Margin="4,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                ToolTip="Stop">
+                            <Rectangle Width="12" Height="12" Fill="{DynamicResource SubtitleForegroundBrush}" RadiusX="2" RadiusY="2" />
+                        </Button>
+                    </StackPanel>
+
+                    <!-- Volume & Effect Toggles -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <!-- Volume Slider -->
+                        <TextBlock Text="🔊" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource SubtitleForegroundBrush}" Margin="0,0,4,0" />
+                        <Slider Width="75"
+                                Minimum="0" Maximum="1"
+                                Value="{Binding Volume, Mode=TwoWay}"
+                                VerticalAlignment="Center"
+                                Margin="0,0,10,0" />
+
+                        <!-- Spin CD Toggle Button -->
+                        <Button Command="{Binding ToggleSpinCommand}"
+                                Content="CD Spin"
+                                Padding="6,2"
+                                FontSize="10"
+                                FontWeight="SemiBold"
+                                Margin="2,0"
+                                Background="{DynamicResource CardSurfaceBrush}"
+                                Foreground="{DynamicResource SubtitleForegroundBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                Cursor="Hand" />
+
+                        <!-- Rainbow EQ Toggle Button -->
+                        <Button Command="{Binding ToggleRainbowCommand}"
+                                Content="Rainbow"
+                                Padding="6,2"
+                                FontSize="10"
+                                FontWeight="SemiBold"
+                                Margin="2,0"
+                                Background="{DynamicResource CardSurfaceBrush}"
+                                Foreground="{DynamicResource AccentBrandBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                Cursor="Hand" />
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+            <!-- Row 1: Scrubber Timeline Bar -->
+            <Grid Grid.Row="1" Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="{Binding FormattedPosition}"
+                           FontSize="11"
+                           FontFamily="Segoe UI Mono, Consolas"
+                           Foreground="{DynamicResource SubtitleForegroundBrush}"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0" />
+
+                <Slider Grid.Column="1"
+                        x:Name="TimelineSlider"
+                        Minimum="0"
+                        Maximum="{Binding TrackDurationSeconds}"
+                        Value="{Binding CurrentPositionSeconds, Mode=TwoWay}"
+                        IsEnabled="{Binding CanSeek}"
+                        VerticalAlignment="Center"
+                        PreviewMouseDown="TimelineSlider_PreviewMouseDown"
+                        PreviewMouseUp="TimelineSlider_PreviewMouseUp"
+                        Cursor="Hand" />
+
+                <TextBlock Grid.Column="2"
+                           Text="{Binding FormattedDuration}"
+                           FontSize="11"
+                           FontFamily="Segoe UI Mono, Consolas"
+                           Foreground="{DynamicResource SubtitleForegroundBrush}"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

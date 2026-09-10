@@ -22,3 +22,4 @@ namespace MusicApp.Core.Interfaces
         void SetVolume(float volume);
     }
 }
+

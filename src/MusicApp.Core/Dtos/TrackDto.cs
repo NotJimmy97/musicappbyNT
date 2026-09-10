@@ -10,5 +10,7 @@ namespace MusicApp.Core.Dtos
         public string CoverImageUrl { get; set; }
         public string StreamEndpoint { get; set; }
         public string License { get; set; }
+        public string Genre { get; set; }
     }
 }
+

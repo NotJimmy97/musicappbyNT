@@ -6,197 +6,367 @@
         xmlns:views="clr-namespace:MusicApp.Views"
         xmlns:converters="clr-namespace:MusicApp.Converters"
         mc:Ignorable="d"
-        Title="MusicApp - Native Desktop Audio Player (.NET 4.6.1)"
-        Height="720" Width="960"
-        MinHeight="600" MinWidth="800"
+        Title="Spotify Readme Desktop Player"
+        Height="780" Width="1060"
+        MinHeight="650" MinWidth="850"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}">
 
     <Window.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
+
+        <Style x:Key="GenrePillButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TitleForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="14"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource ListHoverBackgroundBrush}" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="20,16,20,16">
         <Grid.RowDefinitions>
-            <!-- Row 0: Top Search & Theme Control Bar -->
+            <!-- Row 0: Top Header & Search Bar -->
             <RowDefinition Height="Auto" />
-            <!-- Row 1: Main Content Track Catalog Area -->
+            <!-- Row 1: Genre Filter Pills -->
+            <RowDefinition Height="Auto" />
+            <!-- Row 2: Spotify Track Catalog List -->
             <RowDefinition Height="*" />
-            <!-- Row 2: Fixed Now Playing Player Card -->
+            <!-- Row 3: Spotify-Readme Player Card -->
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Top Header Bar -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
+        <!-- Row 0: Top Header & Search Bar -->
+        <Grid Grid.Row="0" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
+                <!-- Brand Title -->
                 <ColumnDefinition Width="Auto" />
+                <!-- Search Input Area -->
+                <ColumnDefinition Width="*" />
+                <!-- Theme Toggle Button -->
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Search Input Box with Real-Time Debounce -->
-            <Border Grid.Column="0"
+            <!-- Brand Logo & Title -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,24,0">
+                <Viewbox Width="28" Height="28" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <Canvas Width="24" Height="24">
+                        <Ellipse Width="24" Height="24" Fill="#1ED760" />
+                        <Path Fill="#121212"
+                              Data="M 6.2 8.5 C 10.4 7.2 15.6 7.6 18.6 9.4 C 18.2 10.0 17.4 10.2 16.8 9.8 C 14.1 8.2 9.5 7.8 5.7 9.0 C 5.1 9.2 4.4 8.8 4.2 8.2 C 4.0 7.6 4.4 6.9 5.0 6.7 C 5.4 6.6 5.8 6.5 6.2 8.5 Z" />
+                        <Path Fill="#121212"
+                              Data="M 6.8 11.5 C 10.2 10.4 14.4 10.8 17.0 12.4 C 16.5 13.0 15.8 13.2 15.2 12.8 C 13.0 11.5 9.4 11.2 6.4 12.1 C 5.8 12.3 5.2 11.9 5.0 11.3 C 4.8 10.7 5.2 10.1 5.8 9.9 C 6.1 9.8 6.5 9.7 6.8 11.5 Z" />
+                        <Path Fill="#121212"
+                              Data="M 7.5 14.5 C 10.1 13.7 13.3 14.0 15.4 15.3 C 14.9 15.8 14.3 16.0 13.8 15.7 C 12.1 14.6 9.3 14.4 7.1 15.1 C 6.5 15.3 5.9 14.9 5.7 14.3 C 5.5 13.7 5.9 13.1 6.5 12.9 C 6.8 12.8 7.1 12.7 7.5 14.5 Z" />
+                    </Canvas>
+                </Viewbox>
+                <TextBlock Text="Spotify Readme"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource TitleForegroundBrush}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+
+            <!-- Search Input Box -->
+            <Border Grid.Column="1"
                     Background="{DynamicResource InputBackgroundBrush}"
                     BorderBrush="{DynamicResource CardBorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="12,6">
+                    CornerRadius="20"
+                    Padding="14,6"
+                    MaxWidth="520"
+                    HorizontalAlignment="Left"
+                    Width="480">
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="14"
+                    <!-- Search Icon -->
+                    <TextBlock Grid.Column="0" Text="🔍" FontSize="12" Foreground="{DynamicResource SubtitleForegroundBrush}" VerticalAlignment="Center" Margin="0,0,8,0" />
+
+                    <!-- Search TextBox -->
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SearchKeyword, UpdateSourceTrigger=PropertyChanged}"
+                             FontSize="13"
                              Background="Transparent"
                              Foreground="{DynamicResource TitleForegroundBrush}"
                              BorderThickness="0"
                              VerticalAlignment="Center" />
 
-                    <TextBlock Grid.Column="1"
+                    <!-- Searching Spinner/Text Indicator -->
+                    <TextBlock Grid.Column="2"
                                Text="Searching..."
-                               FontSize="12"
+                               FontSize="11"
                                Foreground="{DynamicResource AccentBrandBrush}"
                                VerticalAlignment="Center"
+                               Margin="6,0"
                                Visibility="{Binding IsSearching, Converter={StaticResource BoolToVisConverter}}" />
+
+                    <!-- Clear Search Button -->
+                    <Button Grid.Column="3"
+                            Command="{Binding ClearSearchCommand}"
+                            Content="✕"
+                            FontSize="11"
+                            Width="20" Height="20"
+                            Background="Transparent"
+                            Foreground="{DynamicResource SubtitleForegroundBrush}"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            ToolTip="Clear Search" />
                 </Grid>
             </Border>
 
-            <!-- Explicit Search Button -->
-            <Button Grid.Column="1"
-                    Content="Search"
-                    Command="{Binding SearchCommand}"
-                    Width="80" Height="38"
-                    Margin="12,0,0,0"
-                    Background="{DynamicResource AccentBrandBrush}"
-                    Foreground="#FFFFFF"
-                    FontWeight="Bold"
-                    BorderThickness="0"
-                    Cursor="Hand" />
-
-            <!-- Dark / Light Theme Toggle Button -->
+            <!-- Dark / Light Theme Toggle -->
             <Button Grid.Column="2"
                     Content="{Binding ThemeButtonText}"
                     Command="{Binding ToggleThemeCommand}"
-                    Width="110" Height="38"
-                    Margin="12,0,0,0"
+                    Height="36"
+                    Padding="16,0"
                     Background="{DynamicResource CardBackgroundBrush}"
                     Foreground="{DynamicResource TitleForegroundBrush}"
                     BorderBrush="{DynamicResource CardBorderBrush}"
                     BorderThickness="1"
-                    FontWeight="Medium"
-                    Cursor="Hand" />
+                    FontWeight="SemiBold"
+                    FontSize="12"
+                    Cursor="Hand">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="18"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
         </Grid>
 
-        <!-- Track Catalog Results List -->
-        <Border Grid.Row="1"
+        <!-- Row 1: Quick Genre Filter Pills Bar -->
+        <ScrollViewer Grid.Row="1"
+                      HorizontalScrollBarVisibility="Hidden"
+                      VerticalScrollBarVisibility="Disabled"
+                      Margin="0,0,0,12">
+            <ItemsControl ItemsSource="{Binding Genres}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding}"
+                                Command="{Binding DataContext.FilterGenreCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}"
+                                Style="{StaticResource GenrePillButtonStyle}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Row 2: Spotify Track Catalog List -->
+        <Border Grid.Row="2"
                 Background="{DynamicResource CardBackgroundBrush}"
                 BorderBrush="{DynamicResource CardBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="12"
-                Margin="0,0,0,16"
-                Padding="8">
-            <ListBox ItemsSource="{Binding SearchResults}"
-                     Background="Transparent"
-                     BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     VirtualizingStackPanel.IsVirtualizing="True"
-                     VirtualizingStackPanel.VirtualizationMode="Recycling">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="Padding" Value="8,6" />
-                        <Setter Property="Margin" Value="0,2" />
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <Border x:Name="ItemBorder"
-                                            Background="Transparent"
-                                            CornerRadius="6"
-                                            Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter />
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ListHoverBackgroundBrush}" />
-                                        </Trigger>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ListSelectedBackgroundBrush}" />
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
+                Margin="0,0,0,12"
+                Padding="12,8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <!-- Table Column Headers -->
+                    <RowDefinition Height="Auto" />
+                    <!-- List of Tracks -->
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="50" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="150" />
-                                <ColumnDefinition Width="80" />
-                                <ColumnDefinition Width="80" />
-                            </Grid.ColumnDefinitions>
+                <!-- Column Headers (Faithful to Spotify Playlist table) -->
+                <Grid Grid.Row="0" Margin="8,4,8,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="40" />
+                        <ColumnDefinition Width="60" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="130" />
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="80" />
+                    </Grid.ColumnDefinitions>
 
-                            <!-- Thumbnail with Frozen BitmapImage -->
-                            <Border Grid.Column="0" Width="44" Height="44" CornerRadius="6" ClipToBounds="True">
-                                <Image Source="{Binding CoverImageUrl, Converter={StaticResource FrozenImageConverter}}"
-                                       Stretch="UniformToFill" />
-                            </Border>
+                    <TextBlock Grid.Column="0" Text="#" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource SubtitleForegroundBrush}" />
+                    <TextBlock Grid.Column="1" Text="COVER" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtitleForegroundBrush}" />
+                    <TextBlock Grid.Column="2" Text="TITLE" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtitleForegroundBrush}" Margin="8,0,0,0" />
+                    <TextBlock Grid.Column="3" Text="GENRE" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtitleForegroundBrush}" />
+                    <TextBlock Grid.Column="4" Text="ALBUM" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtitleForegroundBrush}" />
+                    <TextBlock Grid.Column="5" Text="TIME" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtitleForegroundBrush}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Column="6" Text="ACTION" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource SubtitleForegroundBrush}" HorizontalAlignment="Center" />
+                </Grid>
 
-                            <!-- Title & Artist -->
-                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
-                                <TextBlock Text="{Binding Title}"
-                                           FontSize="14"
-                                           FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TitleForegroundBrush}"
-                                           TextTrimming="CharacterEllipsis" />
-                                <TextBlock Text="{Binding Artist}"
+                <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="{DynamicResource CardBorderBrush}" Margin="4,0" />
+
+                <!-- Track List Items -->
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding SearchResults}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         VirtualizingStackPanel.IsVirtualizing="True"
+                         VirtualizingStackPanel.VirtualizationMode="Recycling">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="8,6" />
+                            <Setter Property="Margin" Value="0,2" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="ItemBorder"
+                                                Background="Transparent"
+                                                CornerRadius="8"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ListHoverBackgroundBrush}" />
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource ListSelectedBackgroundBrush}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="40" />
+                                    <ColumnDefinition Width="60" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="130" />
+                                    <ColumnDefinition Width="160" />
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="80" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Index/Play indicator -->
+                                <TextBlock Grid.Column="0"
+                                           Text="▶"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource AccentBrandBrush}"
+                                           VerticalAlignment="Center" />
+
+                                <!-- Cover Art Thumbnail with Frozen Image -->
+                                <Border Grid.Column="1" Width="42" Height="42" CornerRadius="6" ClipToBounds="True" Background="#161B22">
+                                    <Image Source="{Binding CoverImageUrl, Converter={StaticResource FrozenImageConverter}}"
+                                           Stretch="UniformToFill" />
+                                </Border>
+
+                                <!-- Title & Artist -->
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="8,0,12,0">
+                                    <TextBlock Text="{Binding Title}"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TitleForegroundBrush}"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Artist}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource SubtitleForegroundBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="0,2,0,0" />
+                                </StackPanel>
+
+                                <!-- Genre Tag -->
+                                <Border Grid.Column="3"
+                                        Background="{DynamicResource CardSurfaceBrush}"
+                                        BorderBrush="{DynamicResource CardBorderBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="10"
+                                        Padding="8,3"
+                                        HorizontalAlignment="Left"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Genre}"
+                                               FontSize="11"
+                                               FontWeight="Medium"
+                                               Foreground="{DynamicResource AccentBrandBrush}" />
+                                </Border>
+
+                                <!-- Album -->
+                                <TextBlock Grid.Column="4"
+                                           Text="{Binding Album}"
                                            FontSize="12"
                                            Foreground="{DynamicResource SubtitleForegroundBrush}"
                                            TextTrimming="CharacterEllipsis"
-                                           Margin="0,2,0,0" />
-                            </StackPanel>
+                                           VerticalAlignment="Center"
+                                           Margin="0,0,12,0" />
 
-                            <!-- Album -->
-                            <TextBlock Grid.Column="2"
-                                       Text="{Binding Album}"
-                                       FontSize="12"
-                                       Foreground="{DynamicResource SubtitleForegroundBrush}"
-                                       TextTrimming="CharacterEllipsis"
-                                       VerticalAlignment="Center"
-                                       Margin="8,0" />
+                                <!-- Duration -->
+                                <TextBlock Grid.Column="5"
+                                           Text="{Binding FormattedDuration}"
+                                           FontSize="12"
+                                           FontFamily="Segoe UI Mono, Consolas"
+                                           Foreground="{DynamicResource SubtitleForegroundBrush}"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Center" />
 
-                            <!-- Duration -->
-                            <TextBlock Grid.Column="3"
-                                       Text="{Binding FormattedDuration}"
-                                       FontSize="12"
-                                       Foreground="{DynamicResource SubtitleForegroundBrush}"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Center" />
-
-                            <!-- Play Track Button -->
-                            <Button Grid.Column="4"
-                                    Content="Play"
-                                    Command="{Binding PlayCommand}"
-                                    Width="60" Height="28"
-                                    Background="{DynamicResource AccentBrandBrush}"
-                                    Foreground="#FFFFFF"
-                                    FontWeight="SemiBold"
-                                    BorderThickness="0"
-                                    Cursor="Hand" />
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                                <!-- Play Button -->
+                                <Button Grid.Column="6"
+                                        Command="{Binding PlayCommand}"
+                                        Content="Play"
+                                        Width="64" Height="28"
+                                        Background="{DynamicResource AccentBrandBrush}"
+                                        Foreground="#FFFFFF"
+                                        FontWeight="SemiBold"
+                                        FontSize="12"
+                                        BorderThickness="0"
+                                        Cursor="Hand">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="14">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
         </Border>
 
-        <!-- Fixed Bottom Now Playing Player Card -->
-        <views:NowPlayingCardView Grid.Row="2" DataContext="{Binding NowPlaying}" />
+        <!-- Row 3: Fixed Bottom Spotify-Readme Now Playing Card -->
+        <views:NowPlayingCardView Grid.Row="3" DataContext="{Binding NowPlaying}" />
     </Grid>
 </Window>

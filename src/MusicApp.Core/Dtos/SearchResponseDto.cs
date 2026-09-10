@@ -8,3 +8,4 @@ namespace MusicApp.Core.Dtos
         public List<TrackDto> Items { get; set; } = new List<TrackDto>();
     }
 }
+

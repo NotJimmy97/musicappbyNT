@@ -30,28 +30,43 @@ namespace MusicApp.Views
             if (e.NewValue is NowPlayingViewModel newVm)
             {
                 newVm.PropertyChanged += OnViewModelPropertyChanged;
-                UpdateAnimationState(newVm.PlaybackState);
+                UpdateAnimationState(newVm);
             }
         }
 
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(NowPlayingViewModel.PlaybackState) && sender is NowPlayingViewModel vm)
+            if (sender is NowPlayingViewModel vm)
             {
-                UpdateAnimationState(vm.PlaybackState);
+                if (e.PropertyName == nameof(NowPlayingViewModel.PlaybackState) ||
+                    e.PropertyName == nameof(NowPlayingViewModel.IsSpinEnabled))
+                {
+                    UpdateAnimationState(vm);
+                }
             }
         }
 
-        private void UpdateAnimationState(PlaybackState state)
+        private void UpdateAnimationState(NowPlayingViewModel vm)
         {
             if (_spinStoryboard == null)
             {
                 _spinStoryboard = (Storyboard)Resources["VinylSpinStoryboard"];
             }
 
-            if (_spinStoryboard == null) return;
+            if (_spinStoryboard == null || vm == null) return;
 
-            switch (state)
+            if (!vm.IsSpinEnabled)
+            {
+                if (_isStoryboardActive)
+                {
+                    _spinStoryboard.Stop(this);
+                    _isStoryboardActive = false;
+                }
+                VinylRotation.Angle = 0;
+                return;
+            }
+
+            switch (vm.PlaybackState)
             {
                 case PlaybackState.Playing:
                     if (!_isStoryboardActive)
@@ -101,3 +116,4 @@ namespace MusicApp.Views
         }
     }
 }
+

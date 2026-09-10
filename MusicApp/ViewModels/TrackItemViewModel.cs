@@ -16,6 +16,7 @@ namespace MusicApp.ViewModels
         public string CoverImageUrl => Track.CoverImageUrl;
         public string StreamUrl => Track.StreamUrl;
         public string License => Track.License;
+        public string Genre => Track.Genre ?? "Electronic";
 
         public string FormattedDuration
         {
@@ -35,3 +36,4 @@ namespace MusicApp.ViewModels
         }
     }
 }
+

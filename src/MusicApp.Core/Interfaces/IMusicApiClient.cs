@@ -11,3 +11,4 @@ namespace MusicApp.Core.Interfaces
         Task<string> SearchTracksRawAsync(string query, int limit, CancellationToken cancellationToken);
     }
 }
+
