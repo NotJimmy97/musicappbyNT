@@ -1,10 +1,12 @@
 <Application x:Class="SpotifyWpf.Client.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:SpotifyWpf.Client"
-             StartupUri="MainWindow.xaml">
+             xmlns:local="clr-namespace:SpotifyWpf.Client">
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/SpotifyWpf.Client;component/Resources/Themes/DarkTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
-
