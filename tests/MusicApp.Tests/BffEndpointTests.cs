@@ -80,6 +80,56 @@ namespace MusicApp.Tests
                 response.StatusCode == HttpStatusCode.BadGateway
             );
         }
+
+        [TestMethod]
+        public async Task SearchEndpoint_WithVietnameseQuery_ReturnsVietnameseTracks()
+        {
+            var response = await _client.GetAsync("api/v1/search?query=vietnam&limit=5");
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            string body = await response.Content.ReadAsStringAsync();
+            var searchResult = JsonConvert.DeserializeObject<SearchResponseDto>(body);
+
+            Assert.IsNotNull(searchResult);
+            Assert.IsTrue(searchResult.Total > 0);
+            Assert.IsTrue(searchResult.Items.Count > 0);
+
+            var firstItem = searchResult.Items[0];
+            Assert.IsTrue(firstItem.Id.StartsWith("vn_track_"));
+            Assert.IsFalse(string.IsNullOrWhiteSpace(firstItem.Title));
+            Assert.IsTrue(firstItem.StreamEndpoint.StartsWith("/api/v1/stream/vn_track_"));
+        }
+
+        [TestMethod]
+        public async Task SearchEndpoint_WithAccentInsensitiveQuery_MatchesVietnameseTitle()
+        {
+            var response = await _client.GetAsync("api/v1/search?query=diem%20xua&limit=1");
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            string body = await response.Content.ReadAsStringAsync();
+            var searchResult = JsonConvert.DeserializeObject<SearchResponseDto>(body);
+
+            Assert.IsNotNull(searchResult);
+            Assert.IsTrue(searchResult.Total > 0);
+            Assert.AreEqual("Diễm Xưa", searchResult.Items[0].Title);
+        }
+
+        [TestMethod]
+        public async Task StreamEndpoint_WithVietnameseTrack_ProxiesAudioContent()
+        {
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/stream/vn_track_01");
+            request.Headers.Range = new RangeHeaderValue(0, 511);
+
+            var response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+
+            Assert.IsTrue(
+                response.StatusCode == HttpStatusCode.PartialContent ||
+                response.StatusCode == HttpStatusCode.OK ||
+                response.StatusCode == HttpStatusCode.BadGateway
+            );
+        }
     }
 }
 

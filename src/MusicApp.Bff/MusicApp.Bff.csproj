@@ -57,6 +57,8 @@
     <Compile Include="BffServerHost.cs" />
     <Compile Include="Services\MemoryCacheService.cs" />
     <Compile Include="Providers\JamendoSourceProvider.cs" />
+    <Compile Include="Providers\VietnameseMusicSourceProvider.cs" />
+    <Compile Include="Providers\MusicSourceRouter.cs" />
     <Compile Include="Controllers\TrackController.cs" />
     <Compile Include="Controllers\StreamController.cs" />
   </ItemGroup>

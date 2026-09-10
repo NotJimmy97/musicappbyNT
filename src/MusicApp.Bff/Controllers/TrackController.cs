@@ -10,7 +10,7 @@ namespace MusicApp.Bff.Controllers
 {
     public class TrackController : ApiController
     {
-        private static readonly JamendoSourceProvider Provider = new JamendoSourceProvider();
+        private static readonly MusicSourceRouter Router = new MusicSourceRouter();
         private static readonly MemoryCacheService Cache = new MemoryCacheService();
 
         [HttpGet]
@@ -30,7 +30,7 @@ namespace MusicApp.Bff.Controllers
                 TimeSpan.FromMinutes(30),
                 async () =>
                 {
-                    var items = await Provider.SearchTracksAsync(query, clampedLimit, CancellationToken.None).ConfigureAwait(false);
+                    var items = await Router.SearchAsync(query, clampedLimit, CancellationToken.None).ConfigureAwait(false);
                     return new SearchResponseDto
                     {
                         Total = items.Count,

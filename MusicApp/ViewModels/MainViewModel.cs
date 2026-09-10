@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -23,7 +25,7 @@ namespace MusicApp.ViewModels
 
         public ObservableCollection<string> Genres { get; } = new ObservableCollection<string>
         {
-            "All", "Synthwave", "Cyberpunk", "Outrun", "Ambient", "Chillout", "Electronic", "Lo-Fi", "Acoustic", "Dance", "Cinematic"
+            "All", "V-Pop", "Acoustic Việt", "Nhạc Trịnh", "Synthwave", "Cyberpunk", "Outrun", "Ambient", "Chillout", "Electronic", "Lo-Fi", "Acoustic", "Dance", "Cinematic"
         };
 
         private string _selectedGenre = "All";
@@ -112,6 +114,150 @@ namespace MusicApp.ViewModels
         {
             var defaultTracks = new List<TrackModel>
             {
+                new TrackModel
+                {
+                    Id = "vn_track_01",
+                    Title = "Diễm Xưa",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 251,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_01",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_02",
+                    Title = "Hạ Trắng",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 326,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1445985543470-41fdd5c31447?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_02",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_03",
+                    Title = "Còn Tuổi Nào Cho Em",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 324,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_03",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_04",
+                    Title = "Mưa Hồng",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 297,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_04",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_05",
+                    Title = "Nắng Thủy Tinh",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 318,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_05",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_06",
+                    Title = "Biển Nhớ",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 316,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_06",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_07",
+                    Title = "Cát Bụi",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 305,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_07",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_08",
+                    Title = "Gọi Tên Bốn Mùa",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 398,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_08",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_09",
+                    Title = "Một Cõi Đi Về",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 278,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_09",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_10",
+                    Title = "Như Cánh Vạc Bay",
+                    Artist = "Kim Tuấn (Hòa Tấu Guitar)",
+                    Album = "Gọi Tên Bốn Mùa",
+                    DurationSeconds = 368,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_10",
+                    License = "CC BY-ND 4.0",
+                    Genre = "Acoustic Việt"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_11",
+                    Title = "Chiều Tây Đô",
+                    Artist = "Hương Lan",
+                    Album = "Tình Ca Quê Hương",
+                    DurationSeconds = 275,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1528127269322-539801943592?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_11",
+                    License = "Public Domain",
+                    Genre = "V-Pop"
+                },
+                new TrackModel
+                {
+                    Id = "vn_track_12",
+                    Title = "Ướt Mi",
+                    Artist = "Hà Thanh",
+                    Album = "Trịnh Công Sơn Tuyển Chọn",
+                    DurationSeconds = 300,
+                    CoverImageUrl = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&q=80",
+                    StreamUrl = "http://localhost:5245/api/v1/stream/vn_track_12",
+                    License = "Public Domain",
+                    Genre = "Nhạc Trịnh"
+                },
                 new TrackModel
                 {
                     Id = "jamendo_track_1849201",
@@ -264,17 +410,30 @@ namespace MusicApp.ViewModels
 
         private void ApplyLocalFilters()
         {
-            var query = (SearchKeyword ?? "").Trim().ToLowerInvariant();
-            var genre = (SelectedGenre ?? "All").Trim().ToLowerInvariant();
+            var rawQuery = (SearchKeyword ?? "").Trim().ToLowerInvariant();
+            var queryNorm = RemoveDiacritics(rawQuery);
+            var rawGenre = (SelectedGenre ?? "All").Trim().ToLowerInvariant();
+            var genreNorm = RemoveDiacritics(rawGenre);
 
             var filtered = _masterCatalog.Where(t =>
             {
-                bool genreMatch = genre == "all" || (t.Genre != null && t.Genre.ToLowerInvariant().Contains(genre));
-                bool queryMatch = string.IsNullOrEmpty(query) ||
-                                  (t.Title != null && t.Title.ToLowerInvariant().Contains(query)) ||
-                                  (t.Artist != null && t.Artist.ToLowerInvariant().Contains(query)) ||
-                                  (t.Album != null && t.Album.ToLowerInvariant().Contains(query)) ||
-                                  (t.Genre != null && t.Genre.ToLowerInvariant().Contains(query));
+                string tGenreNorm = RemoveDiacritics(t.Genre ?? string.Empty).ToLowerInvariant();
+                bool genreMatch = genreNorm == "all" || tGenreNorm.Contains(genreNorm);
+
+                if (string.IsNullOrEmpty(queryNorm))
+                {
+                    return genreMatch;
+                }
+
+                string titleNorm = RemoveDiacritics(t.Title ?? string.Empty).ToLowerInvariant();
+                string artistNorm = RemoveDiacritics(t.Artist ?? string.Empty).ToLowerInvariant();
+                string albumNorm = RemoveDiacritics(t.Album ?? string.Empty).ToLowerInvariant();
+
+                bool queryMatch = titleNorm.Contains(queryNorm) ||
+                                  artistNorm.Contains(queryNorm) ||
+                                  albumNorm.Contains(queryNorm) ||
+                                  tGenreNorm.Contains(queryNorm);
+
                 return genreMatch && queryMatch;
             }).ToList();
 
@@ -442,6 +601,32 @@ namespace MusicApp.ViewModels
                 Application.Current.Resources.MergedDictionaries.Clear();
                 Application.Current.Resources.MergedDictionaries.Add(newDict);
             }
+        }
+
+        public static string RemoveDiacritics(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return string.Empty;
+            }
+
+            string normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+
+            foreach (char c in normalizedString)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder
+                .ToString()
+                .Normalize(NormalizationForm.FormC)
+                .Replace('đ', 'd')
+                .Replace('Đ', 'D');
         }
 
         public void Dispose()

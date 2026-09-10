@@ -10,7 +10,7 @@ namespace MusicApp.Bff.Controllers
 {
     public class StreamController : ApiController
     {
-        private static readonly JamendoSourceProvider Provider = new JamendoSourceProvider();
+        private static readonly MusicSourceRouter Router = new MusicSourceRouter();
         private static readonly HttpClient ProxyClient;
 
         static StreamController()
@@ -36,7 +36,7 @@ namespace MusicApp.Bff.Controllers
                 return Request.CreateResponse(HttpStatusCode.BadRequest, "Track ID is required.");
             }
 
-            string targetUrl = Provider.ResolveTrackAudioUrl(id);
+            string targetUrl = Router.ResolveAudioUrl(id);
 
             var upstreamRequest = new HttpRequestMessage(HttpMethod.Get, targetUrl);
 

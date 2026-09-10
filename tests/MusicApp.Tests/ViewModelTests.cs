@@ -201,6 +201,54 @@ namespace MusicApp.Tests
             object emptyResult = converter.Convert(string.Empty, typeof(object), null, null);
             Assert.IsNull(emptyResult);
         }
+
+        [TestMethod]
+        public void MainViewModel_InitialCatalog_Contains24TracksIncludingVietnamese()
+        {
+            var fakeAudio = new FakeAudioService();
+            var fakeApi = new FakeApiClient();
+            using (var nowPlayingVm = new NowPlayingViewModel(fakeAudio))
+            using (var mainVm = new MainViewModel(fakeApi, nowPlayingVm))
+            {
+                Assert.AreEqual(24, mainVm.SearchResults.Count);
+                Assert.IsTrue(mainVm.Genres.Contains("V-Pop"));
+                Assert.IsTrue(mainVm.Genres.Contains("Acoustic Việt"));
+                Assert.IsTrue(mainVm.Genres.Contains("Nhạc Trịnh"));
+            }
+        }
+
+        [TestMethod]
+        public void MainViewModel_FilterGenreAcousticViet_ReturnsOnlyAcousticVietTracks()
+        {
+            var fakeAudio = new FakeAudioService();
+            var fakeApi = new FakeApiClient();
+            using (var nowPlayingVm = new NowPlayingViewModel(fakeAudio))
+            using (var mainVm = new MainViewModel(fakeApi, nowPlayingVm))
+            {
+                mainVm.SelectedGenre = "Acoustic Việt";
+
+                Assert.IsTrue(mainVm.SearchResults.Count > 0);
+                foreach (var item in mainVm.SearchResults)
+                {
+                    Assert.AreEqual("Acoustic Việt", item.Track.Genre);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void MainViewModel_SearchWithoutDiacritics_MatchesVietnameseAccentedTitle()
+        {
+            var fakeAudio = new FakeAudioService();
+            var fakeApi = new FakeApiClient();
+            using (var nowPlayingVm = new NowPlayingViewModel(fakeAudio))
+            using (var mainVm = new MainViewModel(fakeApi, nowPlayingVm))
+            {
+                mainVm.SearchKeyword = "ha trang";
+
+                Assert.AreEqual(1, mainVm.SearchResults.Count);
+                Assert.AreEqual("Hạ Trắng", mainVm.SearchResults[0].Track.Title);
+            }
+        }
     }
 }
 
