@@ -99,6 +99,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\LyricsSyncView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -123,6 +127,10 @@
       <DependentUpon>PlayQueueView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Views\LyricsSyncView.xaml.cs">
+      <DependentUpon>LyricsSyncView.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -134,6 +142,8 @@
     <Compile Include="ViewModels\NavigationItemViewModel.cs" />
     <Compile Include="ViewModels\LocalLibraryViewModel.cs" />
     <Compile Include="ViewModels\PlayQueueViewModel.cs" />
+    <Compile Include="ViewModels\LyricLineViewModel.cs" />
+    <Compile Include="ViewModels\LyricsViewModel.cs" />
     <Compile Include="ViewModels\TrackItemViewModel.cs" />
     <Compile Include="ViewModels\EqualizerBarViewModel.cs" />
     <Compile Include="ViewModels\NowPlayingViewModel.cs" />

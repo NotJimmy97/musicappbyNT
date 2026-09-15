@@ -73,6 +73,7 @@
     <Compile Include="ViewModelTests.cs" />
     <Compile Include="LocalLibraryTests.cs" />
     <Compile Include="PlayQueueTests.cs" />
+    <Compile Include="LyricsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

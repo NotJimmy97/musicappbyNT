@@ -144,6 +144,7 @@ namespace MusicApp.ViewModels
 
         public Action PlayNextAction { get; set; }
         public Action PlayPreviousAction { get; set; }
+        public Action<TimeSpan> PositionChanged { get; set; }
 
         public RelayCommand PlayCommand { get; }
         public RelayCommand PauseCommand { get; }
@@ -171,7 +172,9 @@ namespace MusicApp.ViewModels
             {
                 if (p is double seconds)
                 {
-                    _audioService.Seek(TimeSpan.FromSeconds(seconds));
+                    var target = TimeSpan.FromSeconds(seconds);
+                    _audioService.Seek(target);
+                    PositionChanged?.Invoke(target);
                 }
             });
 
@@ -222,7 +225,9 @@ namespace MusicApp.ViewModels
             _isUserSeeking = isSeeking;
             if (!isSeeking && CanSeek)
             {
-                _audioService.Seek(TimeSpan.FromSeconds(targetSeconds));
+                var target = TimeSpan.FromSeconds(targetSeconds);
+                _audioService.Seek(target);
+                PositionChanged?.Invoke(target);
             }
         }
 
@@ -230,7 +235,9 @@ namespace MusicApp.ViewModels
         {
             if (!_isUserSeeking && _audioService != null)
             {
-                CurrentPositionSeconds = _audioService.CurrentTime.TotalSeconds;
+                var currentTime = _audioService.CurrentTime;
+                CurrentPositionSeconds = currentTime.TotalSeconds;
+                PositionChanged?.Invoke(currentTime);
             }
         }
 

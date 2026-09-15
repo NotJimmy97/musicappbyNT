@@ -81,7 +81,8 @@ namespace MusicApp.ViewModels
             new NavigationItemViewModel { Title = "Khám Phá", ViewKey = "Explore", IconSymbol = "✦", Category = "MENU CHÍNH" },
             new NavigationItemViewModel { Title = "Nhạc Việt Nam", ViewKey = "VietnameseMusic", IconSymbol = "♫", Category = "MENU CHÍNH" },
             new NavigationItemViewModel { Title = "Thư Viện Cá Nhân", ViewKey = "LocalLibrary", IconSymbol = "☷", Category = "THƯ VIỆN" },
-            new NavigationItemViewModel { Title = "Hàng Đợi", ViewKey = "PlayQueue", IconSymbol = "☰", Category = "THƯ VIỆN" }
+            new NavigationItemViewModel { Title = "Hàng Đợi", ViewKey = "PlayQueue", IconSymbol = "☰", Category = "THƯ VIỆN" },
+            new NavigationItemViewModel { Title = "Lời Bài Hát", ViewKey = "Lyrics", IconSymbol = "♫", Category = "TRÌNH PHÁT" }
         };
 
         private string _currentViewName = "Explore";
@@ -112,6 +113,7 @@ namespace MusicApp.ViewModels
 
         public LocalLibraryViewModel LocalLibrary { get; }
         public PlayQueueViewModel PlayQueue { get; }
+        public LyricsViewModel Lyrics { get; }
 
         public RelayCommand SearchCommand { get; }
         public RelayCommand ClearSearchCommand { get; }
@@ -128,6 +130,10 @@ namespace MusicApp.ViewModels
             PlayQueue = new PlayQueueViewModel(PlayTrack);
             var libraryService = localLibraryService ?? new MusicApp.Core.Services.LocalLibraryService();
             LocalLibrary = new LocalLibraryViewModel(libraryService, PlayTrack);
+
+            var lyricsService = new MusicApp.Core.Services.LyricsService();
+            Lyrics = new LyricsViewModel(lyricsService, pos => NowPlaying.SeekCommand.Execute(pos.TotalSeconds));
+            NowPlaying.PositionChanged = pos => Lyrics.UpdatePosition(pos);
 
             // Wire playlist navigation
             NowPlaying.PlayNextAction = PlayNextTrack;
@@ -520,6 +526,7 @@ namespace MusicApp.ViewModels
             if (track != null)
             {
                 Task.Run(async () => await NowPlaying.PlayTrackAsync(track).ConfigureAwait(false));
+                Task.Run(async () => await Lyrics.LoadLyricsForTrackAsync(track).ConfigureAwait(false));
             }
         }
 

@@ -48,13 +48,17 @@
     <Compile Include="Common\AsyncRelayCommand.cs" />
     <Compile Include="Models\PlaybackState.cs" />
     <Compile Include="Models\TrackModel.cs" />
+    <Compile Include="Models\LyricLine.cs" />
     <Compile Include="Dtos\SearchResponseDto.cs" />
     <Compile Include="Dtos\TrackDto.cs" />
     <Compile Include="Interfaces\IAudioService.cs" />
     <Compile Include="Interfaces\IMusicApiClient.cs" />
     <Compile Include="Interfaces\IMusicSourceProvider.cs" />
     <Compile Include="Interfaces\ILocalLibraryService.cs" />
+    <Compile Include="Interfaces\ILyricsService.cs" />
     <Compile Include="Services\LocalLibraryService.cs" />
+    <Compile Include="Services\LrcParser.cs" />
+    <Compile Include="Services\LyricsService.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

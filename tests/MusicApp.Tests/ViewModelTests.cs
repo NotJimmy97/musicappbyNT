@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -251,7 +252,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
-        public void MainViewModel_InitialNavigationState_IsExploreWithFourNavItems()
+        public void MainViewModel_InitialNavigationState_IsExploreWithFiveNavItems()
         {
             var fakeAudio = new FakeAudioService();
             var fakeApi = new FakeApiClient();
@@ -261,7 +262,8 @@ namespace MusicApp.Tests
                 Assert.AreEqual("Explore", mainVm.CurrentViewName);
                 Assert.IsNotNull(mainVm.SelectedNavigationItem);
                 Assert.AreEqual("Explore", mainVm.SelectedNavigationItem.ViewKey);
-                Assert.AreEqual(4, mainVm.NavigationItems.Count);
+                Assert.AreEqual(5, mainVm.NavigationItems.Count);
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Lyrics"));
             }
         }
 
@@ -302,6 +304,10 @@ namespace MusicApp.Tests
                 mainVm.NavigationCommand.Execute("PlayQueue");
                 Assert.AreEqual("PlayQueue", mainVm.CurrentViewName);
                 Assert.AreEqual("PlayQueue", mainVm.SelectedNavigationItem.ViewKey);
+
+                mainVm.NavigationCommand.Execute("Lyrics");
+                Assert.AreEqual("Lyrics", mainVm.CurrentViewName);
+                Assert.AreEqual("Lyrics", mainVm.SelectedNavigationItem.ViewKey);
             }
         }
     }

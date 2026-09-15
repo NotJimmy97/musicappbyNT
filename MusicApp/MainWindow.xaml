@@ -380,6 +380,11 @@
         <DataTemplate x:Key="PlayQueueTemplate">
             <views:PlayQueueView DataContext="{Binding PlayQueue}" />
         </DataTemplate>
+
+        <!-- Template 4: Real-time Synchronized Lyrics (Phase 4) -->
+        <DataTemplate x:Key="LyricsTemplate">
+            <views:LyricsSyncView DataContext="{Binding Lyrics}" />
+        </DataTemplate>
     </Window.Resources>
 
     <!-- Master Shell Layout: 2-Row Grid (Row 0: 2-Column Work Area, Row 1: Fixed Bottom Player Bar) -->
@@ -421,6 +426,9 @@
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentViewName}" Value="PlayQueue">
                                     <Setter Property="ContentTemplate" Value="{StaticResource PlayQueueTemplate}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentViewName}" Value="Lyrics">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource LyricsTemplate}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
