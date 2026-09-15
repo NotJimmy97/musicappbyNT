@@ -71,6 +71,7 @@
     <Compile Include="BffEndpointTests.cs" />
     <Compile Include="FftCalculatorTests.cs" />
     <Compile Include="ViewModelTests.cs" />
+    <Compile Include="LocalLibraryTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

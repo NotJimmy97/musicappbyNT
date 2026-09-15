@@ -11,7 +11,11 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="TagLibSharp" Version="2.2.0" />
+  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
@@ -49,6 +53,8 @@
     <Compile Include="Interfaces\IAudioService.cs" />
     <Compile Include="Interfaces\IMusicApiClient.cs" />
     <Compile Include="Interfaces\IMusicSourceProvider.cs" />
+    <Compile Include="Interfaces\ILocalLibraryService.cs" />
+    <Compile Include="Services\LocalLibraryService.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

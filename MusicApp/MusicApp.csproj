@@ -53,6 +53,7 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\MusicApp.Core\MusicApp.Core.csproj">
@@ -89,6 +90,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\LocalLibraryScannerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -105,6 +110,10 @@
       <DependentUpon>SidebarNavigationView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Views\LocalLibraryScannerView.xaml.cs">
+      <DependentUpon>LocalLibraryScannerView.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -114,6 +123,7 @@
     <Compile Include="Converters\PlaybackStateToVisibilityConverter.cs" />
     <Compile Include="Services\MusicApiClient.cs" />
     <Compile Include="ViewModels\NavigationItemViewModel.cs" />
+    <Compile Include="ViewModels\LocalLibraryViewModel.cs" />
     <Compile Include="ViewModels\TrackItemViewModel.cs" />
     <Compile Include="ViewModels\EqualizerBarViewModel.cs" />
     <Compile Include="ViewModels\NowPlayingViewModel.cs" />

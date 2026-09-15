@@ -110,16 +110,21 @@ namespace MusicApp.ViewModels
             }
         }
 
+        public LocalLibraryViewModel LocalLibrary { get; }
+
         public RelayCommand SearchCommand { get; }
         public RelayCommand ClearSearchCommand { get; }
         public RelayCommand ToggleThemeCommand { get; }
         public RelayCommand FilterGenreCommand { get; }
         public RelayCommand NavigationCommand { get; }
 
-        public MainViewModel(IMusicApiClient apiClient, NowPlayingViewModel nowPlaying)
+        public MainViewModel(IMusicApiClient apiClient, NowPlayingViewModel nowPlaying, ILocalLibraryService localLibraryService = null)
         {
             _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
             NowPlaying = nowPlaying ?? throw new ArgumentNullException(nameof(nowPlaying));
+
+            var libraryService = localLibraryService ?? new MusicApp.Core.Services.LocalLibraryService();
+            LocalLibrary = new LocalLibraryViewModel(libraryService, PlayTrack);
 
             // Wire playlist navigation
             NowPlaying.PlayNextAction = PlayNextTrack;
@@ -507,6 +512,14 @@ namespace MusicApp.ViewModels
             System.Diagnostics.Debug.WriteLine("[Navigation] Current view changed to: " + viewKey);
         }
 
+        public void PlayTrack(TrackModel track)
+        {
+            if (track != null)
+            {
+                Task.Run(async () => await NowPlaying.PlayTrackAsync(track).ConfigureAwait(false));
+            }
+        }
+
         private void UpdateSearchResults(IEnumerable<TrackModel> tracks)
         {
             Action update = () =>
@@ -514,10 +527,7 @@ namespace MusicApp.ViewModels
                 SearchResults.Clear();
                 foreach (var track in tracks)
                 {
-                    SearchResults.Add(new TrackItemViewModel(track, t =>
-                    {
-                        Task.Run(async () => await NowPlaying.PlayTrackAsync(t).ConfigureAwait(false));
-                    }));
+                    SearchResults.Add(new TrackItemViewModel(track, PlayTrack));
                 }
             };
 

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using NAudio.Wave;
 using MusicApp.AudioEngine.Dsp;
@@ -11,7 +12,7 @@ namespace MusicApp.AudioEngine
     public class NAudioService : IAudioService
     {
         private IWavePlayer _wavePlayer;
-        private MediaFoundationReader _audioReader;
+        private WaveStream _audioReader;
         private SampleAggregator _sampleAggregator;
         private readonly Stopwatch _throttleStopwatch = new Stopwatch();
         private readonly object _lock = new object();
@@ -84,9 +85,33 @@ namespace MusicApp.AudioEngine
 
                     try
                     {
-                        // MediaFoundationReader handles HTTP chunk streaming and MP3 decoding natively
-                        _audioReader = new MediaFoundationReader(streamUrl);
-                        var sampleProvider = _audioReader.ToSampleProvider();
+                        bool isLocalFile = false;
+                        try
+                        {
+                            isLocalFile = !streamUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                                          !streamUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+                                          File.Exists(streamUrl);
+                        }
+                        catch
+                        {
+                            isLocalFile = false;
+                        }
+
+                        ISampleProvider sampleProvider;
+                        if (isLocalFile)
+                        {
+                            // AudioFileReader provides zero-overhead local decoding for MP3, WAV, AIFF, and AAC files
+                            var fileReader = new AudioFileReader(streamUrl);
+                            _audioReader = fileReader;
+                            sampleProvider = fileReader;
+                        }
+                        else
+                        {
+                            // MediaFoundationReader handles HTTP chunk streaming and remote media decoding
+                            var mfReader = new MediaFoundationReader(streamUrl);
+                            _audioReader = mfReader;
+                            sampleProvider = mfReader.ToSampleProvider();
+                        }
 
                         _sampleAggregator = new SampleAggregator(sampleProvider);
                         _sampleAggregator.FftCalculated += OnFftCalculated;
