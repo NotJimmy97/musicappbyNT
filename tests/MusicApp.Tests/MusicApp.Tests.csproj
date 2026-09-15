@@ -74,6 +74,7 @@
     <Compile Include="LocalLibraryTests.cs" />
     <Compile Include="PlayQueueTests.cs" />
     <Compile Include="LyricsTests.cs" />
+    <Compile Include="DspEqualizerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -9,14 +9,65 @@ using PlaybackState = MusicApp.Core.Models.PlaybackState;
 
 namespace MusicApp.AudioEngine
 {
-    public class NAudioService : IAudioService
+    public class NAudioService : IAudioService, IDspEqualizerService
     {
         private IWavePlayer _wavePlayer;
         private WaveStream _audioReader;
+        private DspEqualizerSampleProvider _equalizerProvider;
         private SampleAggregator _sampleAggregator;
         private readonly Stopwatch _throttleStopwatch = new Stopwatch();
         private readonly object _lock = new object();
         private bool _isDisposed;
+
+        private readonly float[] _bandFrequencies = (float[])DspEqualizerSampleProvider.DefaultFrequencies.Clone();
+        private readonly float[] _bandGains = new float[DspEqualizerSampleProvider.BandCount];
+        private bool _isEqualizerEnabled = true;
+
+        public IDspEqualizerService Equalizer => this;
+
+        public bool IsEnabled
+        {
+            get => _isEqualizerEnabled;
+            set
+            {
+                lock (_lock)
+                {
+                    if (_isEqualizerEnabled != value)
+                    {
+                        _isEqualizerEnabled = value;
+                        if (_equalizerProvider != null)
+                        {
+                            _equalizerProvider.IsEnabled = value;
+                        }
+                    }
+                }
+                EqualizerChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public float[] BandFrequencies
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return (float[])_bandFrequencies.Clone();
+                }
+            }
+        }
+
+        public float[] BandGains
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return (float[])_bandGains.Clone();
+                }
+            }
+        }
+
+        public event EventHandler EqualizerChanged;
 
         private PlaybackState _currentState = PlaybackState.Stopped;
         public PlaybackState CurrentState
@@ -113,7 +164,9 @@ namespace MusicApp.AudioEngine
                             sampleProvider = mfReader.ToSampleProvider();
                         }
 
-                        _sampleAggregator = new SampleAggregator(sampleProvider);
+                        _equalizerProvider = new DspEqualizerSampleProvider(sampleProvider, _bandFrequencies, _bandGains, _isEqualizerEnabled);
+
+                        _sampleAggregator = new SampleAggregator(_equalizerProvider);
                         _sampleAggregator.FftCalculated += OnFftCalculated;
 
                         var waveOut = new WaveOutEvent
@@ -199,6 +252,40 @@ namespace MusicApp.AudioEngine
             Volume = volume;
         }
 
+        public void SetBandGain(int bandIndex, float gainDb)
+        {
+            if (bandIndex < 0 || bandIndex >= DspEqualizerSampleProvider.BandCount)
+            {
+                return;
+            }
+
+            lock (_lock)
+            {
+                float clamped = Math.Max(-12.0f, Math.Min(12.0f, gainDb));
+                _bandGains[bandIndex] = clamped;
+                _equalizerProvider?.SetBandGain(bandIndex, clamped);
+            }
+
+            EqualizerChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void SetAllBands(float[] gains)
+        {
+            if (gains == null) return;
+
+            lock (_lock)
+            {
+                int limit = Math.Min(DspEqualizerSampleProvider.BandCount, gains.Length);
+                for (int i = 0; i < limit; i++)
+                {
+                    _bandGains[i] = Math.Max(-12.0f, Math.Min(12.0f, gains[i]));
+                }
+                _equalizerProvider?.SetAllBands(gains);
+            }
+
+            EqualizerChanged?.Invoke(this, EventArgs.Empty);
+        }
+
         private void OnFftCalculated(object sender, float[] bins)
         {
             // Rate limit spectrum visualizer event dispatches to 30fps (33ms) to avoid saturating WPF Dispatcher
@@ -235,6 +322,8 @@ namespace MusicApp.AudioEngine
                 _sampleAggregator.FftCalculated -= OnFftCalculated;
                 _sampleAggregator = null;
             }
+
+            _equalizerProvider = null;
 
             if (_audioReader != null)
             {

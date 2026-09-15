@@ -191,6 +191,7 @@ namespace MusicApp.Tests
             public TimeSpan CurrentTime { get; set; } = TimeSpan.Zero;
             public TimeSpan TotalTime { get; set; } = TimeSpan.Zero;
             public float Volume { get; set; } = 1.0f;
+            public IDspEqualizerService Equalizer { get; set; } = new FakeDspEqualizerService();
 
 #pragma warning disable 0067
             public event EventHandler<float[]> SpectrumDataReady;
@@ -204,6 +205,35 @@ namespace MusicApp.Tests
             public void Seek(TimeSpan position) { CurrentTime = position; }
             public void SetVolume(float volume) { Volume = volume; }
             public void Dispose() { }
+        }
+
+        private class FakeDspEqualizerService : IDspEqualizerService
+        {
+            public bool IsEnabled { get; set; } = true;
+            public float[] BandFrequencies { get; set; } = new float[] { 32f, 64f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f };
+            public float[] BandGains { get; set; } = new float[10];
+            public event EventHandler EqualizerChanged;
+
+            public void SetBandGain(int bandIndex, float gainDb)
+            {
+                if (bandIndex >= 0 && bandIndex < BandGains.Length)
+                {
+                    BandGains[bandIndex] = gainDb;
+                    EqualizerChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+
+            public void SetAllBands(float[] gains)
+            {
+                if (gains != null)
+                {
+                    for (int i = 0; i < Math.Min(BandGains.Length, gains.Length); i++)
+                    {
+                        BandGains[i] = gains[i];
+                    }
+                    EqualizerChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
         }
 
         private class FakeMusicApiClient : IMusicApiClient

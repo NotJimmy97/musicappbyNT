@@ -52,6 +52,7 @@
     <Compile Include="Dtos\SearchResponseDto.cs" />
     <Compile Include="Dtos\TrackDto.cs" />
     <Compile Include="Interfaces\IAudioService.cs" />
+    <Compile Include="Interfaces\IDspEqualizerService.cs" />
     <Compile Include="Interfaces\IMusicApiClient.cs" />
     <Compile Include="Interfaces\IMusicSourceProvider.cs" />
     <Compile Include="Interfaces\ILocalLibraryService.cs" />

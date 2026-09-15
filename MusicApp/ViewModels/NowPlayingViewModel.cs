@@ -12,6 +12,7 @@ namespace MusicApp.ViewModels
     public class NowPlayingViewModel : ObservableObject, IDisposable
     {
         private readonly IAudioService _audioService;
+        public IAudioService AudioService => _audioService;
         private readonly DispatcherTimer _positionTimer;
         private bool _isUserSeeking = false;
 

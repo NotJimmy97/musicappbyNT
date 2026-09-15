@@ -52,6 +52,7 @@
     <Compile Include="Dsp\SpectrumBin.cs" />
     <Compile Include="Dsp\FftCalculator.cs" />
     <Compile Include="Dsp\SampleAggregator.cs" />
+    <Compile Include="Dsp\DspEqualizerSampleProvider.cs" />
     <Compile Include="Stream\BufferedHttpWaveStream.cs" />
     <Compile Include="NAudioService.cs" />
   </ItemGroup>

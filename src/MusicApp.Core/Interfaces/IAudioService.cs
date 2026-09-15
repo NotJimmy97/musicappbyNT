@@ -11,6 +11,8 @@ namespace MusicApp.Core.Interfaces
         TimeSpan TotalTime { get; }
         float Volume { get; }
 
+        IDspEqualizerService Equalizer { get; }
+
         event EventHandler<float[]> SpectrumDataReady;
         event EventHandler<PlaybackState> StateChanged;
 

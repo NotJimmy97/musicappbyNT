@@ -82,7 +82,8 @@ namespace MusicApp.ViewModels
             new NavigationItemViewModel { Title = "Nhạc Việt Nam", ViewKey = "VietnameseMusic", IconSymbol = "♫", Category = "MENU CHÍNH" },
             new NavigationItemViewModel { Title = "Thư Viện Cá Nhân", ViewKey = "LocalLibrary", IconSymbol = "☷", Category = "THƯ VIỆN" },
             new NavigationItemViewModel { Title = "Hàng Đợi", ViewKey = "PlayQueue", IconSymbol = "☰", Category = "THƯ VIỆN" },
-            new NavigationItemViewModel { Title = "Lời Bài Hát", ViewKey = "Lyrics", IconSymbol = "♫", Category = "TRÌNH PHÁT" }
+            new NavigationItemViewModel { Title = "Lời Bài Hát", ViewKey = "Lyrics", IconSymbol = "♫", Category = "TRÌNH PHÁT" },
+            new NavigationItemViewModel { Title = "Bộ Chỉnh Âm (EQ)", ViewKey = "Equalizer", IconSymbol = "≡", Category = "TRÌNH PHÁT" }
         };
 
         private string _currentViewName = "Explore";
@@ -114,15 +115,17 @@ namespace MusicApp.ViewModels
         public LocalLibraryViewModel LocalLibrary { get; }
         public PlayQueueViewModel PlayQueue { get; }
         public LyricsViewModel Lyrics { get; }
+        public DspEqualizerViewModel Equalizer { get; }
 
         public RelayCommand SearchCommand { get; }
         public RelayCommand ClearSearchCommand { get; }
         public RelayCommand ToggleThemeCommand { get; }
         public RelayCommand FilterGenreCommand { get; }
         public RelayCommand NavigationCommand { get; }
+        public RelayCommand OpenEqualizerCommand => new RelayCommand(_ => NavigationCommand.Execute("Equalizer"));
         public RelayCommand EnqueueCommand => PlayQueue.EnqueueCommand;
 
-        public MainViewModel(IMusicApiClient apiClient, NowPlayingViewModel nowPlaying, ILocalLibraryService localLibraryService = null)
+        public MainViewModel(IMusicApiClient apiClient, NowPlayingViewModel nowPlaying, ILocalLibraryService localLibraryService = null, IDspEqualizerService equalizerService = null)
         {
             _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
             NowPlaying = nowPlaying ?? throw new ArgumentNullException(nameof(nowPlaying));
@@ -134,6 +137,9 @@ namespace MusicApp.ViewModels
             var lyricsService = new MusicApp.Core.Services.LyricsService();
             Lyrics = new LyricsViewModel(lyricsService, pos => NowPlaying.SeekCommand.Execute(pos.TotalSeconds));
             NowPlaying.PositionChanged = pos => Lyrics.UpdatePosition(pos);
+
+            var eqService = equalizerService ?? nowPlaying.AudioService?.Equalizer ?? new FallbackEqualizerService();
+            Equalizer = new DspEqualizerViewModel(eqService);
 
             // Wire playlist navigation
             NowPlaying.PlayNextAction = PlayNextTrack;
@@ -731,6 +737,35 @@ namespace MusicApp.ViewModels
             _debounceCts?.Dispose();
             NowPlaying?.Dispose();
             _apiClient?.Dispose();
+        }
+
+        private class FallbackEqualizerService : IDspEqualizerService
+        {
+            public bool IsEnabled { get; set; } = true;
+            public float[] BandFrequencies { get; set; } = new float[] { 32f, 64f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f };
+            public float[] BandGains { get; set; } = new float[10];
+            public event EventHandler EqualizerChanged;
+
+            public void SetBandGain(int bandIndex, float gainDb)
+            {
+                if (bandIndex >= 0 && bandIndex < BandGains.Length)
+                {
+                    BandGains[bandIndex] = gainDb;
+                    EqualizerChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+
+            public void SetAllBands(float[] gains)
+            {
+                if (gains != null)
+                {
+                    for (int i = 0; i < Math.Min(BandGains.Length, gains.Length); i++)
+                    {
+                        BandGains[i] = gains[i];
+                    }
+                    EqualizerChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
         }
     }
 }

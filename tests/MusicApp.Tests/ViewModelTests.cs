@@ -21,6 +21,7 @@ namespace MusicApp.Tests
             public TimeSpan CurrentTime { get; set; } = TimeSpan.Zero;
             public TimeSpan TotalTime { get; set; } = TimeSpan.FromMinutes(3);
             public float Volume { get; set; } = 1.0f;
+            public IDspEqualizerService Equalizer { get; set; } = new FakeDspEqualizerService();
 
             public event EventHandler<float[]> SpectrumDataReady;
             public event EventHandler<PlaybackState> StateChanged;
@@ -252,7 +253,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
-        public void MainViewModel_InitialNavigationState_IsExploreWithFiveNavItems()
+        public void MainViewModel_InitialNavigationState_IsExploreWithSixNavItems()
         {
             var fakeAudio = new FakeAudioService();
             var fakeApi = new FakeApiClient();
@@ -262,8 +263,9 @@ namespace MusicApp.Tests
                 Assert.AreEqual("Explore", mainVm.CurrentViewName);
                 Assert.IsNotNull(mainVm.SelectedNavigationItem);
                 Assert.AreEqual("Explore", mainVm.SelectedNavigationItem.ViewKey);
-                Assert.AreEqual(5, mainVm.NavigationItems.Count);
+                Assert.AreEqual(6, mainVm.NavigationItems.Count);
                 Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Lyrics"));
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Equalizer"));
             }
         }
 
@@ -308,6 +310,35 @@ namespace MusicApp.Tests
                 mainVm.NavigationCommand.Execute("Lyrics");
                 Assert.AreEqual("Lyrics", mainVm.CurrentViewName);
                 Assert.AreEqual("Lyrics", mainVm.SelectedNavigationItem.ViewKey);
+            }
+        }
+
+        private class FakeDspEqualizerService : IDspEqualizerService
+        {
+            public bool IsEnabled { get; set; } = true;
+            public float[] BandFrequencies { get; set; } = new float[] { 32f, 64f, 125f, 250f, 500f, 1000f, 2000f, 4000f, 8000f, 16000f };
+            public float[] BandGains { get; set; } = new float[10];
+            public event EventHandler EqualizerChanged;
+
+            public void SetBandGain(int bandIndex, float gainDb)
+            {
+                if (bandIndex >= 0 && bandIndex < BandGains.Length)
+                {
+                    BandGains[bandIndex] = gainDb;
+                    EqualizerChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+
+            public void SetAllBands(float[] gains)
+            {
+                if (gains != null)
+                {
+                    for (int i = 0; i < Math.Min(BandGains.Length, gains.Length); i++)
+                    {
+                        BandGains[i] = gains[i];
+                    }
+                    EqualizerChanged?.Invoke(this, EventArgs.Empty);
+                }
             }
         }
     }

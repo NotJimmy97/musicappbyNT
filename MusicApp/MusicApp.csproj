@@ -103,6 +103,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\DspEqualizerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -131,6 +135,10 @@
       <DependentUpon>LyricsSyncView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Views\DspEqualizerView.xaml.cs">
+      <DependentUpon>DspEqualizerView.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -146,6 +154,8 @@
     <Compile Include="ViewModels\LyricsViewModel.cs" />
     <Compile Include="ViewModels\TrackItemViewModel.cs" />
     <Compile Include="ViewModels\EqualizerBarViewModel.cs" />
+    <Compile Include="ViewModels\EqualizerBandViewModel.cs" />
+    <Compile Include="ViewModels\DspEqualizerViewModel.cs" />
     <Compile Include="ViewModels\NowPlayingViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
   </ItemGroup>

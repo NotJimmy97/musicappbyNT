@@ -296,6 +296,20 @@
                                 BorderBrush="{DynamicResource CardBorderBrush}"
                                 BorderThickness="1"
                                 Cursor="Hand" />
+
+                        <!-- Equalizer DSP Button -->
+                        <Button Command="{Binding DataContext.OpenEqualizerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                Content="EQ"
+                                ToolTip="Bộ Chỉnh Âm Đồ Họa 10-Band DSP"
+                                Padding="6,2"
+                                FontSize="10"
+                                FontWeight="Bold"
+                                Margin="2,0"
+                                Background="{DynamicResource CardSurfaceBrush}"
+                                Foreground="{DynamicResource AccentBrandBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                Cursor="Hand" />
                     </StackPanel>
                 </StackPanel>
             </Grid>

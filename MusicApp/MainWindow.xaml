@@ -385,6 +385,11 @@
         <DataTemplate x:Key="LyricsTemplate">
             <views:LyricsSyncView DataContext="{Binding Lyrics}" />
         </DataTemplate>
+
+        <!-- Template 5: 10-Band Graphic DSP Equalizer (Phase 5) -->
+        <DataTemplate x:Key="EqualizerTemplate">
+            <views:DspEqualizerView DataContext="{Binding Equalizer}" />
+        </DataTemplate>
     </Window.Resources>
 
     <!-- Master Shell Layout: 2-Row Grid (Row 0: 2-Column Work Area, Row 1: Fixed Bottom Player Bar) -->
@@ -429,6 +434,9 @@
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentViewName}" Value="Lyrics">
                                     <Setter Property="ContentTemplate" Value="{StaticResource LyricsTemplate}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentViewName}" Value="Equalizer">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource EqualizerTemplate}" />
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
