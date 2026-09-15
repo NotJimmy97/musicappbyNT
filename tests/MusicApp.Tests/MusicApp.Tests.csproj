@@ -72,6 +72,7 @@
     <Compile Include="FftCalculatorTests.cs" />
     <Compile Include="ViewModelTests.cs" />
     <Compile Include="LocalLibraryTests.cs" />
+    <Compile Include="PlayQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

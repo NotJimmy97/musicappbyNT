@@ -236,17 +236,27 @@ namespace MusicApp.ViewModels
 
         private void OnAudioStateChanged(object sender, PlaybackState state)
         {
+            var previous = PlaybackState;
+            Action update = () =>
+            {
+                PlaybackState = state;
+                if (previous == PlaybackState.Playing && state == PlaybackState.Stopped)
+                {
+                    if (TrackDurationSeconds > 0 && CurrentPositionSeconds >= Math.Max(0, TrackDurationSeconds - 2))
+                    {
+                        PlayNextAction?.Invoke();
+                    }
+                }
+            };
+
             var dispatcher = Application.Current != null ? Application.Current.Dispatcher : null;
             if (dispatcher != null && !dispatcher.CheckAccess())
             {
-                dispatcher.InvokeAsync(() =>
-                {
-                    PlaybackState = state;
-                });
+                dispatcher.InvokeAsync(update);
             }
             else
             {
-                PlaybackState = state;
+                update();
             }
         }
 

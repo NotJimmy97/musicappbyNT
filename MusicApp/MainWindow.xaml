@@ -318,25 +318,50 @@
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center" />
 
-                                        <!-- Play Button -->
-                                        <Button Grid.Column="6"
-                                                Command="{Binding PlayCommand}"
-                                                Content="Play"
-                                                Width="64" Height="28"
-                                                Background="{DynamicResource AccentBrandBrush}"
-                                                Foreground="#FFFFFF"
-                                                FontWeight="SemiBold"
-                                                FontSize="12"
-                                                BorderThickness="0"
-                                                Cursor="Hand">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" CornerRadius="14">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                        </Button>
+                                        <!-- Action Buttons: Play + Add to Queue -->
+                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Command="{Binding PlayCommand}"
+                                                    Content="Play"
+                                                    Width="52" Height="28"
+                                                    Background="{DynamicResource AccentBrandBrush}"
+                                                    Foreground="#FFFFFF"
+                                                    FontWeight="SemiBold"
+                                                    FontSize="12"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}" CornerRadius="14">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                            <Button Command="{Binding DataContext.EnqueueCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding Track}"
+                                                    Content="+"
+                                                    ToolTip="Thêm vào hàng đợi"
+                                                    Width="28" Height="28"
+                                                    Margin="4,0,0,0"
+                                                    Background="{DynamicResource CardSurfaceBrush}"
+                                                    Foreground="{DynamicResource TitleForegroundBrush}"
+                                                    BorderBrush="{DynamicResource CardBorderBrush}"
+                                                    BorderThickness="1"
+                                                    FontSize="14"
+                                                    FontWeight="Bold"
+                                                    Cursor="Hand">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{TemplateBinding Background}"
+                                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                                CornerRadius="14">
+                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
@@ -351,26 +376,9 @@
             <views:LocalLibraryScannerView DataContext="{Binding LocalLibrary}" />
         </DataTemplate>
 
-        <!-- Template 3: Play Queue Placeholder (Phase 3 Gateway) -->
+        <!-- Template 3: Play Queue & Drag-and-Drop (Phase 3) -->
         <DataTemplate x:Key="PlayQueueTemplate">
-            <Border Background="{DynamicResource CardBackgroundBrush}"
-                    BorderBrush="{DynamicResource CardBorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="12"
-                    Padding="32"
-                    Margin="0,0,0,10">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="500">
-                    <Border Width="60" Height="60" CornerRadius="30" Background="{DynamicResource CardSurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" HorizontalAlignment="Center" Margin="0,0,0,16">
-                        <TextBlock Text="☰" FontSize="28" Foreground="{DynamicResource AccentBrandBrush}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <TextBlock Text="Hàng Đợi Phát Nhạc" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TitleForegroundBrush}" HorizontalAlignment="Center" />
-                    <TextBlock Text="Quản lý danh sách các bài hát sẽ được phát tiếp theo (Up Next) với khả năng sắp xếp thứ tự linh hoạt."
-                               FontSize="13" Foreground="{DynamicResource SubtitleForegroundBrush}" TextWrapping="Wrap" TextAlignment="Center" Margin="0,8,0,20" />
-                    <Border Background="{DynamicResource CardSurfaceBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10">
-                        <TextBlock Text="Phase 3 Pipeline: Sẵn sàng tích hợp GongSolutions.WPF.DragDrop." FontSize="11" Foreground="{DynamicResource AccentBrandBrush}" TextAlignment="Center" FontWeight="SemiBold" />
-                    </Border>
-                </StackPanel>
-            </Border>
+            <views:PlayQueueView DataContext="{Binding PlayQueue}" />
         </DataTemplate>
     </Window.Resources>
 

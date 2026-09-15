@@ -111,18 +111,21 @@ namespace MusicApp.ViewModels
         }
 
         public LocalLibraryViewModel LocalLibrary { get; }
+        public PlayQueueViewModel PlayQueue { get; }
 
         public RelayCommand SearchCommand { get; }
         public RelayCommand ClearSearchCommand { get; }
         public RelayCommand ToggleThemeCommand { get; }
         public RelayCommand FilterGenreCommand { get; }
         public RelayCommand NavigationCommand { get; }
+        public RelayCommand EnqueueCommand => PlayQueue.EnqueueCommand;
 
         public MainViewModel(IMusicApiClient apiClient, NowPlayingViewModel nowPlaying, ILocalLibraryService localLibraryService = null)
         {
             _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
             NowPlaying = nowPlaying ?? throw new ArgumentNullException(nameof(nowPlaying));
 
+            PlayQueue = new PlayQueueViewModel(PlayTrack);
             var libraryService = localLibraryService ?? new MusicApp.Core.Services.LocalLibraryService();
             LocalLibrary = new LocalLibraryViewModel(libraryService, PlayTrack);
 
@@ -630,6 +633,15 @@ namespace MusicApp.ViewModels
 
         private void PlayNextTrack()
         {
+            // Priority 1: Dequeue upcoming track from PlayQueue if available
+            var nextQueued = PlayQueue?.DequeueNext();
+            if (nextQueued != null)
+            {
+                PlayTrack(nextQueued);
+                return;
+            }
+
+            // Priority 2: Fallback to cyclic playlist
             if (SearchResults.Count == 0) return;
 
             int currentIndex = -1;
@@ -644,7 +656,7 @@ namespace MusicApp.ViewModels
 
             int nextIndex = (currentIndex + 1) % SearchResults.Count;
             var nextTrack = SearchResults[nextIndex].Track;
-            Task.Run(async () => await NowPlaying.PlayTrackAsync(nextTrack).ConfigureAwait(false));
+            PlayTrack(nextTrack);
         }
 
         private void PlayPreviousTrack()
