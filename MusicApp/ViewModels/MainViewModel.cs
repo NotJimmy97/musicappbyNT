@@ -76,10 +76,45 @@ namespace MusicApp.ViewModels
 
         public string ThemeButtonText => IsDarkTheme ? "Light Mode" : "Dark Mode";
 
+        public ObservableCollection<NavigationItemViewModel> NavigationItems { get; } = new ObservableCollection<NavigationItemViewModel>
+        {
+            new NavigationItemViewModel { Title = "Khám Phá", ViewKey = "Explore", IconSymbol = "✦", Category = "MENU CHÍNH" },
+            new NavigationItemViewModel { Title = "Nhạc Việt Nam", ViewKey = "VietnameseMusic", IconSymbol = "♫", Category = "MENU CHÍNH" },
+            new NavigationItemViewModel { Title = "Thư Viện Cá Nhân", ViewKey = "LocalLibrary", IconSymbol = "☷", Category = "THƯ VIỆN" },
+            new NavigationItemViewModel { Title = "Hàng Đợi", ViewKey = "PlayQueue", IconSymbol = "☰", Category = "THƯ VIỆN" }
+        };
+
+        private string _currentViewName = "Explore";
+        public string CurrentViewName
+        {
+            get => _currentViewName;
+            set
+            {
+                if (SetProperty(ref _currentViewName, value))
+                {
+                    OnCurrentViewNameChanged(value);
+                }
+            }
+        }
+
+        private NavigationItemViewModel _selectedNavigationItem;
+        public NavigationItemViewModel SelectedNavigationItem
+        {
+            get => _selectedNavigationItem;
+            set
+            {
+                if (SetProperty(ref _selectedNavigationItem, value) && value != null)
+                {
+                    CurrentViewName = value.ViewKey;
+                }
+            }
+        }
+
         public RelayCommand SearchCommand { get; }
         public RelayCommand ClearSearchCommand { get; }
         public RelayCommand ToggleThemeCommand { get; }
         public RelayCommand FilterGenreCommand { get; }
+        public RelayCommand NavigationCommand { get; }
 
         public MainViewModel(IMusicApiClient apiClient, NowPlayingViewModel nowPlaying)
         {
@@ -89,6 +124,8 @@ namespace MusicApp.ViewModels
             // Wire playlist navigation
             NowPlaying.PlayNextAction = PlayNextTrack;
             NowPlaying.PlayPreviousAction = PlayPreviousTrack;
+
+            _selectedNavigationItem = NavigationItems.FirstOrDefault(n => n.ViewKey == "Explore");
 
             SearchCommand = new RelayCommand(_ => ExecuteSearchImmediate());
             ClearSearchCommand = new RelayCommand(_ =>
@@ -102,6 +139,13 @@ namespace MusicApp.ViewModels
                 if (p is string g)
                 {
                     SelectedGenre = g;
+                }
+            });
+            NavigationCommand = new RelayCommand(p =>
+            {
+                if (p is string key && !string.IsNullOrWhiteSpace(key))
+                {
+                    CurrentViewName = key;
                 }
             });
 
@@ -438,6 +482,29 @@ namespace MusicApp.ViewModels
             }).ToList();
 
             UpdateSearchResults(filtered);
+        }
+
+        private void OnCurrentViewNameChanged(string viewKey)
+        {
+            if (SelectedNavigationItem?.ViewKey != viewKey)
+            {
+                var matched = NavigationItems.FirstOrDefault(n => n.ViewKey == viewKey);
+                if (matched != null)
+                {
+                    SetProperty(ref _selectedNavigationItem, matched, nameof(SelectedNavigationItem));
+                }
+            }
+
+            if (viewKey == "VietnameseMusic")
+            {
+                SelectedGenre = "Acoustic Việt";
+            }
+            else if (viewKey == "Explore")
+            {
+                SelectedGenre = "All";
+            }
+
+            System.Diagnostics.Debug.WriteLine("[Navigation] Current view changed to: " + viewKey);
         }
 
         private void UpdateSearchResults(IEnumerable<TrackModel> tracks)

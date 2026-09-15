@@ -85,6 +85,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\SidebarNavigationView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -97,6 +101,10 @@
       <DependentUpon>NowPlayingCardView.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Views\SidebarNavigationView.xaml.cs">
+      <DependentUpon>SidebarNavigationView.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -105,6 +113,7 @@
     <Compile Include="Converters\SecondsToTimeSpanConverter.cs" />
     <Compile Include="Converters\PlaybackStateToVisibilityConverter.cs" />
     <Compile Include="Services\MusicApiClient.cs" />
+    <Compile Include="ViewModels\NavigationItemViewModel.cs" />
     <Compile Include="ViewModels\TrackItemViewModel.cs" />
     <Compile Include="ViewModels\EqualizerBarViewModel.cs" />
     <Compile Include="ViewModels\NowPlayingViewModel.cs" />

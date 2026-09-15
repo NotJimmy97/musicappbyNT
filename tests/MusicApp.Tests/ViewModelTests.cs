@@ -249,6 +249,61 @@ namespace MusicApp.Tests
                 Assert.AreEqual("Hạ Trắng", mainVm.SearchResults[0].Track.Title);
             }
         }
+
+        [TestMethod]
+        public void MainViewModel_InitialNavigationState_IsExploreWithFourNavItems()
+        {
+            var fakeAudio = new FakeAudioService();
+            var fakeApi = new FakeApiClient();
+            using (var nowPlayingVm = new NowPlayingViewModel(fakeAudio))
+            using (var mainVm = new MainViewModel(fakeApi, nowPlayingVm))
+            {
+                Assert.AreEqual("Explore", mainVm.CurrentViewName);
+                Assert.IsNotNull(mainVm.SelectedNavigationItem);
+                Assert.AreEqual("Explore", mainVm.SelectedNavigationItem.ViewKey);
+                Assert.AreEqual(4, mainVm.NavigationItems.Count);
+            }
+        }
+
+        [TestMethod]
+        public void MainViewModel_NavigationCommand_SwitchesCurrentViewNameAndGenre()
+        {
+            var fakeAudio = new FakeAudioService();
+            var fakeApi = new FakeApiClient();
+            using (var nowPlayingVm = new NowPlayingViewModel(fakeAudio))
+            using (var mainVm = new MainViewModel(fakeApi, nowPlayingVm))
+            {
+                mainVm.NavigationCommand.Execute("VietnameseMusic");
+
+                Assert.AreEqual("VietnameseMusic", mainVm.CurrentViewName);
+                Assert.AreEqual("VietnameseMusic", mainVm.SelectedNavigationItem.ViewKey);
+                Assert.AreEqual("Acoustic Việt", mainVm.SelectedGenre);
+
+                mainVm.NavigationCommand.Execute("Explore");
+
+                Assert.AreEqual("Explore", mainVm.CurrentViewName);
+                Assert.AreEqual("Explore", mainVm.SelectedNavigationItem.ViewKey);
+                Assert.AreEqual("All", mainVm.SelectedGenre);
+            }
+        }
+
+        [TestMethod]
+        public void MainViewModel_NavigationCommand_SwitchesToLocalLibraryAndQueue()
+        {
+            var fakeAudio = new FakeAudioService();
+            var fakeApi = new FakeApiClient();
+            using (var nowPlayingVm = new NowPlayingViewModel(fakeAudio))
+            using (var mainVm = new MainViewModel(fakeApi, nowPlayingVm))
+            {
+                mainVm.NavigationCommand.Execute("LocalLibrary");
+                Assert.AreEqual("LocalLibrary", mainVm.CurrentViewName);
+                Assert.AreEqual("LocalLibrary", mainVm.SelectedNavigationItem.ViewKey);
+
+                mainVm.NavigationCommand.Execute("PlayQueue");
+                Assert.AreEqual("PlayQueue", mainVm.CurrentViewName);
+                Assert.AreEqual("PlayQueue", mainVm.SelectedNavigationItem.ViewKey);
+            }
+        }
     }
 }
 
