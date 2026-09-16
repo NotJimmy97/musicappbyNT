@@ -11,3 +11,4 @@ namespace MusicApp.Core.Interfaces
         Task<IReadOnlyList<LyricLine>> LoadLyricsForTrackAsync(TrackModel track, CancellationToken cancellationToken = default(CancellationToken));
     }
 }
+

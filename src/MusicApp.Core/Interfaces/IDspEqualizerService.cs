@@ -14,3 +14,4 @@ namespace MusicApp.Core.Interfaces
         void SetAllBands(float[] gains);
     }
 }
+

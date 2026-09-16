@@ -21,3 +21,4 @@ namespace MusicApp.Core.Models
         }
     }
 }
+
