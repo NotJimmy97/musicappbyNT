@@ -1,208 +1,210 @@
 # MusicApp Desktop (musicappbyNT)
 
-Native desktop music player built with Windows Presentation Foundation (WPF) on .NET Framework 4.6.1, powered by an internal OWIN Self-Host Backend-for-Frontend (BFF), NAudio low-latency audio processing engine, and a 10-Band Graphic DSP Equalizer.
+Ứng dụng phát nhạc Desktop Native được phát triển trên nền tảng Windows Presentation Foundation (WPF) với .NET Framework 4.6.1. Dự án vận hành dựa trên kiến trúc phân lớp tách biệt, bao gồm dịch vụ trung gian cục bộ OWIN Self-Host Backend-for-Frontend (BFF), engine giải mã và xử lý âm thanh độ trễ thấp NAudio, cùng hệ thống bộ lọc cân bằng âm sắc đồ họa 10 băng tần DSP (10-Band Graphic DSP Equalizer).
 
 ---
 
-## Architectural Overview
+## 1. Tổng Quan Kiến Trúc Hệ Thống
 
-The application follows a clean, decoupled Modular Monolith architecture based on strict MVVM separation and an in-process BFF communication pattern:
+Hệ thống tuân thủ mô hình Modular Monolith kết hợp cùng kiến trúc MVVM nghiêm ngặt và cơ chế giao tiếp In-Process BFF, đảm bảo tính đóng gói, khả năng kiểm thử độc lập và loại bỏ hiện tượng khóa luồng giao diện người dùng (UI Thread):
 
 ```
-[ WPF Desktop Presentation Layer (MVVM) ]
-                 |
-                 v
+[ Lớp Trình Diễn WPF Desktop (MVVM Pattern) ]
+                       |
+                       v
    +---------------------------+---------------------------+
    |                           |                           |
    v                           v                           v
-[ Local OWIN BFF ]      [ NAudio DSP Engine ]     [ Core Domain & Services ]
-- Self-host (port 5245) - BiQuad Peaking EQ       - LrcParser & LyricsService
-- Track Search API      - SampleAggregator        - LocalLibraryService (TagLib)
-- Range Stream Proxy    - FftCalculator (16 Bins) - PlayQueue & Auto-Advance
-- Music Source Router   - AudioFileReader (Local) - Domain Models & Contracts
-                        - MediaFoundation (HTTP)
+[ Dịch Vụ Cục Bộ OWIN BFF ]    [ Engine Âm Thanh NAudio DSP ] [ Tầng Lõi Nghiệp Vụ Core ]
+- Self-host HTTP (cổng 5245)  - Bộ lọc BiQuad Peaking EQ   - Bộ phân tích LrcParser
+- API Tìm kiếm bài hát         - Cầu nối SampleAggregator    - Quét thư viện LocalLibrary
+- Proxy Stream phân đoạn       - Phân tích phổ FFT 16 cột    - Quản lý hàng đợi PlayQueue
+- Định tuyến nguồn nhạc        - Giải mã offline AudioFile   - Hợp đồng DTO & Domain Model
+                               - Stream trực tuyến MediaFnd
 ```
 
 ---
 
-## Core Capabilities & Features
+## 2. Các Tính Năng Kỹ Thuật Nổi Bật
 
-### 1. Two-Column Desktop Shell & Navigation
-- Spotify-style navigation sidebar (220px fixed) with categorized views: Khám Phá, Nhạc Việt Nam, Thư Viện Cá Nhân, Hàng Đợi, Lời Bài Hát, Bộ Chỉnh Âm (EQ).
-- Dynamic view host using WPF `ContentControl` paired with dedicated `DataTemplate` resources.
-- Real-time internal BFF connectivity status indicator.
+### 2.1. Cấu Trúc Khung Nhìn 2 Cột & Hệ Thống Điều Hướng Động
+- Thanh điều hướng Sidebar cố định (chiều rộng 220px) thiết kế theo phong cách Spotify, phân chia danh mục logic: Khám Phá, Nhạc Việt Nam, Thư Viện Cá Nhân, Hàng Đợi, Lời Bài Hát, Bộ Chỉnh Âm (EQ).
+- Khung hiển thị nội dung động sử dụng `ContentControl` kết hợp hệ thống `DataTemplate` ánh xạ trực tiếp từ trạng thái `CurrentViewName` của ViewModel.
+- Đèn báo trạng thái kết nối thời gian thực của dịch vụ BFF nội bộ.
 
-### 2. Local OWIN BFF & Audio Streaming
-- Self-hosted OWIN HTTP server listening on `http://localhost:5245`.
-- Audio streaming proxy with full HTTP `Range` request support (`206 Partial Content`) for instant seeking and chunked byte streaming.
-- Composite `MusicSourceRouter` supporting both international catalogs and curated Vietnamese music collections.
-- Diacritic-insensitive search matching Vietnamese accented queries without network latency.
+### 2.2. Trạm Trung Gian Cục Bộ OWIN BFF & Truyền Dòng Âm Thanh
+- Máy chủ HTTP tự lưu trữ (Self-host) lắng nghe tại địa chỉ `http://localhost:5245`.
+- Proxy truyền dòng âm thanh hỗ trợ đầy đủ tiêu chuẩn HTTP Range Requests (`206 Partial Content`), phục vụ tua nhanh và nhận dữ liệu từng khối nhị phân mà không cần tải toàn bộ tệp vào bộ nhớ.
+- Bộ định tuyến `MusicSourceRouter` tích hợp nguồn nhạc quốc tế và kho nhạc Việt Nam tuyển chọn.
+- Thuật toán loại bỏ dấu tiếng Việt giúp tìm kiếm nhanh, không phân biệt hoa thường và không độ trễ mạng.
 
-### 3. Local Library Scanner & Offline Playback
-- Queue-based breadth-first folder scanner traversing local directories safely with defensive exception handling (`UnauthorizedAccessException`, `PathTooLongException`, `SecurityException`).
-- ID3 metadata parsing (Title, Artist, Album, Genre, Duration) and cover art extraction via `TagLibSharp 2.2.0`.
-- Memory leak prevention using `BitmapImage.Freeze()` inside `FrozenImageConverter`.
-- Direct local offline audio decoding through `NAudio.Wave.AudioFileReader`.
+### 2.3. Quét Thư Viện Nhạc Cục Bộ & Phát Nhạc Offline
+- Dịch vụ `LocalLibraryService` duyệt thư mục an toàn theo giải thuật hàng đợi (Breadth-First Search), xử lý triệt để các ngoại lệ phân quyền và đường dẫn dài (`UnauthorizedAccessException`, `PathTooLongException`, `SecurityException`).
+- Đọc và giải mã siêu dữ liệu ID3 (Tiêu đề, Nghệ sĩ, Album, Thể loại, Thời lượng) và ảnh bìa đính kèm thông qua thư viện `TagLibSharp 2.2.0`.
+- Chống rò rỉ bộ nhớ (Memory Leak) bằng phương thức `BitmapImage.Freeze()` ngay khi chuyển đổi dữ liệu hình ảnh.
+- Tích hợp luồng giải mã âm thanh offline trực tiếp qua `NAudio.Wave.AudioFileReader`.
 
-### 4. Play Queue & Interactive Drag-and-Drop Reordering
-- Interactive drag-and-drop queue management powered by `gong-wpf-dragdrop 2.3.2`.
-- "Up Next" list supporting reordering, track removal, queue clearing, and immediate playback.
-- Automatic playback advance: `NowPlayingViewModel` auto-dequeues the next upcoming track when the active song finishes.
-- Quick "Add to Queue" (`+`) buttons across both remote catalog cards and local library rows.
+### 2.4. Hàng Đợi Phát Nhạc & Kéo Thả Sắp Xếp Tương Tác
+- Hỗ trợ kéo thả trực quan sắp xếp thứ tự ưu tiên phát nhạc bằng thư viện `gong-wpf-dragdrop 2.3.2`.
+- Danh sách "Phát Tiếp Theo" hỗ trợ đảo vị trí, xóa bài hát đơn lẻ, xóa toàn bộ hàng đợi và phát ngay lập tức.
+- Cơ chế tự động chuyển bài (Auto-Advance): `NowPlayingViewModel` tự động lấy bài hát đầu hàng đợi khi bài hát hiện tại phát hết thời lượng.
+- Nút thêm nhanh vào hàng đợi (`+`) xuất hiện đồng nhất trên mọi danh sách bài hát.
 
-### 5. Real-Time Synchronized Lyrics (.LRC)
-- High-performance, zero-dependency regex `.LRC` parser supporting standard timestamps (`[mm:ss.xx]`), multi-timestamp tags, time offset correction (`[offset:+/-ms]`), and metadata stripping.
-- $O(\log N)$ binary search active line tracking.
-- Anti-stutter event gating: scroll adjustments dispatch only on active line index transitions, preventing Dispatcher saturation.
-- Spotify-style glowing green typography highlight with vertical auto-centering scroll and interactive click-to-seek.
-- Dual-source resolution: companion disk files (`{trackPath}.lrc`) and curated embedded catalog lyrics.
+### 2.5. Lời Bài Hát Đồng Bộ Thời Gian Thực (.LRC)
+- Bộ phân tích cú pháp `.LRC` hiệu năng cao bằng biểu thức chính quy (Regex), hỗ trợ định dạng chuẩn `[mm:ss.xx]`, nhiều mốc thời gian trên một dòng, thẻ bù trừ độ trễ `[offset:+/-ms]` và loại bỏ thẻ siêu dữ liệu rác.
+- Thuật toán tìm kiếm nhị phân $O(\log N)$ xác định dòng lời bài hát tương ứng với mốc thời gian hiện tại.
+- Cơ chế lọc sự kiện ngưỡng (Event Gating): chỉ phát tín hiệu cập nhật khi chỉ số dòng lời thực sự thay đổi, ngăn chặn hiện tượng nghẽn luồng WPF Dispatcher khi mốc thời gian phát thay đổi liên tục.
+- Giao diện hiển thị lời phong cách karaoke tối màu, làm nổi bật dòng đang hát bằng cỡ chữ phóng to và màu xanh thương hiệu, tự động cuộn mượt căn giữa màn hình và hỗ trợ bấm vào dòng lời để tua nhạc trực tiếp.
+- Cơ chế phân giải kép: ưu tiên tệp `.lrc` cùng thư mục trên ổ đĩa (`{trackPath}.lrc`), tự động chuyển sang dữ liệu lời nhúng sẵn đối với các tác phẩm tuyển chọn.
 
-### 6. 10-Band Graphic DSP Equalizer
-- NAudio `ISampleProvider` filter chain implementing 10 peaking EQ bands at standard ISO octave center frequencies:
-  - 32 Hz (Sub-Bass)
-  - 64 Hz (Bass)
-  - 125 Hz (Low-Mid)
-  - 250 Hz (Low Midrange)
-  - 500 Hz (Midrange)
-  - 1000 Hz (High-Mid)
-  - 2000 Hz (Presence)
-  - 4000 Hz (Presence)
-  - 8000 Hz (Brilliance)
-  - 16000 Hz (Air / Top-End)
-- Isolated filter memory states per audio channel ($2 \times 10 = 20$ filters for stereo) using `NAudio.Dsp.BiQuadFilter` with $Q = 1.4142$ (one-octave bandwidth).
-- Dynamic in-place coefficient mutation via `filter.SetPeakingEq`: zero heap allocations during playback.
-- Built-in soft limiter clamping output samples strictly within $[-1.0f, +1.0f]$ to prevent digital overflow wrap-around.
-- Audio graph ordering: `Source -> DspEqualizerSampleProvider -> SampleAggregator -> WaveOutEvent`. Equalizer adjustments immediately reflect on the real-time FFT spectrum visualizer.
-- Curated presets: Flat, Rock, Pop, Jazz, Classical, Bass Boost, Vocal Boost, with auto-detection of "Custom" curves.
+### 2.6. Bộ Cân Bằng Âm Sắc Đồ Họa 10 Băng Tần DSP (10-Band Graphic DSP Equalizer)
+- Chuỗi xử lý tín hiệu `ISampleProvider` triển khai 10 bộ lọc Peaking EQ theo chuẩn tần số trung tâm quãng tám ISO:
+  - 32 Hz (Âm siêu trầm / Sub-Bass)
+  - 64 Hz (Âm trầm / Bass)
+  - 125 Hz (Âm trầm cao / Low-Mid)
+  - 250 Hz (Âm trung thấp / Low Midrange)
+  - 500 Hz (Âm trung / Midrange)
+  - 1000 Hz (Âm trung cao / High-Mid)
+  - 2000 Hz (Hiện diện / Presence)
+  - 4000 Hz (Hiện diện cao / Presence)
+  - 8000 Hz (Âm sáng / Brilliance)
+  - 16000 Hz (Âm khí / Air)
+- Cách ly hoàn toàn trạng thái bộ nhớ bộ lọc giữa các kênh âm thanh ($2 \times 10 = 20$ bộ lọc cho luồng Stereo) bằng thuật toán `NAudio.Dsp.BiQuadFilter` với hệ số phẩm chất $Q = 1.4142$ (băng thông 1 octave).
+- Cập nhật tham số hệ số bộ lọc tại chỗ qua phương thức `filter.SetPeakingEq`: đảm bảo không phát sinh bất kỳ cấp phát bộ nhớ Heap nào trong suốt quá trình phát nhạc.
+- Bộ giới hạn mềm (Soft Limiter) kẹp biên độ mẫu tín hiệu trong ngưỡng nghiêm ngặt $[-1.0f, +1.0f]$, triệt tiêu hiện tượng méo tràn số nhị phân (Digital Wrap-around Distortion) khi tăng âm lượng quá mức.
+- Thứ tự mắt xích âm thanh: `Nguồn giải mã -> DspEqualizerSampleProvider -> SampleAggregator -> WaveOutEvent`. Tín hiệu sau khi chỉnh âm đi thẳng vào bộ tổng hợp FFT, giúp phổ quang phổ 16 cột hiển thị ngay lập tức sự thay đổi năng lượng tần số theo thời gian thực.
+- Cấu hình âm sắc định sẵn (Presets): Phẳng (Flat), Rock, Pop, Jazz, Cổ Điển (Classical), Tăng Trầm (Bass Boost), Tăng Giọng Hát (Vocal Boost), tự động nhận diện chế độ Tùy Chỉnh (Custom).
 
-### 7. Real-Time FFT Spectrum Visualizer & Vinyl Animation
-- 16-band logarithmic FFT spectrum analyzer matching Spotify-Readme specifications.
-- 30 fps (33ms) dispatch rate limiting to ensure smooth 60 fps WPF UI thread rendering.
-- Continuous vinyl CD rotation animation during active playback.
-- Global Dark and Light theme switching with high-contrast color palettes.
+### 2.7. Trình Phân Tích Phổ Tần Số FFT & Đĩa Than Quay
+- Phân tích phổ thời gian thực 16 cột theo thang logarit tham chiếu từ tài liệu thiết kế Spotify-Readme.
+- Bộ điều tiết tần suất gửi sự kiện giới hạn ở mức 30 khung hình/giây (33ms) nhằm duy trì độ mượt 60 khung hình/giây của giao diện WPF.
+- Hoạt cảnh xoay đĩa than liên tục khi bài hát đang ở trạng thái phát.
+- Hỗ trợ chuyển đổi toàn diện giữa Giao diện Tối (Dark Theme) và Giao diện Sáng (Light Theme).
 
 ---
 
-## Technical Stack & Dependencies
+## 3. Danh Mục Công Nghệ & Thư Viện Sử Dụng
 
-| Layer / Role | Technology | Version | Purpose |
+| Phân Hệ / Thành Phần | Công Nghệ Áp Dụng | Phiên Bản | Mục Đích Sử Dụng |
 |---|---|---|---|
-| Target Framework | .NET Framework | 4.6.1 | Windows native runtime compatibility |
-| Language | C# | 7.3 | Deterministic, strongly-typed codebase |
-| UI Framework | WPF / XAML | 4.6.1 | Hardware-accelerated desktop presentation |
-| Audio Engine | NAudio | 1.10.0 | Low-latency audio graph, decoding, DSP filters |
-| ID3 Metadata | TagLibSharp | 2.2.0 | Audio tag parsing and embedded picture extraction |
-| Drag and Drop | gong-wpf-dragdrop | 2.3.2 | WPF drag-and-drop playlist reordering |
-| In-Process BFF | Microsoft.Owin.SelfHost | 4.2.2 | OWIN HTTP self-host server |
-| Web API | Microsoft.AspNet.WebApi.OwinSelfHost | 5.2.9 | REST endpoints for search and stream proxying |
-| Unit Testing | MSTest v2 | 15.9.1 | Test execution and verification gates |
+| Nền tảng thực thi | .NET Framework | 4.6.1 | Đảm bảo tương thích hệ điều hành Windows gốc |
+| Ngôn ngữ lập trình | C# | 7.3 | Cú pháp xác định, kiểm soát kiểu dữ liệu tĩnh |
+| Giao diện người dùng | WPF / XAML | 4.6.1 | Dựng giao diện tăng tốc phần cứng DirectX |
+| Xử lý âm thanh | NAudio | 1.10.0 | Quản lý thiết bị xuất, định tuyến đồ thị âm thanh, bộ lọc DSP |
+| Trích xuất thẻ ID3 | TagLibSharp | 2.2.0 | Đọc thông tin bài hát và trích xuất ảnh bìa tệp cục bộ |
+| Tương tác kéo thả | gong-wpf-dragdrop | 2.3.2 | Kéo thả sắp xếp danh sách hàng đợi trong WPF |
+| Máy chủ nội bộ | Microsoft.Owin.SelfHost | 4.2.2 | Khởi tạo máy chủ HTTP In-Process không cần IIS |
+| Giao diện API | Microsoft.AspNet.WebApi.OwinSelfHost | 5.2.9 | Xây dựng Controller phục vụ tìm kiếm và stream nhạc |
+| Kiểm thử tự động | MSTest v2 | 15.9.1 | Thực thi bộ kiểm thử đơn vị và cổng kiểm chứng kiến trúc |
 
 ---
 
-## Project Structure
+## 4. Cấu Trúc Mã Nguồn Dự Án
 
 ```
 MusicApp/
-├── MusicApp.sln                               # Master Visual Studio Solution
-├── README.md                                  # Architectural documentation and guide
-├── .gitignore                                 # Git ignore rules for .NET and Visual Studio
-├── MusicApp/                                  # WPF Desktop Application (Presentation)
-│   ├── App.xaml / App.xaml.cs                 # Application bootstrap & lifecycle management
-│   ├── MainWindow.xaml / MainWindow.xaml.cs   # Master desktop shell (2-column layout)
-│   ├── Converters/                            # Value converters (FrozenImage, Visibility, etc.)
-│   ├── Resources/Themes/                      # DarkTheme.xaml and LightTheme.xaml
-│   ├── ViewModels/                            # Presentation logic (MVVM)
-│   │   ├── MainViewModel.cs                   # Root navigation and catalog orchestration
-│   │   ├── NowPlayingViewModel.cs             # Transport controls, timeline, volume, FFT
-│   │   ├── LocalLibraryViewModel.cs           # Local folder scanning and filtering
-│   │   ├── PlayQueueViewModel.cs              # Drag-and-drop queue management
-│   │   ├── LyricsViewModel.cs                 # Synchronized lyrics state & gating
-│   │   ├── DspEqualizerViewModel.cs           # 10-band EQ settings and presets
-│   │   └── EqualizerBandViewModel.cs          # Individual band slider model
-│   └── Views/                                 # UserControls
-│       ├── SidebarNavigationView.xaml         # 220px fixed navigation sidebar
-│       ├── NowPlayingCardView.xaml            # Bottom playback bar with spectrum & CD
-│       ├── LocalLibraryScannerView.xaml       # Local collection scanning view
-│       ├── PlayQueueView.xaml                 # Up Next queue drawer with drag-drop
-│       ├── LyricsSyncView.xaml                # Real-time centered lyrics view
-│       └── DspEqualizerView.xaml              # 10-band graphic EQ console
+├── MusicApp.sln                               # Tệp giải pháp Master Visual Studio
+├── README.md                                  # Tài liệu kiến trúc và hướng dẫn sử dụng
+├── .gitignore                                 # Quy tắc loại trừ tệp nhị phân cho .NET & VS
+├── MusicApp/                                  # Ứng dụng Desktop WPF (Tầng Trình Diễn)
+│   ├── App.xaml / App.xaml.cs                 # Khởi động ứng dụng, nạp theme, giải phóng tài nguyên
+│   ├── MainWindow.xaml / MainWindow.xaml.cs   # Khung giao diện chính (bố cục 2 cột)
+│   ├── Converters/                            # Bộ chuyển đổi dữ liệu (FrozenImage, Visibility, v.v.)
+│   ├── Resources/Themes/                      # Bảng màu DarkTheme.xaml và LightTheme.xaml
+│   ├── ViewModels/                            # Tầng Presentation Logic (MVVM)
+│   │   ├── MainViewModel.cs                   # Điều phối danh mục, điều hướng chính, lệnh tìm kiếm
+│   │   ├── NowPlayingViewModel.cs             # Điều khiển phát, dòng thời gian, âm lượng, dữ liệu FFT
+│   │   ├── LocalLibraryViewModel.cs           # Quản lý quét thư mục máy tính và lọc danh sách
+│   │   ├── PlayQueueViewModel.cs              # Quản lý hàng đợi và logic kéo thả
+│   │   ├── LyricsViewModel.cs                 # Quản lý trạng thái và tính toán dòng lời hiển thị
+│   │   ├── DspEqualizerViewModel.cs           # Quản lý 10 băng tần DSP và cấu hình âm sắc mẫu
+│   │   └── EqualizerBandViewModel.cs          # Mô hình dữ liệu cho từng thanh trượt tần số
+│   └── Views/                                 # Các UserControl giao diện thành phần
+│       ├── SidebarNavigationView.xaml         # Thanh điều hướng cố định bên trái (220px)
+│       ├── NowPlayingCardView.xaml            # Thanh điều khiển phát cố định bên dưới
+│       ├── LocalLibraryScannerView.xaml       # Giao diện quét và duyệt thư viện nhạc nội bộ
+│       ├── PlayQueueView.xaml                 # Giao diện hàng đợi bài hát Up Next
+│       ├── LyricsSyncView.xaml                # Giao diện hiển thị lời bài hát cuộn tự động
+│       └── DspEqualizerView.xaml              # Bảng điều khiển bộ cân bằng âm thanh 10 cần gạt
 ├── src/
-│   ├── MusicApp.Core/                         # Platform-agnostic domain layer
-│   │   ├── Common/                            # ObservableObject, RelayCommand, AsyncRelayCommand
-│   │   ├── Dtos/                              # SearchResponseDto, TrackDto
-│   │   ├── Interfaces/                        # IAudioService, IDspEqualizerService, ILyricsService
-│   │   ├── Models/                            # TrackModel, LyricLine, PlaybackState
-│   │   └── Services/                          # LrcParser, LocalLibraryService, LyricsService
-│   ├── MusicApp.AudioEngine/                  # Audio processing and streaming
-│   │   ├── Dsp/                               # DSP pipeline components
-│   │   │   ├── BiQuadFilter                   # Peaking EQ filter algorithm
-│   │   │   ├── DspEqualizerSampleProvider.cs  # 10-band multi-channel equalizer provider
-│   │   │   ├── SampleAggregator.cs            # FFT sampling bridge
-│   │   │   ├── FftCalculator.cs               # 16-band spectrum calculation
-│   │   │   └── SpectrumBin.cs                 # Spectrum bin data structure
-│   │   ├── Stream/                            # BufferedHttpWaveStream
-│   │   └── NAudioService.cs                   # Audio engine lifecycle and device output
-│   └── MusicApp.Bff/                          # Internal BFF service
-│       ├── Controllers/                       # TrackController (search, stream endpoints)
-│       ├── Providers/                         # MusicSourceRouter, Jamendo, Vietnamese providers
-│       ├── Startup.cs                         # OWIN Web API routing configuration
-│       └── BffServerHost.cs                   # Self-host startup and shutdown hooks
+│   ├── MusicApp.Core/                         # Tầng lõi nghiệp vụ độc lập nền tảng
+│   │   ├── Common/                            # Lớp cơ sở ObservableObject, RelayCommand, AsyncRelayCommand
+│   │   ├── Dtos/                              # Đối tượng truyền dữ liệu SearchResponseDto, TrackDto
+│   │   ├── Interfaces/                        # Hợp đồng IAudioService, IDspEqualizerService, ILyricsService
+│   │   ├── Models/                            # Mô hình dữ liệu TrackModel, LyricLine, PlaybackState
+│   │   └── Services/                          # Dịch vụ LrcParser, LocalLibraryService, LyricsService
+│   ├── MusicApp.AudioEngine/                  # Tầng xử lý tín hiệu âm thanh và thiết bị xuất
+│   │   ├── Dsp/                               # Các khối xử lý DSP số hóa
+│   │   │   ├── BiQuadFilter                   # Thuật toán bộ lọc Peaking EQ nhị thức
+│   │   │   ├── DspEqualizerSampleProvider.cs  # Khối xử lý 10 băng tần đa kênh âm thanh
+│   │   │   ├── SampleAggregator.cs            # Khối trích mẫu phục vụ phân tích phổ FFT
+│   │   │   ├── FftCalculator.cs               # Thuật toán biến đổi Fourier rời rạc 16 cột
+│   │   │   └── SpectrumBin.cs                 # Cấu trúc lưu trữ giá trị cột phổ
+│   │   ├── Stream/                            # BufferedHttpWaveStream hỗ trợ đọc phân đoạn mạng
+│   │   └── NAudioService.cs                   # Triển khai IAudioService, quản lý thiết bị WaveOutEvent
+│   └── MusicApp.Bff/                          # Tầng dịch vụ trung gian cục bộ OWIN
+│       ├── Controllers/                       # TrackController cung cấp API tìm kiếm và stream
+│       ├── Providers/                         # Router định tuyến, nguồn Jamendo và nguồn nhạc Việt Nam
+│       ├── Startup.cs                         # Cấu hình định tuyến Web API trên nền OWIN
+│       └── BffServerHost.cs                   # Quản lý vòng đời khởi chạy máy chủ nội bộ
 └── tests/
-    └── MusicApp.Tests/                        # Comprehensive test suite (60 tests)
-        ├── BffEndpointTests.cs                # HTTP endpoints and streaming tests
-        ├── DspEqualizerTests.cs               # EQ coefficients, DSP gain, and Gate 5 verification
-        ├── FftCalculatorTests.cs              # FFT bin calculation tests
-        ├── LocalLibraryTests.cs               # ID3 extraction and BFS folder scan tests
-        ├── LyricsTests.cs                     # LRC parsing and Gate 4 synchronization tests
-        ├── PlayQueueTests.cs                  # Drag-drop reordering and Gate 3 auto-advance tests
-        ├── RelayCommandTests.cs               # MVVM command execution tests
-        └── ViewModelTests.cs                  # Navigation, filtering, and theme switching tests
+    └── MusicApp.Tests/                        # Toàn bộ kiểm thử tự động (60 test cases)
+        ├── BffEndpointTests.cs                # Kiểm thử API tìm kiếm và truyền dữ liệu mạng Range
+        ├── DspEqualizerTests.cs               # Kiểm thử hệ số DSP, độ tăng giảm âm và cổng Gate 5
+        ├── FftCalculatorTests.cs              # Kiểm thử tính toán phổ FFT
+        ├── LocalLibraryTests.cs               # Kiểm thử đọc ID3 và thuật toán duyệt BFS thư mục
+        ├── LyricsTests.cs                     # Kiểm thử đọc tệp LRC và cổng Gate 4 chuyển dòng
+        ├── PlayQueueTests.cs                  # Kiểm thử sắp xếp hàng đợi và cổng Gate 3 phát tiếp
+        ├── RelayCommandTests.cs               # Kiểm thử thực thi lệnh MVVM
+        └── ViewModelTests.cs                  # Kiểm thử điều hướng, lọc danh mục và đổi theme
 ```
 
 ---
 
-## Build and Execution Instructions
+## 5. Hướng Dẫn Biên Dịch & Khởi Chạy
 
-### Prerequisites
-1. Windows 10 or later.
-2. Visual Studio 2017, 2019, or 2022 (Community, Professional, or Enterprise).
-3. .NET Framework 4.6.1 Developer Pack.
-4. MSBuild version 15.0 or higher.
+### 5.1. Yêu Cầu Môi Trường
+1. Hệ điều hành Windows 10 hoặc Windows 11.
+2. Visual Studio 2017, 2019 hoặc 2022 (bản Community, Professional hoặc Enterprise).
+3. Gói phát triển .NET Framework 4.6.1 Developer Pack.
+4. Công cụ dòng lệnh MSBuild phiên bản 15.0 trở lên.
 
-### Compilation via Command Line (MSBuild)
-Open PowerShell or Command Prompt in the repository root directory:
+### 5.2. Biên Dịch Bằng Dòng Lệnh (MSBuild)
+Mở cửa sổ PowerShell hoặc Terminal tại thư mục gốc của dự án:
 
 ```powershell
 & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" MusicApp.sln /t:Build /p:Configuration=Debug /v:m
 ```
 
-### Running Automated Unit Tests (VSTest)
-Execute all 60 tests across the BFF, AudioEngine, Core, and ViewModel layers:
+Kết quả biên dịch chuẩn mực: `0 Error(s)`, `0 Warning(s)`.
+
+### 5.3. Thực Thi Bộ Kiểm Thử Tự Động (VSTest)
+Chạy toàn bộ 60 bài kiểm thử đơn vị bao phủ toàn diện các tầng BFF, AudioEngine, Core và ViewModel:
 
 ```powershell
 & "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe" tests\MusicApp.Tests\bin\Debug\MusicApp.Tests.dll
 ```
 
-Expected output:
+Kết quả thực thi chuẩn:
 ```text
 Total tests: 60. Passed: 60. Failed: 0. Skipped: 0.
 Test Run Successful.
 ```
 
-### Launching the Desktop Application
-Run the compiled executable directly:
+### 5.4. Khởi Chạy Ứng Dụng Desktop
+Chạy tệp thực thi đã được biên dịch:
 
 ```powershell
 .\MusicApp\bin\Debug\MusicApp.exe
 ```
 
-Upon launch, the application automatically initializes the local OWIN BFF on `http://localhost:5245`, binds the NAudio playback engine, loads the catalog, and opens the master desktop shell.
+Khi khởi chạy, ứng dụng tự động mở máy chủ OWIN BFF tại `http://localhost:5245`, kết nối thiết bị âm thanh qua NAudio, khởi tạo danh mục bài hát và hiển thị giao diện người dùng.
 
 ---
 
-## Engineering Standards & Architecture Rules
+## 6. Tiêu Chuẩn Kỹ Thuật & Quản Trị Rủi Ro
 
-- **Strict MVVM**: View code-behind files (`.xaml.cs`) contain zero business logic and are strictly limited to visual tree operations (e.g. `ScrollViewer.ScrollToVerticalOffset` calculations). All commands and state reside in ViewModels.
-- **Zero Heap Allocations in Audio Loop**: The audio rendering thread operates with pre-allocated ring buffers. Equalizer filter updates and FFT spectrum calculations allocate 0 bytes on the heap during streaming.
-- **Memory Safety**: Embedded image bytes extracted from audio metadata are frozen via `BitmapImage.Freeze()` to eliminate cross-thread memory leaks.
-- **Backward Compatibility**: Strictly compiled against .NET Framework 4.6.1 without relying on C# 8.0+ syntax features.
+- **Tuân thủ mô hình MVVM thuần túy**: Toàn bộ tệp code-behind (`.xaml.cs`) chỉ chứa các thao tác trực tiếp với cây giao diện Visual Tree (như tính toán cuộn `ScrollViewer`). Không cho phép chứa bất kỳ logic nghiệp vụ hoặc xử lý dữ liệu nào tại tầng này.
+- **Không cấp phát bộ nhớ trong luồng âm thanh (Zero Heap Allocation)**: Luồng xử lý âm thanh sử dụng vùng đệm vòng lặp tĩnh. Việc tính toán bộ lọc BiQuad và biến đổi phổ FFT không tạo ra đối tượng mới trên bộ nhớ Heap, triệt tiêu hoàn toàn hiện tượng khựng tiếng do bộ thu gom rác (Garbage Collector) gây ra.
+- **An toàn bộ nhớ hình ảnh (Memory Safety)**: Mọi dữ liệu hình ảnh chuyển đổi sang `BitmapImage` đều được đóng băng bằng `Freeze()` để đảm bảo an toàn truy cập đa luồng và giải phóng ngay bộ đệm thô.
+- **Tương thích ngược**: Mã nguồn được kiểm soát chặt chẽ để tương thích hoàn toàn với nền tảng .NET Framework 4.6.1 và trình biên dịch C# 7.3.
