@@ -15,6 +15,25 @@ using MusicApp.ViewModels;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu don vi va tich hop cho tinh nang thu vien nhac noi bo (Local Library Scanner).
+    /// 
+    /// - Tac dung: Kiem thu kha nang trich xuat metadata ID3 tu tep am thanh vat ly (TagLibSharp),
+    ///   co che quet de quy thu muc khong chan UI (IProgress reporting), logic tim kiem/loc theo tu khoa,
+    ///   converter anh bia dong bang bo nho (FrozenImageConverter), va kha nang phat nhac noi bo qua NAudioService.
+    /// 
+    /// - Van de giai quyet:
+    ///   1. Kiem thu trich xuat metadata an toan (Defensive Programming): Xu ly duong dan null, tep rong,
+    ///      duong dan khong ton tai hoac tep khong phai am thanh (.txt).
+    ///   2. Kiem thu quet de quy bat dong bo: Tao thu muc tam thoi (temp directory) chua tep am thanh WAV gia lap,
+    ///      xac minh bao cao tien do phan tram chay dung.
+    ///   3. Kiem thu Frozen Image: Dam bao anh tao ra tu Base64 Data URI luon o trang thai IsFrozen = true
+    ///      de an toan su dung tren luong UI WPF.
+    ///   4. Kiem thu vong doi phat nhac local: Play, Pause, Stop, TotalTime tren NAudioService.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   Setup() tao thu muc tam Guid doc lap; Cleanup() xoa sach thu muc sau moi test.
+    /// </summary>
     [TestClass]
     public class LocalLibraryTests
     {

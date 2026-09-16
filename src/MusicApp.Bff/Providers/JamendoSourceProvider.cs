@@ -11,6 +11,24 @@ using Newtonsoft.Json.Linq;
 
 namespace MusicApp.Bff.Providers
 {
+    /// <summary>
+    /// Nha cung cap nguon am nhac tu nen tang Jamendo (Jamendo Music Source Provider Strategy).
+    /// 
+    /// Tac dung:
+    /// - Ket noi toi dich vu Jamendo API v3.0 de tim kiem cac ca khuc phat hanh duoi giay phep Creative Commons.
+    /// - Cung cap danh muc nhac du phong tich hop san (Resilient Curated Catalog) gom 12 bai hat duoc xac minh 100% playable.
+    /// - Phan giai dia chi stream truc tiep tu may chu CDN mp3d.jamendo.com ho tro HTTP Range Request.
+    /// 
+    /// Van de giai quyet:
+    /// - Khac phuc su co mang va gioi han API: Jamendo API co the bi chan DNS hoac phan hoi cham tu mot so mang tai Viet Nam.
+    ///   Lop nay cau hinh thoi gian cho cuc ngan (Aggressive Timeout 2.5s) va lap tuc fallback sang Curated Catalog,
+    ///   dam bao trai nghiem nguoi dung khong bao gio bi treo hoac tra ve danh sach trang.
+    /// - Bat buoc su dung giao thuc bao mat TLS 1.2 tren .NET Framework 4.6.1 de tranh loi ket noi SSL Handshake.
+    /// 
+    /// Cach thuc van hanh:
+    /// - SearchTracksAsync gui yeu cau toi API Jamendo; neu thanh cong se parse JSON thanh TrackDto.
+    /// - Neu that bai hoac timeout, goi GetCuratedTracksMatching de tra ve cac bai hat phu hop trong bo nho.
+    /// </summary>
     public class JamendoSourceProvider : IMusicSourceProvider
     {
         private const string JamendoClientId = "c4eead12";
@@ -169,7 +187,7 @@ namespace MusicApp.Bff.Providers
 
         static JamendoSourceProvider()
         {
-            // Force TLS 1.2 on .NET Framework 4.6.1 for outbound calls to Jamendo API
+            // Bat buoc su dung TLS 1.2 va TLS 1.1 tren .NET Framework 4.6.1 khi goi Jamendo API
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11;
             ServicePointManager.DefaultConnectionLimit = 64;
 
@@ -178,15 +196,25 @@ namespace MusicApp.Bff.Providers
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
             };
 
-            // Aggressive 2.5 second timeout to prevent search blocking if Jamendo API is blocked or slow
+            // Thoi gian cho toi da 2.5 giay de ngan chan viec chan tien trinh tim kiem neu mang yeu
             HttpClientInstance = new HttpClient(handler)
             {
                 Timeout = TimeSpan.FromMilliseconds(2500)
             };
         }
 
+        /// <summary>
+        /// Ten nhan dien nha cung cap am nhac.
+        /// </summary>
         public string ProviderName => "Jamendo";
 
+        /// <summary>
+        /// Tim kiem bai hat tu Jamendo API, tu dong fallback sang danh muc offline neu gap loi mang.
+        /// </summary>
+        /// <param name="query">Tu khoa tim kiem.</param>
+        /// <param name="limit">So luong bai hat toi da.</param>
+        /// <param name="cancellationToken">Token huy tac vu.</param>
+        /// <returns>Danh sach cac doi tuong TrackDto phu hop.</returns>
         public async Task<List<TrackDto>> SearchTracksAsync(string query, int limit, CancellationToken cancellationToken)
         {
             var tracks = new List<TrackDto>();
@@ -239,7 +267,7 @@ namespace MusicApp.Bff.Providers
             }
             catch (Exception)
             {
-                // Fallback immediately to local curated tracks if Jamendo is unreachable or rate limited
+                // Fallback ngay lap tuc sang danh muc nhac offline tich hop san neu API ngoai khong the truy cap
                 return GetCuratedTracksMatching(query);
             }
 
@@ -251,6 +279,14 @@ namespace MusicApp.Bff.Providers
             return tracks;
         }
 
+        /// <summary>
+        /// Lay stream am thanh truc tiep ho tro Range Header tu CDN Jamendo.
+        /// </summary>
+        /// <param name="trackId">Dinh danh bai hat.</param>
+        /// <param name="startByte">Vi tri byte bat dau.</param>
+        /// <param name="endByte">Vi tri byte ket thuc.</param>
+        /// <param name="cancellationToken">Token huy ket noi.</param>
+        /// <returns>Luong Stream nhi phan cua am thanh.</returns>
         public async Task<Stream> GetAudioStreamAsync(string trackId, long? startByte, long? endByte, CancellationToken cancellationToken)
         {
             string audioUrl = ResolveTrackAudioUrl(trackId);
@@ -265,6 +301,11 @@ namespace MusicApp.Bff.Providers
             return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Phan giai ma bai hat thanh duong dan MP3 truc tiep tren may chu CDN Jamendo.
+        /// </summary>
+        /// <param name="trackId">ID bai hat (co the kem tien to jamendo_track_).</param>
+        /// <returns>URL MP3 tren CDN Jamendo.</returns>
         public string ResolveTrackAudioUrl(string trackId)
         {
             if (string.IsNullOrWhiteSpace(trackId))
@@ -276,10 +317,15 @@ namespace MusicApp.Bff.Providers
                 ? trackId.Substring("jamendo_track_".Length)
                 : trackId;
 
-            // Direct CDN MP3 stream resolver
+            // Dia chi CDN MP3 phat truc tiep
             return $"https://mp3d.jamendo.com/download/track/{rawId}/mp32/";
         }
 
+        /// <summary>
+        /// Loc danh sach cac ban nhac trong bo danh muc tich hop san thoa man tu khoa.
+        /// </summary>
+        /// <param name="query">Tu khoa tim kiem.</param>
+        /// <returns>Danh sach TrackDto phu hop.</returns>
         public List<TrackDto> GetCuratedTracksMatching(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -301,7 +347,7 @@ namespace MusicApp.Bff.Providers
                 }
             }
 
-            // If query is genre-based or general search with no direct matches, return full catalog rather than empty
+            // Neu tim kiem the loai hoac chung chung khong co ket qua chinh xac, tra ve toan bo danh muc thay vi rong
             return matched.Count > 0 ? matched : new List<TrackDto>(CuratedCatalog);
         }
     }

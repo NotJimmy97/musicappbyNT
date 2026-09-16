@@ -6,6 +6,28 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
+    <!--
+        KIEN TRUC GIAO DIEN: LyricsSyncView.xaml - Giao dien loi bai hat dong bo thoi gian thuc
+        
+        - Tac dung: Hien thi loi bai hat dong bo theo thoi gian phat cua ca khuc (Synced LRC Lyrics)
+          voi phong cach Karaoke hien dai, ho tro click vao dong loi de tua nhac tuc thi (Click-to-Seek).
+          
+        - Van de giai quyet:
+          1. Hieu ung thi giac dong loi hat dang phat: Su dung DataTrigger tren thuoc tinh IsCurrentLine
+             de phong to co chu (FontSize 18 -> 24), tang do dam (FontWeight Bold), doi mau chu sang trang/accent
+             va giam do trong suot (Opacity 0.45 -> 1.0). Cac dong loi xung quanh mo di de tao chieu sau thi giac.
+          2. Tua nhac truc tiep tu loi bai hat (Click-to-Seek): Nguoi dung co the bam vao bat ky dong loi nao
+             de goi SeekCommand tren LyricsViewModel, dua vi tri phat nhac den ngay thoi diem bat dau cua cau hat.
+          3. Xu ly trang thai khong co loi (Fallback State): Hien thi panel thong bao truc quan khi bai hat
+             khong co du lieu loi dong bo hoac dang trong qua trinh tai tu server/file noi bo.
+             
+        - Cach thuc van hanh:
+          1. View nhan DataContext la LyricsViewModel.
+          2. ListBox binding vao ObservableCollection LyricsLines.
+          3. Khi vi tri phat nhac thay doi, LyricsViewModel tim dong loi phu hop va cap nhat IsCurrentLine=true,
+             dong thoi phat su kien ActiveLineChanged de code-behind LyricsSyncView.xaml.cs can giua dong loi.
+    -->
+
     <Grid Background="{DynamicResource WindowBackgroundBrush}">
         <Grid.RowDefinitions>
             <!-- Row 0: Top Song Info Header -->

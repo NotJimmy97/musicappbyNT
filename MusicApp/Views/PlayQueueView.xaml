@@ -8,6 +8,31 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
+    <!--
+        KIEN TRUC GIAO DIEN: PlayQueueView.xaml - Giao dien quan ly hang doi phat nhac
+        
+        - Tac dung: Cung cap man hinh quan ly danh sach phat hien tai (Play Queue), ho tro xem danh sach
+          bai hat cho phat, xoa bai hat, xoa toan bo hang doi, va sap xep lai thu tu bai hat bang keo-tha.
+          
+        - Van de giai quyet:
+          1. Keo-tha khong can Code-Behind (Declarative Drag-and-Drop): Su dung thu vien GongSolutions.Wpf.DragDrop
+             gan truc tiep tren ListBox thong qua cac Attached Property:
+             - dd:DragDrop.IsDragSource="True": Cho phep keo phan tu khoi vi tri hien tai.
+             - dd:DragDrop.IsDropTarget="True": Cho phep tha phan tu vao vi tri moi.
+             - dd:DragDrop.DropHandler="{Binding}": Uy quyen xu ly su kien Drop cho PlayQueueViewModel
+               (thong qua viec implements interface IDropTarget).
+          2. Phan biet bai hat dang phat: Thiet ke DataTemplate danh dau rieng bai hat dang phat voi
+             mau chu xanh la thuong hieu (AccentBrandBrush) va bieu tuong song am.
+          3. Thao tac xoa nhanh va xoa sach: Nut "Xoa khoi hang doi" tren tung dong va nut "Xoa toan bo"
+             (ClearQueueCommand) tren header giup quan ly danh sach phat tien loi.
+             
+        - Cach thuc van hanh:
+          1. View nhan DataContext la PlayQueueViewModel.
+          2. ListBox ItemsSource binding vao ObservableCollection QueueItems.
+          3. Khi nguoi dung thao tac keo tha, GongSolutions tu dong goi phuong thuc Drop trong ViewModel
+             de hoan doi vi tri hai phan tu trong ObservableCollection.
+    -->
+
     <UserControl.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
     </UserControl.Resources>

@@ -14,12 +14,31 @@ using Owin;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu tich hop (Integration Tests) cho cac Endpoint cua Backend For Frontend (BFF).
+    /// 
+    /// - Tac dung: Kiem tra hoat dong thuc te cua cac API Controller (TrackController, StreamController)
+    ///   thong qua server ao Microsoft.Owin.Testing.TestServer ma khong can khoi chay port mang vat ly.
+    /// 
+    /// - Van de giai quyet: Dam bao tinh toan ven cua API Contract (SearchResponseDto, TrackDto),
+    ///   kiem thu kha nang xu ly tai nguyen am thanh qua giao thuc HTTP Range Requests (206 Partial Content),
+    ///   kiem thu co che dinh tuyen nhac Viet Nam khong dau / co dau va phong ngua hoi quy khi sua code BFF.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   1. Setup(): Khoi tao Owin TestServer su dung cau hinh Startup chuan cua BFF.
+    ///   2. Gui cac HTTP Request (GET search, GET stream) thong qua HttpClient cua TestServer.
+    ///   3. Assert: Xac minh ma trang thai HttpStatusCode (200, 206, 400), cau truc JSON tra ve va StreamEndpoint.
+    ///   4. Cleanup(): Giai phong HttpClient va TestServer sau moi ca kiem thu de tranh ro ri bo nho.
+    /// </summary>
     [TestClass]
     public class BffEndpointTests
     {
         private TestServer _server;
         private HttpClient _client;
 
+        /// <summary>
+        /// Thiet lap moi truong kiem thu: Khoi tao in-memory OWIN TestServer va HttpClient.
+        /// </summary>
         [TestInitialize]
         public void Setup()
         {
@@ -31,6 +50,9 @@ namespace MusicApp.Tests
             _client = _server.HttpClient;
         }
 
+        /// <summary>
+        /// Don dep tai nguyen sau khi kiem thu: Giai phong HttpClient va TestServer.
+        /// </summary>
         [TestCleanup]
         public void Cleanup()
         {

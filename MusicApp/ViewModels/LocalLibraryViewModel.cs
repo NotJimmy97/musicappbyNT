@@ -10,6 +10,26 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.ViewModels
 {
+    /// <summary>
+    /// ViewModel quan ly quet va tim kiem thu vien am nhac cuc bo (Local Audio Library Scanner ViewModel).
+    /// 
+    /// Tac dung:
+    /// - Cho phep nguoi dung chon thu muc tren o cung thong qua hop thoai FolderBrowserDialog.
+    /// - Dieu phoi tien trinh quet de quy cac tap tin am thanh (MP3, FLAC, M4A, WAV,...) tren luong nen.
+    /// - Cap nhat tien do quet theo thoi gian thuc len giao dien: so file da doc, so bai hat tim thay, ten file dang xu ly.
+    /// - Cung cap chuc nang tim kiem, loc nhanh danh sach bai hat offline theo tieu de, ca si, hoac album.
+    /// 
+    /// Van de giai quyet:
+    /// - Tranh gay treo giao dien (UI Freeze): Thao tac I/O tren dia duoc thuc thi hoan toan bat dong bo (Async/Await).
+    /// - Cung cap nut dung quet (Cancel Scan): Nguoi dung co the chu dong ngat tien trinh quet bat ky luc nao
+    ///   ma khong gay loi crash ung dung nho co che CancellationTokenSource.
+    /// - Quan ly bo nho hieu qua: Danh sach FilteredTracks chi luu cac tham chieu TrackItemViewModel phu hop voi bo loc SearchFilter.
+    /// 
+    /// Cach thuc van hanh:
+    /// - Mac dinh chon thu muc Windows MyMusic cua nguoi dung.
+    /// - Khi nhan nut "Quét Thư Mục", goi _localLibraryService.ScanDirectoryAsync kem progress report.
+    /// - Sau khi quet xong, danh sach bai hat duoc nap vao AllTracks va hien thi qua FilteredTracks.
+    /// </summary>
     public class LocalLibraryViewModel : ObservableObject
     {
         private readonly ILocalLibraryService _localLibraryService;
@@ -17,6 +37,10 @@ namespace MusicApp.ViewModels
         private CancellationTokenSource _scanCts;
 
         private string _selectedFolderPath;
+
+        /// <summary>
+        /// Duong dan thu muc tren o cung duoc chon de quet am thanh.
+        /// </summary>
         public string SelectedFolderPath
         {
             get => _selectedFolderPath;
@@ -30,6 +54,10 @@ namespace MusicApp.ViewModels
         }
 
         private bool _isScanning;
+
+        /// <summary>
+        /// Trang thai he thong co dang trong tien trinh quet thu muc hay khong.
+        /// </summary>
         public bool IsScanning
         {
             get => _isScanning;
@@ -45,6 +73,10 @@ namespace MusicApp.ViewModels
         }
 
         private string _statusMessage = "S\u1EB5n s\u00E0ng qu\u00E9t th\u01B0 vi\u1EC7n c\u00E1 nh\u00E2n.";
+
+        /// <summary>
+        /// Thong bao trang thai chi tiet hien thi cho nguoi dung.
+        /// </summary>
         public string StatusMessage
         {
             get => _statusMessage;
@@ -52,6 +84,10 @@ namespace MusicApp.ViewModels
         }
 
         private int _filesScannedCount;
+
+        /// <summary>
+        /// So luong tap tin da duyet qua trong qua trinh quet.
+        /// </summary>
         public int FilesScannedCount
         {
             get => _filesScannedCount;
@@ -59,6 +95,10 @@ namespace MusicApp.ViewModels
         }
 
         private string _searchFilter = string.Empty;
+
+        /// <summary>
+        /// Tu khoa loc danh sach bai hat offline hien tai.
+        /// </summary>
         public string SearchFilter
         {
             get => _searchFilter;
@@ -72,27 +112,62 @@ namespace MusicApp.ViewModels
         }
 
         private TrackItemViewModel _selectedTrack;
+
+        /// <summary>
+        /// Bai hat dang duoc chon trong danh sach offline.
+        /// </summary>
         public TrackItemViewModel SelectedTrack
         {
             get => _selectedTrack;
             set => SetProperty(ref _selectedTrack, value);
         }
 
+        /// <summary>
+        /// Danh sach goc chua toan bo cac bai hat quet duoc trong thu muc.
+        /// </summary>
         public ObservableCollection<TrackItemViewModel> AllTracks { get; } = new ObservableCollection<TrackItemViewModel>();
+
+        /// <summary>
+        /// Danh sach bai hat da qua bo loc SearchFilter hien thi tren DataGrid / ListBox XAML.
+        /// </summary>
         public ObservableCollection<TrackItemViewModel> FilteredTracks { get; } = new ObservableCollection<TrackItemViewModel>();
 
+        /// <summary>
+        /// Lenh mo hop thoai FolderBrowserDialog de chon thu muc am thanh.
+        /// </summary>
         public RelayCommand BrowseCommand { get; }
+
+        /// <summary>
+        /// Lenh bat dau quet thu muc bat dong bo.
+        /// </summary>
         public AsyncRelayCommand ScanCommand { get; }
+
+        /// <summary>
+        /// Lenh yeu cau huy bo tien trinh quet dang chay.
+        /// </summary>
         public RelayCommand CancelScanCommand { get; }
+
+        /// <summary>
+        /// Lenh xoa trang o loc tim kiem.
+        /// </summary>
         public RelayCommand ClearFilterCommand { get; }
+
+        /// <summary>
+        /// Lenh phat bai hat duoc chon tu thu vien offline.
+        /// </summary>
         public RelayCommand PlayTrackCommand { get; }
 
+        /// <summary>
+        /// Khoi tao LocalLibraryViewModel voi dich vu quet va callback phat nhac.
+        /// </summary>
+        /// <param name="localLibraryService">Dich vu quet am thanh offline.</param>
+        /// <param name="onPlayTrack">Callback phat ban nhac duoc chon.</param>
         public LocalLibraryViewModel(ILocalLibraryService localLibraryService, Action<TrackModel> onPlayTrack)
         {
             _localLibraryService = localLibraryService ?? throw new ArgumentNullException(nameof(localLibraryService));
             _onPlayTrack = onPlayTrack;
 
-            // Default to Windows MyMusic standard user folder
+            // Mac dinh tro toi thu muc MyMusic cua nguoi dung Windows
             string defaultMusicFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
             if (Directory.Exists(defaultMusicFolder))
             {
@@ -113,6 +188,9 @@ namespace MusicApp.ViewModels
             });
         }
 
+        /// <summary>
+        /// Hien thi hop thoai FolderBrowserDialog de nguoi dung chon thu muc chua nhac.
+        /// </summary>
         private void ExecuteBrowse()
         {
             try
@@ -140,6 +218,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Thuc thi quet thu muc am thanh bat dong bo, cap nhat tien do thoi gian thuc qua Progress.
+        /// </summary>
         public async Task ExecuteScanAsync()
         {
             if (string.IsNullOrWhiteSpace(SelectedFolderPath) || !Directory.Exists(SelectedFolderPath))
@@ -192,6 +273,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Phat tin hieu huy bo tien trinh quet thu muc dang dien ra.
+        /// </summary>
         public void ExecuteCancelScan()
         {
             if (_scanCts != null && !_scanCts.IsCancellationRequested)
@@ -200,6 +284,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Ap dung bo loc tim kiem len danh sach AllTracks de tao FilteredTracks.
+        /// </summary>
         public void ApplyFilter()
         {
             FilteredTracks.Clear();

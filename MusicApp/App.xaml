@@ -2,6 +2,24 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:MusicApp">
+    <!--
+        KIEN TRUC TAI NGUYEN UNG DUNG: App.xaml - Application Root Resources
+        
+        - Tac dung: Khai bao cac tai nguyen toan cuc (Global Application Resources) va chu de mac dinh (Default Theme)
+          cho toan bo ung dung Jun Music Desktop Player.
+          
+        - Van de giai quyet:
+          1. Quan ly tap trung chu de giao dien (Theme Management): Su dung MergedDictionaries de nap bo mau
+             DarkTheme.xaml mac dinh khi khoi dong ung dung.
+          2. Ho tro Dynamic Skinning / Theme Switching: Khi nguoi dung bam nut chuyen chu de (Dark/Light),
+             lop App.xaml.cs se tien hanh xoa va thay the Dictionary trong MergedDictionaries bang LightTheme.xaml.
+             Nho toan bo giao dien dung DynamicResource, moi mau sac duoc cap nhat ngay lap tuc ma khong can
+             khoi dong lai tien trinh.
+             
+        - Cach thuc van hanh:
+          Khi WPF runtime khoi tao Application, tai nguyen tu DarkTheme.xaml duoc nap vao tu dien tai nguyen
+          cua App va co the truy cap duoc tu bat ky Window, UserControl hay DataTemplate nao trong ung dung.
+    -->
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -10,3 +28,4 @@
         </ResourceDictionary>
     </Application.Resources>
 </Application>
+

@@ -12,6 +12,25 @@ using MusicApp.ViewModels;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu don vi cho cac ViewModel cot loi trong ung dung WPF (NowPlayingViewModel, MainViewModel).
+    /// 
+    /// - Tac dung: Kiem tra su tuong tac giua cac ViewModel va Service, tinh dung dan cua cac thuoc tinh
+    ///   ObservableObject (INotifyPropertyChanged), chuyen doi trang thai phat nhac, co che tim kiem/loc
+    ///   nhac Viet Nam khong dau va dieu huong giua 6 phan he chuc nang.
+    /// 
+    /// - Van de giai quyet:
+    ///   1. Kiem thu NowPlayingViewModel: Chuyen doi trang thai IsPlaying, CanSeek theo PlaybackState,
+    ///      dinh dang thoi gian FormattedDuration ("03:15"), va khoi tao du 16 EqualizerBins.
+    ///   2. Kiem thu MainViewModel: Chuyen doi chu de Dark/Light Theme (ToggleThemeCommand),
+    ///      danh muc nhac khoi tao (24 bai hat gom nhac Viet Nam), loc the loai (Acoustic Viet),
+    ///      tim kiem khong dau ("ha trang" -> "Ha Trang"), va dieu huong Sidebar giua 6 Views.
+    ///   3. Kiem thu FrozenImageConverter: Xu ly gia tri dau vao null hoac rong ma khong gay Exception.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   Su dung FakeAudioService va FakeApiClient de gia lap moi truong phat nhac va mang,
+    ///   cho phep kiem thu nhanh chong, doc lap va khong phu thuoc phan cung am thanh thuc te.
+    /// </summary>
     [TestClass]
     public class ViewModelTests
     {

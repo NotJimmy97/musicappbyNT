@@ -6,6 +6,31 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
+    <!--
+        KIEN TRUC GIAO DIEN: DspEqualizerView.xaml - Giao dien bo loc am sac va am pho thoi gian thuc
+        
+        - Tac dung: Cung cap man hinh can chinh am thanh chuyen nghiep gom bo loc do hoa 10 dai tan
+          (10-Band Graphic Equalizer tu 31Hz den 16kHz) va he thong 16 cot truc quan hoa am pho FFT
+          (Real-time Spectrum Visualizer).
+          
+        - Van de giai quyet:
+          1. Slider dieu khien do hoa chuyen biet: Thiet ke lai toan bo ControlTemplate cho Slider doc
+             (EqVerticalSliderTemplate) voi moc 0 dB trung tam va pham vi dieu chinh +/-15 dB giup thao tac
+             chinh xac va truc quan.
+          2. Cau hinh am thanh cai san (Audio Presets): He thong nut bam Preset nhanh (Flat, Bass Boost,
+             Vocal, Rock, Pop...) goi SelectPresetCommand giup nguoi dung doi chat am ngay lap tuc.
+          3. Truc quan hoa am pho FFT 16 kenh: ItemsControl hien thi 16 cot song bien thien theo bien do
+             tan so thuc te do FftCalculator va SampleAggregator trong Audio Engine cung cap.
+          4. Tach biet tuyet doi giao dien va DSP Engine: View khong truc tiep tinh toan bo loc ma chi
+             nhan du lieu va truyen gia tri qua Two-Way Data Binding vao DspEqualizerViewModel.
+             
+        - Cach thuc van hanh:
+          1. View nhan DataContext la DspEqualizerViewModel.
+          2. Khi nguoi dung keo Slider dai tan, gia tri Gain duoc day vao EqualizerBandViewModel,
+             tu do cap nhat he so bo loc PeakingEQ trong DspEqualizerSampleProvider thoi gian thuc.
+          3. Khi nhac phat, su kien FftCalculated day du lieu sang SpectrumBars de cap nhat chieu cao cot song.
+    -->
+
     <UserControl.Resources>
         <!-- Vertical EQ Slider Thumb Style -->
         <Style x:Key="EqSliderThumbStyle" TargetType="{x:Type Thumb}">

@@ -9,14 +9,45 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.ViewModels
 {
+    /// <summary>
+    /// ViewModel dieu khien phat nhac hien tai va truc quan hoa song am (Now Playing &amp; Audio Visualizer ViewModel).
+    /// 
+    /// Tac dung:
+    /// - Dong vai tro la trung tam dieu khien phat nhac (Play, Pause, Stop, Seek, Next, Previous, Volume).
+    /// - Ket noi truc tiep toi IAudioService va cap nhat vi tri thoi gian thuc tren thanh Slider (250ms interval).
+    /// - Tiep nhan 16 cot bien do FFT tu su kien SpectrumDataReady va dieu khien chieu cao 16 cot EqualizerBarViewModel.
+    /// - Ho tro cac hieu ung giao dien: Dia than xoay 360 do (Spin Effect), Bang mau cau vong 16 sac do (Rainbow Mode vs Spotify Green).
+    /// - Tu dong chuyen bai (Auto Play Next) khi ban nhac hien tai phat het thoi luong.
+    /// 
+    /// Van de giai quyet:
+    /// - Chuyen giao luong an toan (Thread Marshaling): Su dung Dispatcher.InvokeAsync voi DispatcherPriority.Render
+    ///   de cap nhat bien do Visualizer ma khong bao gio gay khoa UI hoac canh tranh khoa voi luong am thanh unmanaged.
+    /// - Chong rung giat thanh tua nhac (Anti-Scrubbing Stutter): Khi nguoi dung giu chuot keo thanh Slider,
+    ///   co _isUserSeeking tam thoi chan timer cap nhat, giup thanh truot di chuyen chinh xac theo tay nguoi dung.
+    /// - Don dep tai nguyen (IDisposable): Huy dang ky su kien SpectrumDataReady va StateChanged tranh ro ri bo nho ViewModel.
+    /// 
+    /// Cach thuc van hanh:
+    /// - PlayTrackAsync nap StreamUrl vao Audio Engine va ra lenh phat.
+    /// - OnSpectrumDataReady doc 16 bin FFT va gan vao mang EqualizerBars de WPF DataTemplate hien thi cot chieu cao.
+    /// - OnAudioStateChanged phat hien khi am thanh dung de goi PlayNextAction.
+    /// </summary>
     public class NowPlayingViewModel : ObservableObject, IDisposable
     {
         private readonly IAudioService _audioService;
+
+        /// <summary>
+        /// Tham chieu toi dich vu am thanh Audio Engine ben duoi.
+        /// </summary>
         public IAudioService AudioService => _audioService;
+
         private readonly DispatcherTimer _positionTimer;
         private bool _isUserSeeking = false;
 
         private TrackModel _currentTrack;
+
+        /// <summary>
+        /// Ban nhac dang duoc phat hien tai.
+        /// </summary>
         public TrackModel CurrentTrack
         {
             get => _currentTrack;
@@ -31,6 +62,10 @@ namespace MusicApp.ViewModels
         }
 
         private PlaybackState _playbackState = PlaybackState.Stopped;
+
+        /// <summary>
+        /// Trang thai hoat dong hien tai cua trinh phat am thanh.
+        /// </summary>
         public PlaybackState PlaybackState
         {
             get => _playbackState;
@@ -60,10 +95,21 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Xac dinh am thanh co dang thuc su phat hay khong.
+        /// </summary>
         public bool IsPlaying => PlaybackState == PlaybackState.Playing;
+
+        /// <summary>
+        /// Xac dinh nguoi dung co the tua nhac tai thoi diem hien tai hay khong.
+        /// </summary>
         public bool CanSeek => PlaybackState == PlaybackState.Playing || PlaybackState == PlaybackState.Paused;
 
         private double _currentPositionSeconds;
+
+        /// <summary>
+        /// Vi tri phat hien tai tinh theo giay.
+        /// </summary>
         public double CurrentPositionSeconds
         {
             get => _currentPositionSeconds;
@@ -77,6 +123,10 @@ namespace MusicApp.ViewModels
         }
 
         private double _trackDurationSeconds;
+
+        /// <summary>
+        /// Tong thoi luong bai hat tinh theo giay.
+        /// </summary>
         public double TrackDurationSeconds
         {
             get => _trackDurationSeconds;
@@ -89,12 +139,26 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Chuoi van ban bieu dien vi tri phat hien tai (mm:ss).
+        /// </summary>
         public string FormattedPosition => FormatSeconds(CurrentPositionSeconds);
+
+        /// <summary>
+        /// Chuoi van ban bieu dien tong thoi luong bai hat (mm:ss).
+        /// </summary>
         public string FormattedDuration => FormatSeconds(TrackDurationSeconds);
 
+        /// <summary>
+        /// Kiem tra da co bai hat nao duoc chon hay chua.
+        /// </summary>
         public bool HasTrackSelected => CurrentTrack != null;
 
         private bool _isSpinEnabled = true;
+
+        /// <summary>
+        /// Trang thai bat/tat hieu ung dia than xoay tron tren giao dien.
+        /// </summary>
         public bool IsSpinEnabled
         {
             get => _isSpinEnabled;
@@ -102,6 +166,10 @@ namespace MusicApp.ViewModels
         }
 
         private bool _isRainbowEq = true;
+
+        /// <summary>
+        /// Trang thai bat/tat mau sac cau vong cho song nhac Equalizer Visualizer.
+        /// </summary>
         public bool IsRainbowEq
         {
             get => _isRainbowEq;
@@ -115,6 +183,10 @@ namespace MusicApp.ViewModels
         }
 
         private double _volume = 0.8;
+
+        /// <summary>
+        /// Muc am luong phat (0.0 den 1.0).
+        /// </summary>
         public double Volume
         {
             get => _volume;
@@ -130,7 +202,7 @@ namespace MusicApp.ViewModels
             }
         }
 
-        // 16 rainbow spectrum colors matching tthn0/Spotify-Readme modules/colors.py
+        // 16 mau sac chuyen tiep cau vong tieu chuan tu do toi tim
         private static readonly string[] SpectrumColors = new[]
         {
             "#FF0000", "#FF4000", "#FF8000", "#FFBF00",
@@ -140,22 +212,75 @@ namespace MusicApp.ViewModels
         };
         private const string SpotifyGreen = "#1ED760";
 
+        /// <summary>
+        /// Tap hop 16 gia tri bien do song nhac.
+        /// </summary>
         public ObservableCollection<double> EqualizerBins { get; } = new ObservableCollection<double>();
+
+        /// <summary>
+        /// Tap hop 16 ViewModel dai dien cho 16 cot song nhac hien thi tren UI.
+        /// </summary>
         public ObservableCollection<EqualizerBarViewModel> EqualizerBars { get; } = new ObservableCollection<EqualizerBarViewModel>();
 
+        /// <summary>
+        /// Hanh dong goi khi can phat bai hat tiep theo.
+        /// </summary>
         public Action PlayNextAction { get; set; }
+
+        /// <summary>
+        /// Hanh dong goi khi can quay lai bai hat phia truoc.
+        /// </summary>
         public Action PlayPreviousAction { get; set; }
+
+        /// <summary>
+        /// Callback thong bao moc thoi gian thay doi sang LyricsViewModel.
+        /// </summary>
         public Action<TimeSpan> PositionChanged { get; set; }
 
+        /// <summary>
+        /// Lenh tiep tuc phat nhac.
+        /// </summary>
         public RelayCommand PlayCommand { get; }
+
+        /// <summary>
+        /// Lenh tam dung phat nhac.
+        /// </summary>
         public RelayCommand PauseCommand { get; }
+
+        /// <summary>
+        /// Lenh dung han phat nhac.
+        /// </summary>
         public RelayCommand StopCommand { get; }
+
+        /// <summary>
+        /// Lenh tua den moc thoi gian cu the.
+        /// </summary>
         public RelayCommand SeekCommand { get; }
+
+        /// <summary>
+        /// Lenh chuyen toi bai hat tiep theo.
+        /// </summary>
         public RelayCommand NextTrackCommand { get; }
+
+        /// <summary>
+        /// Lenh quay ve bai hat truoc do.
+        /// </summary>
         public RelayCommand PreviousTrackCommand { get; }
+
+        /// <summary>
+        /// Lenh bat/tat hieu ung xoay dia.
+        /// </summary>
         public RelayCommand ToggleSpinCommand { get; }
+
+        /// <summary>
+        /// Lenh chuyen doi giua che do mau Cau vong va mau Xanh Spotify.
+        /// </summary>
         public RelayCommand ToggleRainbowCommand { get; }
 
+        /// <summary>
+        /// Khoi tao NowPlayingViewModel va cau hinh 16 cot visualizer kem bo dem timer.
+        /// </summary>
+        /// <param name="audioService">Dich vu am thanh Audio Engine.</param>
         public NowPlayingViewModel(IAudioService audioService)
         {
             _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
@@ -194,6 +319,9 @@ namespace MusicApp.ViewModels
             _positionTimer.Tick += OnPositionTimerTick;
         }
 
+        /// <summary>
+        /// Cap nhat mau sac cho 16 cot visualizer dua tren cau hinh IsRainbowEq.
+        /// </summary>
         private void ApplyEqualizerColors()
         {
             for (int i = 0; i < EqualizerBars.Count; i++)
@@ -202,6 +330,10 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Khoi tao va bat dau phat mot ban nhac bat dong bo tren Audio Engine.
+        /// </summary>
+        /// <param name="track">Ban nhac can phat.</param>
         public async Task PlayTrackAsync(TrackModel track)
         {
             if (track == null) return;
@@ -217,10 +349,15 @@ namespace MusicApp.ViewModels
             catch (Exception ex)
             {
                 PlaybackState = PlaybackState.Faulted;
-                MessageBox.Show($"Audio initialization failed: {ex.Message}", "Playback Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Lỗi khởi tạo âm thanh: {ex.Message}", "Lỗi Phát Nhạc", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        /// <summary>
+        /// Xac dinh trang thai nguoi dung dang keo chuot tren thanh truot thoi gian de tranh xung dot timer.
+        /// </summary>
+        /// <param name="isSeeking">Co keo chuot.</param>
+        /// <param name="targetSeconds">Moc thoi gian tha chuot.</param>
         public void SetUserSeeking(bool isSeeking, double targetSeconds = 0)
         {
             _isUserSeeking = isSeeking;
@@ -232,6 +369,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Dong ho dinh ky 250ms doc vi tri phat am thanh hien tai va dong bo sang giao dien va Lyrics.
+        /// </summary>
         private void OnPositionTimerTick(object sender, EventArgs e)
         {
             if (!_isUserSeeking && _audioService != null)
@@ -242,6 +382,10 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Xu ly khi trang thai van hanh cua Audio Engine thay doi.
+        /// Tu dong kich hoat phat bai tiep theo neu bai hien tai da phat den het.
+        /// </summary>
         private void OnAudioStateChanged(object sender, PlaybackState state)
         {
             var previous = PlaybackState;
@@ -268,6 +412,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Nhan du lieu bien do 16 dai tan so tu Audio Engine va cap nhat lenh render Visualizer.
+        /// </summary>
         private void OnSpectrumDataReady(object sender, float[] bins)
         {
             if (bins == null || bins.Length < 16 || PlaybackState != PlaybackState.Playing)
@@ -305,6 +452,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Dat lai toan bo cac cot visualizer ve chieu cao co so 2.0 khi dung nhac.
+        /// </summary>
         private void ResetEqualizer()
         {
             var dispatcher = Application.Current != null ? Application.Current.Dispatcher : null;
@@ -335,12 +485,18 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Dinh dang so giay thanh chuoi phut giay (mm:ss hoac hh:mm:ss).
+        /// </summary>
         private static string FormatSeconds(double totalSeconds)
         {
             var span = TimeSpan.FromSeconds(Math.Max(0, totalSeconds));
             return span.TotalHours >= 1 ? span.ToString(@"hh\:mm\:ss") : span.ToString(@"mm\:ss");
         }
 
+        /// <summary>
+        /// Giai phong timer va huy dang ky toan bo su kien am thanh khi viewmodel bi tieu huy.
+        /// </summary>
         public void Dispose()
         {
             _positionTimer.Stop();
@@ -349,4 +505,3 @@ namespace MusicApp.ViewModels
         }
     }
 }
-

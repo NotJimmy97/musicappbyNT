@@ -12,6 +12,33 @@
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}">
 
+    <!--
+        KIEN TRUC GIAO DIEN: MainWindow.xaml - Khung vo chinh (Master Desktop Shell)
+        
+        - Tac dung: Dong vai tro cua so goc (Root Window), thiet lap bo cuc tong the va dieu phoi hien thi
+          giua cac phan he chuc nang cua ung dung Jun Music Desktop Player.
+          
+        - Van de giai quyet:
+          1. Kien truc bo cuc Master-Detail ket hop Two-Row Shell: To chuc giao dien thanh 2 khu vuc chinh:
+             Khu vuc lam viec phia tren (Row 0) chia 2 cot (Sidebar 220px ben trai va Dynamic Content Area ben phai);
+             Khu vuc phat nhac co dinh phia duoi (Row 1 - Bottom Player Bar) luon ghim chan man hinh.
+          2. Chuyen doi man hinh linh hoat (View Switching): Su dung ContentControl ket hop DataTrigger tren
+             thuoc tinh CurrentViewName de hoan doi cac DataTemplate (Explore, VietnameseMusic, LocalLibrary,
+             PlayQueue, Lyrics, Equalizer) ma khong can khoi tao lai cua so hoac NavigationService nang ne.
+          3. Hieu nang render danh sach lon: ListBox danh sach bai hat duoc bat ao hoa (UI Virtualization)
+             voi VirtualizingStackPanel.IsVirtualizing="True" va Recycling mode giup tieu thu bo nho toi thieu,
+             khong bi giat lag ngay ca khi danh sach chua hang nghin bai hat.
+          4. Tai nguyen chu de dong (DynamicResource): Toan bo mau sac, vien, nen deu lien ket toi
+             ResourceDictionary thong qua DynamicResource giup ung dung ho tro chuyen doi Dark/Light Theme tuc thi.
+             
+        - Cach thuc van hanh:
+          1. Window nhan DataContext la MainViewModel.
+          2. ContentControl lang nghe CurrentViewName cua MainViewModel; khi gia tri thay doi, DataTrigger
+             tu dong nap DataTemplate tuong ung va gan DataContext con phu hop (vd: LocalLibrary, PlayQueue, Lyrics, Equalizer).
+          3. Danh sach bai hat (SearchResults) duoc binding hai chieu, click chuot goi PlayCommand hoac EnqueueCommand.
+          4. Row 1 truyen DataContext={Binding NowPlaying} vao NowPlayingCardView de dong bo thanh dieu khien phat nhac.
+    -->
+
     <Window.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />

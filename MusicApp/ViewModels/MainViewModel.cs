@@ -14,6 +14,32 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.ViewModels
 {
+    /// <summary>
+    /// ViewModel goc dieu phoi toan bo hoat dong cua ung dung WPF (Root Main Coordinator ViewModel).
+    /// 
+    /// Tac dung:
+    /// - Nam giu va dieu phoi cac sub-ViewModel thanh phan:
+    ///   + NowPlayingViewModel (Trinh phat nhac & Visualizer).
+    ///   + LocalLibraryViewModel (Quet va quan ly thu vien offline).
+    ///   + PlayQueueViewModel (Hang doi phat nhac keo tha Drag & Drop).
+    ///   + LyricsViewModel (Dong bo loi bai hat Karaoke).
+    ///   + DspEqualizerViewModel (Bo can bang am thanh 10 bang tan).
+    /// - Quan ly dieu huong giao dien dong (Dynamic ContentControl Navigation) thong qua CurrentViewName va NavigationItems.
+    /// - Quan ly co che tim kiem hai lop (Two-tier Search):
+    ///   + Lop 1: Loc tuc thi tren danh muc noi bo _masterCatalog (Instant Local Filtering) cho do tre bang 0.
+    ///   + Lop 2: Goi tim kiem bat dong bo tu xa toi BFF thong qua IMusicApiClient voi bo tri hoan Debounce 400ms.
+    /// - Quan ly chuyen doi giao dien Sang/Toi (Dark/Light Theme) bang cach nap dong ResourceDictionary.
+    /// 
+    /// Van de giai quyet:
+    /// - Ket noi chat che cac module ma van dam bao nguyen ly Loose Coupling: cac View khong can biet nhau ma deu trao doi qua MainViewModel.
+    /// - Triet tieu hien tuong man hinh trong (Empty State): Khoi tao ngay danh muc _masterCatalog chua ca nhac Viet Nam va Jamendo.
+    /// - Chong spam yeu cau mang: Co che Debounce 400ms giup ung dung khong ban API lien tuc khi nguoi dung dang go phim.
+    /// 
+    /// Cach thuc van hanh:
+    /// - Khi PlayTrack duoc goi tu bat ky dau (Explore, LocalLibrary, PlayQueue), MainViewModel dong thoi kich hoat
+    ///   NowPlaying.PlayTrackAsync va Lyrics.LoadLyricsForTrackAsync tren hai Task rieng biet.
+    /// - Khi ca khuc ket thuc, PlayNextTrack uu tien lay bai tiep theo trong PlayQueue (Priority 1), neu khong co se chuyen sang SearchResults (Priority 2).
+    /// </summary>
     public class MainViewModel : ObservableObject, IDisposable
     {
         private readonly IMusicApiClient _apiClient;
@@ -472,6 +498,9 @@ namespace MusicApp.ViewModels
             _masterCatalog.AddRange(defaultTracks);
         }
 
+        /// <summary>
+        /// Loc danh sach bai hat tuc thi trong danh muc noi bo theo tu khoa va the loai.
+        /// </summary>
         private void ApplyLocalFilters()
         {
             var rawQuery = (SearchKeyword ?? "").Trim().ToLowerInvariant();
@@ -504,6 +533,9 @@ namespace MusicApp.ViewModels
             UpdateSearchResults(filtered);
         }
 
+        /// <summary>
+        /// Xu ly khi view hien tai duoc thay doi thong qua Sidebar Navigation.
+        /// </summary>
         private void OnCurrentViewNameChanged(string viewKey)
         {
             if (SelectedNavigationItem?.ViewKey != viewKey)
@@ -527,6 +559,10 @@ namespace MusicApp.ViewModels
             System.Diagnostics.Debug.WriteLine("[Navigation] Current view changed to: " + viewKey);
         }
 
+        /// <summary>
+        /// Phat ban nhac duoc chi dinh va tu dong nap loi dong bo.
+        /// </summary>
+        /// <param name="track">Ban nhac can phat.</param>
         public void PlayTrack(TrackModel track)
         {
             if (track != null)
@@ -536,6 +572,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Cap nhat danh sach ket qua tim kiem tren giao dien WPF.
+        /// </summary>
         private void UpdateSearchResults(IEnumerable<TrackModel> tracks)
         {
             Action update = () =>
@@ -558,12 +597,15 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Xu ly khi tu khoa tim kiem thay doi kem theo co che Debounce 400ms.
+        /// </summary>
         private void OnSearchKeywordChanged(string query)
         {
-            // Instant local responsiveness
+            // Phan hoi tuc thi tren danh muc cuc bo
             ApplyLocalFilters();
 
-            // Background debounce query for external API additions
+            // Tranh spam yeu cau mang: doi 400ms sau khi nguoi dung ngung go moi goi API
             _debounceCts?.Cancel();
             _debounceCts?.Dispose();
             _debounceCts = new CancellationTokenSource();
@@ -582,6 +624,9 @@ namespace MusicApp.ViewModels
             }, token);
         }
 
+        /// <summary>
+        /// Thuc hien tim kiem ngay lap tuc khi nhan nut Enter hoac nut Search.
+        /// </summary>
         private void ExecuteSearchImmediate()
         {
             ApplyLocalFilters();
@@ -594,6 +639,9 @@ namespace MusicApp.ViewModels
             Task.Run(async () => await ExecuteSearchAsync(SearchKeyword, token).ConfigureAwait(false));
         }
 
+        /// <summary>
+        /// Gui yeu cau tim kiem bat dong bo toi may chu BFF API.
+        /// </summary>
         private async Task ExecuteSearchAsync(string query, CancellationToken token)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -644,9 +692,12 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Chuyen toi phat bai hat tiep theo: Uu tien 1 tu PlayQueue, Uu tien 2 xoay vong trong SearchResults.
+        /// </summary>
         private void PlayNextTrack()
         {
-            // Priority 1: Dequeue upcoming track from PlayQueue if available
+            // Uu tien 1: Lay bai hat tiep theo trong hang doi PlayQueue neu co
             var nextQueued = PlayQueue?.DequeueNext();
             if (nextQueued != null)
             {
@@ -654,7 +705,7 @@ namespace MusicApp.ViewModels
                 return;
             }
 
-            // Priority 2: Fallback to cyclic playlist
+            // Uu tien 2: Fallback chuyen bai ke tiep trong danh sach hien tai (vong tron)
             if (SearchResults.Count == 0) return;
 
             int currentIndex = -1;
@@ -672,6 +723,9 @@ namespace MusicApp.ViewModels
             PlayTrack(nextTrack);
         }
 
+        /// <summary>
+        /// Quay lai phat ca khuc phia truoc trong danh sach.
+        /// </summary>
         private void PlayPreviousTrack()
         {
             if (SearchResults.Count == 0) return;
@@ -691,6 +745,9 @@ namespace MusicApp.ViewModels
             Task.Run(async () => await NowPlaying.PlayTrackAsync(prevTrack).ConfigureAwait(false));
         }
 
+        /// <summary>
+        /// Chuyen doi chu de giao dien Sang / Toi (Dark/Light Mode) thong qua MergedDictionaries.
+        /// </summary>
         private void ToggleTheme()
         {
             IsDarkTheme = !IsDarkTheme;
@@ -705,6 +762,9 @@ namespace MusicApp.ViewModels
             }
         }
 
+        /// <summary>
+        /// Thuat toan loai bo dau tieng Viet Unicode FormD phuc vu tim kiem chinh xac.
+        /// </summary>
         public static string RemoveDiacritics(string text)
         {
             if (string.IsNullOrEmpty(text))
@@ -731,6 +791,9 @@ namespace MusicApp.ViewModels
                 .Replace('Đ', 'D');
         }
 
+        /// <summary>
+        /// Giai phong cac tai nguyen va ViewModel con khi MainViewModel bi huy.
+        /// </summary>
         public void Dispose()
         {
             _debounceCts?.Cancel();
@@ -739,6 +802,9 @@ namespace MusicApp.ViewModels
             _apiClient?.Dispose();
         }
 
+        /// <summary>
+        /// Lop trien khai du phong IDspEqualizerService khi chay kiem thu hoac khi Audio Engine chua san sang.
+        /// </summary>
         private class FallbackEqualizerService : IDspEqualizerService
         {
             public bool IsEnabled { get; set; } = true;

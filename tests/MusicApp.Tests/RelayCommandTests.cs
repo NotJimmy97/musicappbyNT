@@ -4,6 +4,21 @@ using MusicApp.Core.Common;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu don vi cho lop co so RelayCommand (ICommand implementation).
+    /// 
+    /// - Tac dung: Kiem thu hanh vi cua mau lenh RelayCommand dung xuyen suot trong kien truc MVVM
+    ///   cua du an de binding hanh dong nguoi dung tu XAML xuong ViewModel.
+    /// 
+    /// - Van de giai quyet:
+    ///   1. Kiem thu CanExecute: Xac minh dieu kien thuc thi tra ve True khi predicate thoa man,
+    ///      tra ve False khi khong thoa man, va mac dinh luon True khi predicate la null.
+    ///   2. Kiem thu Execute: Dam bao delegate Action duoc kich hoat chinh xac khi Command duoc goi.
+    ///   3. Kiem thu Constructor phong thu: Nem ArgumentNullException ngay khi delegate execute bi truyen null.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   Khoi tao RelayCommand voi cac bieu thuc lambda kiem thu va kiem tra ket qua CanExecute/Execute.
+    /// </summary>
     [TestClass]
     public class RelayCommandTests
     {

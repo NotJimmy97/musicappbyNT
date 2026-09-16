@@ -12,6 +12,23 @@ using MusicApp.Core.Interfaces;
 
 namespace MusicApp.Bff.Providers
 {
+    /// <summary>
+    /// Nha cung cap am nhac Viet Nam dac tuyen (Vietnamese Curated Music Source Provider Strategy).
+    /// 
+    /// Tac dung:
+    /// - Cung cap danh muc am nhac Viet Nam chat luong cao (Nhac Trinh Cong Son hoa tau guitar, Tinh ca que huong Huong Lan, Ha Thanh).
+    /// - Ho tro tim kiem tieng Viet khong dau (Accent-insensitive / Diacritics-insensitive Search) thong qua thuat toan Unicode FormD.
+    /// - Dinh tuyen va phat am thanh stream truc tiep tu Archive.org ho tro HTTP 206 Partial Content.
+    /// 
+    /// Van de giai quyet:
+    /// - Dap ung nhu cau nghe nhac que huong, nhac acoustic Viet Nam cua nguoi dung ma cac API quoc te khong ho tro.
+    /// - Nguoi dung go tim kiem co the co dau ("diễm xưa") hoac khong dau ("diem xua"), viet hoa hoac viet thuong;
+    ///   phuong thuc RemoveDiacritics chuan hoa toan bo ve dang khong dau chuan de so khop chinh xac.
+    /// 
+    /// Cach thuc van hanh:
+    /// - AudioUrlMap anh xa ma bai hat vn_track_xx toi duong dan MP3 tren Archive.org.
+    /// - GetTracksMatching loc danh muc CuratedCatalog dua tren tieu de, ca si, album va the loai da loai bo dau tieng Viet.
+    /// </summary>
     public class VietnameseMusicSourceProvider : IMusicSourceProvider
     {
         private static readonly HttpClient HttpClientInstance;
@@ -195,8 +212,18 @@ namespace MusicApp.Bff.Providers
             };
         }
 
+        /// <summary>
+        /// Ten nhan dien nha cung cap am nhac.
+        /// </summary>
         public string ProviderName => "VietnameseMusic";
 
+        /// <summary>
+        /// Tim kiem cac ban nhac Viet Nam trong danh muc dac tuyen theo tu khoa ho tro tieng Viet khong dau.
+        /// </summary>
+        /// <param name="query">Tu khoa tim kiem.</param>
+        /// <param name="limit">So luong ban ghi toi da.</param>
+        /// <param name="cancellationToken">Token huy tac vu.</param>
+        /// <returns>Danh sach cac doi tuong TrackDto phu hop.</returns>
         public Task<List<TrackDto>> SearchTracksAsync(string query, int limit, CancellationToken cancellationToken)
         {
             var matched = GetTracksMatching(query);
@@ -204,6 +231,14 @@ namespace MusicApp.Bff.Providers
             return Task.FromResult(matched.GetRange(0, count));
         }
 
+        /// <summary>
+        /// Lay stream am thanh truc tiep tu Archive.org ho tro Range Header.
+        /// </summary>
+        /// <param name="trackId">Dinh danh bai hat.</param>
+        /// <param name="startByte">Vi tri byte bat dau.</param>
+        /// <param name="endByte">Vi tri byte ket thuc.</param>
+        /// <param name="cancellationToken">Token huy ket noi.</param>
+        /// <returns>Luong Stream nhi phan am thanh.</returns>
         public async Task<Stream> GetAudioStreamAsync(string trackId, long? startByte, long? endByte, CancellationToken cancellationToken)
         {
             string audioUrl = ResolveTrackAudioUrl(trackId);
@@ -222,6 +257,11 @@ namespace MusicApp.Bff.Providers
             return await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
         }
 
+        /// <summary>
+        /// Phan giai ma bai hat thanh dia chi URL MP3 tren kho luu tru Archive.org.
+        /// </summary>
+        /// <param name="trackId">ID bai hat dang vn_track_xx.</param>
+        /// <returns>URL MP3 tren Archive.org.</returns>
         public string ResolveTrackAudioUrl(string trackId)
         {
             if (string.IsNullOrWhiteSpace(trackId))
@@ -237,11 +277,20 @@ namespace MusicApp.Bff.Providers
             return string.Empty;
         }
 
+        /// <summary>
+        /// Lay toan bo danh sach cac ca khuc Viet Nam trong danh muc dac tuyen.
+        /// </summary>
+        /// <returns>Danh sach toan bo TrackDto Viet Nam.</returns>
         public List<TrackDto> GetAllTracks()
         {
             return new List<TrackDto>(CuratedCatalog);
         }
 
+        /// <summary>
+        /// Loc danh sach ca khuc Viet Nam dua tren thuat toan khu dau tieng Viet Unicode FormD.
+        /// </summary>
+        /// <param name="query">Tu khoa tim kiem.</param>
+        /// <returns>Danh sach cac ca khuc thoa man dieu kien tim kiem.</returns>
         public List<TrackDto> GetTracksMatching(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -278,6 +327,12 @@ namespace MusicApp.Bff.Providers
             return matched;
         }
 
+        /// <summary>
+        /// Thuat toan loai bo dau tieng Viet su dung chuan Unicode FormD (Decomposition) va loai bo NonSpacingMark.
+        /// Chuyen doi dac thu: 'đ' -> 'd' va 'Đ' -> 'D'.
+        /// </summary>
+        /// <param name="text">Chuoi ky tu tieng Viet co dau.</param>
+        /// <returns>Chuoi ky tu ASCII khong dau tuong ung.</returns>
         public static string RemoveDiacritics(string text)
         {
             if (string.IsNullOrEmpty(text))

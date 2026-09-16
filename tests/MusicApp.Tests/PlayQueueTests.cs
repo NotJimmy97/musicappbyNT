@@ -8,6 +8,24 @@ using MusicApp.ViewModels;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu don vi va kiem dinh chat luong (Gate 3 Verification) cho hang doi phat nhac (Play Queue).
+    /// 
+    /// - Tac dung: Kiem thu toan bo vong doi va cac thao tac tren PlayQueueViewModel: Them bai (Enqueue),
+    ///   lay bai hat ke tiep theo thu tu uu tien (DequeueNext), keo tha doi vi tri (Move / Drag-and-Drop),
+    ///   xoa bai (Remove), xoa sach hang doi (Clear), va phat truc tiep tu hang doi (PlayNowFromQueue).
+    /// 
+    /// - Van de giai quyet:
+    ///   1. Kiem dinh Gate 3 (Queue Priority & Reordering): Them 3 bai hat vao hang doi, keo bai hat thu 3
+    ///      len dau hang doi (index 0); xac minh DequeueNext() bat buoc phai tra ve dung bai hat thu 3 vua duoc uu tien.
+    ///   2. Tinh toan thoi luong chinh xac (TotalQueueDuration): Moi khi them/xoa/don sach hang doi,
+    ///      tong thoi luong va chuoi dinh dang thoi gian (FormattedQueueDuration) phai duoc cap nhat tuc thi.
+    ///   3. Uu tien hang doi trong MainViewModel: Khi nhan nut Next hoac bai hat hien tai ket thuc,
+    ///      MainViewModel phai uu tien lay bai hat tu PlayQueue truoc khi chuyen tiep tren danh sach mac dinh.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   Tao cac TrackModel gia lap voi thoi luong xac dinh, thuc thi cac lenh va kiem tra trang thai ObservableCollection.
+    /// </summary>
     [TestClass]
     public class PlayQueueTests
     {

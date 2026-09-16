@@ -4,6 +4,22 @@ using MusicApp.AudioEngine.Dsp;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu don vi cho bo tinh toan bien doi Fourier nhanh (FftCalculator).
+    /// 
+    /// - Tac dung: Kiem thu do chinh xac va tinh on dinh cua thuat toan FFT Cooley-Tukey,
+    ///   ham cua so Hann Window va thuat toan phan bo 16 dai am pho (Spectrum Bins).
+    /// 
+    /// - Van de giai quyet:
+    ///   1. Dam bao dau ra luon co dung 16 bins am pho de dong bo hoan hao voi giao dien Spectrum Visualizer.
+    ///   2. Kiem thu bien do dau ra: Chieu cao cot am pho luon nam trong pham vi an toan [0.0, 35.0] pixel,
+    ///      khong bi vuot nguong gay tran UI ngay ca khi tin hieu dau vao la nhieu trang (White Noise) bien do cuc dai.
+    ///   3. Kiem thu trang thai im lang (Silence): Tin hieu 0 cho ra tat ca cac cot bang 0.
+    ///   4. Kiem thu phong thu bien dau vao (ArgumentNullException): Chan loi null ngay lap tuc.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   Truyen cac mang mau tin hieu (song sin 440Hz, tieng on trang, tin hieu 0, mang null) vao phuong thuc Calculate().
+    /// </summary>
     [TestClass]
     public class FftCalculatorTests
     {

@@ -14,6 +14,24 @@ using PlaybackState = MusicApp.Core.Models.PlaybackState;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu don vi va kiem dinh chat luong (Gate 5 Verification) cho bo loc am sac DspEqualizer va DspEqualizerViewModel.
+    /// 
+    /// - Tac dung: Kiem thu toan dien tinh dung dan cua thuat toan DSP Equalizer 10 dai tan
+    ///   (Biquad Peaking EQ), bo gioi han bien do mem (Soft Limiter chống Clipping), co che Bypass,
+    ///   va logic dong bo Preset trong ViewModel.
+    /// 
+    /// - Van de giai quyet:
+    ///   1. Kiem dinh Gate 5: Do nang luong RMS (Root Mean Square) cua am tram (Bass 60Hz) truoc va sau khi Boost +12dB,
+    ///      dam bao nang luong tang it nhat 1.5 lan (50%+).
+    ///   2. Kiem thu bo han che chong vo am (Anti-clipping protection): Dam bao moi mau am thanh sau khi khuyech dai
+    ///      luon duoc kep chat trong khoang [-1.0, +1.0] thong qua ham tanh/soft-clipping.
+    ///   3. Kiem thu Bypass: Khi tat Equalizer hoac de Flat (0dB), du lieu am thanh dau ra phai giong het 100% dau vao.
+    ///   4. Kiem thu MVVM: Cac thao tac doi Preset, keo Slider, Toggle Bypass hoat dong chuan xac tren ViewModel.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   Su dung SineWaveSampleProvider tong hop song sin chuan (60Hz, 100Hz, 440Hz) lam nguon phat mau thu nghiem.
+    /// </summary>
     [TestClass]
     public class DspEqualizerTests
     {

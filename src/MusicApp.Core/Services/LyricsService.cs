@@ -8,21 +8,56 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.Core.Services
 {
+    /// <summary>
+    /// Dich vu quan ly va dieu phoi loi bai hat (Lyrics Management Service).
+    /// 
+    /// Tac dung:
+    /// - Cung cap phuong thuc tim kiem, nap va phan tich loi bai hat cho bat ky ban nhac nao dang phat tren he thong.
+    /// - Tu dong phoi hop giua nguon file .lrc vat ly tren o cung (Offline) va danh muc loi tich hop san (Embedded Catalog).
+    /// 
+    /// Van de giai quyet:
+    /// - Cho phep nguoi dung nghe nhac offline co the kem theo file .lrc cung thu muc (Companion File Pattern)
+    ///   ma khong can cau hinh phuc tap.
+    /// - Cung cap san loi bai hat dong bo cho cac ca khuc pho bien (nhac Viet Nam Trinh Cong Son, nhac Jamendo Creative Commons)
+    ///   giup tinh nang cuon loi luon hoat dong ngay ca khi khong co ket noi Internet.
+    /// 
+    /// Cach thuc van hanh:
+    /// - Khi nhan duoc TrackModel, tien hanh kiem tra 3 ung vien duong dan file .lrc tren o cung:
+    ///   1. File cung ten thay doi phan mo rong thanh .lrc.
+    ///   2. File trong thu muc co ten tap tin goc + .lrc.
+    ///   3. File trong thu muc co ten trung voi tieu de bai hat + .lrc.
+    /// - Neu khong tim thay file dia phuong hoac day la ban nhac stream online, tra cuu trong tu dien embedded theo Track ID hoac Title.
+    /// - Su dung LrcParser de chuyen doi noi dung van ban thanh danh sach LyricLine dong bo thoi gian.
+    /// </summary>
     public class LyricsService : ILyricsService
     {
         private readonly LrcParser _parser = new LrcParser();
         private readonly Dictionary<string, string> _embeddedLyrics = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Khoi tao dich vu va nap danh muc loi bai hat tich hop san trong bo nho.
+        /// </summary>
         public LyricsService()
         {
             InitializeEmbeddedCatalogLyrics();
         }
 
+        /// <summary>
+        /// Phan tich truc tiep chuoi noi dung LRC thanh danh sach dong loi.
+        /// </summary>
+        /// <param name="lrcContent">Noi dung van ban LRC.</param>
+        /// <returns>Danh sach cac dong LyricLine da duoc sap xep.</returns>
         public IReadOnlyList<LyricLine> ParseLrc(string lrcContent)
         {
             return _parser.Parse(lrcContent);
         }
 
+        /// <summary>
+        /// Nap loi bai hat tu dong cho ban nhac chi dinh.
+        /// </summary>
+        /// <param name="track">Ban nhac can hien thi loi.</param>
+        /// <param name="cancellationToken">Token huy tac vu doc bat dong bo.</param>
+        /// <returns>Danh sach cac dong loi dong bo thoi gian.</returns>
         public async Task<IReadOnlyList<LyricLine>> LoadLyricsForTrackAsync(
             TrackModel track, 
             CancellationToken cancellationToken = default(CancellationToken))
@@ -32,7 +67,7 @@ namespace MusicApp.Core.Services
                 return new List<LyricLine>();
             }
 
-            // Check if there is an offline .lrc companion file on disk
+            // 1. Kiem tra xem co tap tin .lrc di kem tren o dia cuc bo hay khong
             if (!string.IsNullOrWhiteSpace(track.StreamUrl) && File.Exists(track.StreamUrl))
             {
                 try
@@ -40,6 +75,7 @@ namespace MusicApp.Core.Services
                     string dir = Path.GetDirectoryName(track.StreamUrl);
                     string nameNoExt = Path.GetFileNameWithoutExtension(track.StreamUrl);
 
+                    // Thu nghiem 3 quy tac dat ten file .lrc pho bien
                     string candidate1 = Path.ChangeExtension(track.StreamUrl, ".lrc");
                     string candidate2 = Path.Combine(dir, nameNoExt + ".lrc");
                     string candidate3 = Path.Combine(dir, track.Title + ".lrc");
@@ -60,11 +96,11 @@ namespace MusicApp.Core.Services
                 }
                 catch (Exception)
                 {
-                    // Fall back if disk file read encounters permissions or lock errors
+                    // Bo qua ngoai le ve quyen truy cap file hoac file lock, chuyen xuong co che tiep theo
                 }
             }
 
-            // Check embedded catalog lyrics by track ID or title
+            // 2. Tra cuu trong danh muc loi tich hop san theo Track ID hoac Tieu de bai hat
             if (!string.IsNullOrWhiteSpace(track.Id) && _embeddedLyrics.ContainsKey(track.Id))
             {
                 return _parser.Parse(_embeddedLyrics[track.Id]);
@@ -78,9 +114,12 @@ namespace MusicApp.Core.Services
             return new List<LyricLine>();
         }
 
+        /// <summary>
+        /// Khoi tao danh muc loi bai hat mac dinh duoc tich hop san vao ma nguon ung dung.
+        /// </summary>
         private void InitializeEmbeddedCatalogLyrics()
         {
-            // Diễm Xưa (vn_track_01)
+            // Diem Xua (vn_track_01)
             _embeddedLyrics["vn_track_01"] = 
 @"[00:00.00]Diễm Xưa - Kim Tuấn (Hòa Tấu Guitar)
 [00:08.50]Sáng tác: Trịnh Công Sơn
@@ -103,7 +142,7 @@ namespace MusicApp.Core.Services
 [02:50.00]Xin hãy cho mưa qua miền đất rộng
 [03:00.00]Ngày sau sỏi đá cũng cần có nhau...";
 
-            // Hạ Trắng (vn_track_02)
+            // Ha Trang (vn_track_02)
             _embeddedLyrics["vn_track_02"] = 
 @"[00:00.00]Hạ Trắng - Kim Tuấn (Hòa Tấu Guitar)
 [00:10.00]Sáng tác: Trịnh Công Sơn
@@ -116,7 +155,7 @@ namespace MusicApp.Core.Services
 [01:12.00]Cho nhau lời hẹn ngút ngàn trùng xa
 [01:21.00]Đôi môi còn nồng khúc ca ngọt ngào...";
 
-            // Còn Tuổi Nào Cho Em (vn_track_03)
+            // Con Tuoi Nao Cho Em (vn_track_03)
             _embeddedLyrics["vn_track_03"] = 
 @"[00:00.00]Còn Tuổi Nào Cho Em - Kim Tuấn
 [00:10.00]Sáng tác: Trịnh Công Sơn
@@ -137,4 +176,3 @@ namespace MusicApp.Core.Services
         }
     }
 }
-

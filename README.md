@@ -4,9 +4,9 @@
 
 ---
 
-## 1. Tổng Quan Kiến Trúc Hệ Thống
+## 1. Thiết Kế Hệ Thống Chuyên Sâu (System Design)
 
-Hệ thống tuân thủ mô hình Modular Monolith kết hợp cùng kiến trúc MVVM nghiêm ngặt và cơ chế giao tiếp In-Process BFF, đảm bảo tính đóng gói, khả năng kiểm thử độc lập và loại bỏ hiện tượng khóa luồng giao diện người dùng (UI Thread):
+Hệ thống tuân thủ mô hình Modular Monolith kết hợp cùng kiến trúc MVVM nghiêm ngặt và cơ chế giao tiếp In-Process BFF, đảm bảo tính đóng gói, khả năng kiểm thử độc lập và loại bỏ hiện tượng khóa luồng giao diện người dùng (UI Thread).
 
 ```
 [ Lớp Trình Diễn WPF Desktop (MVVM Pattern) ]
@@ -22,6 +22,141 @@ Hệ thống tuân thủ mô hình Modular Monolith kết hợp cùng kiến tr�
 - Định tuyến nguồn nhạc        - Giải mã offline AudioFile   - Hợp đồng DTO & Domain Model
                                - Stream trực tuyến MediaFnd
 ```
+
+### 1.1. Luồng Dữ Liệu Tổng Thể (End-to-End Data Flow)
+
+Hệ thống điều phối 4 luồng dữ liệu nghiệp vụ chính:
+
+#### A. Luồng Tìm Kiếm & Nạp Danh Mục (Catalog & Search Flow)
+1. Người dùng nhập từ khóa tìm kiếm trên thanh tìm kiếm hoặc chọn thể loại nhạc (Pill Filter).
+2. `MainViewModel` tiếp nhận, kích hoạt bộ đệm trễ `CancellationTokenSource` (Debounce 300ms) để triệt tiêu các yêu cầu dư thừa khi người dùng đang gõ phím.
+3. ViewModel gọi `IMusicApiClient.SearchTracksAsync()` gửi yêu cầu HTTP GET đến máy chủ nội bộ `http://localhost:5245/api/v1/tracks/search?q={keyword}`.
+4. Tại tầng BFF, `TrackController` ủy quyền cho `MusicSourceRouter` tổng hợp kết quả từ `JamendoMusicSourceProvider` và `VietnameseMusicSourceProvider`.
+5. Thuật toán `RemoveDiacritics()` chuẩn hóa chuỗi tiếng Việt về dạng không dấu (`FormD`) để khớp nối chính xác cả từ khóa có dấu lẫn không dấu mà không tạo độ trễ mạng.
+6. Kết quả trả về dưới dạng `SearchResponseDto`, được ánh xạ sang `TrackItemViewModel` và hiển thị trên giao diện thông qua cơ chế ObservableCollection.
+
+#### B. Luồng Phát Nhạc Trực Tuyến & Phân Đoạn Mạng (Streaming Playback Flow)
+1. Khi người dùng chọn "Play", `MainViewModel` chuyển thông tin bài hát sang `NowPlayingViewModel`.
+2. `NAudioService.InitializeAsync(streamUrl)` được kích hoạt trên một tác vụ nền (`Task.Run`).
+3. Dịch vụ phân tích URL:
+   - Nếu là địa chỉ HTTP/HTTPS: Khởi tạo `MediaFoundationReader` kết nối đến endpoint proxy stream của BFF (`/api/v1/tracks/{id}/stream`).
+   - BFF đóng vai trò HTTP Streaming Proxy, gửi tiếp yêu cầu đến máy chủ phát gốc với tiêu đề HTTP `Range: bytes={start}-{end}`.
+   - Nhận về luồng dữ liệu từng phần (`206 Partial Content`), chuyển tiếp ngay dạng nhị phân về `MediaFoundationReader`.
+4. Chuỗi luồng âm thanh được khởi tạo và chuyển trạng thái sang `PlaybackState.Playing`.
+
+#### C. Luồng Quét & Phát Nhạc Ngoại Tuyến (Offline Local Library Flow)
+1. Người dùng chọn thư mục thông qua hộp thoại chọn thư mục trong `LocalLibraryScannerView`.
+2. `LocalLibraryViewModel` gọi `LocalLibraryService.ScanDirectoryAsync(path, progress, cancellationToken)`.
+3. Dịch vụ áp dụng giải thuật duyệt theo chiều rộng (BFS Queue-based) để quét đệ quy an toàn mà không làm tràn ngăn xếp (Stack Overflow). Mọi lỗi phân quyền (`UnauthorizedAccessException`), đường dẫn quá dài (`PathTooLongException`) đều được cô lập tại từng nút thư mục.
+4. Với mỗi tệp âm thanh hợp lệ (.mp3, .wav, .flac), `TagLib.File.Create()` đọc tiêu đề, nghệ sĩ, album, thể loại và mảng byte ảnh bìa.
+5. `FrozenImageConverter` chuyển mảng byte hoặc đường dẫn ảnh thành `BitmapImage`, gọi ngay `Freeze()` để đóng băng đối tượng, đảm bảo an toàn truy cập đa luồng và chống rò rỉ bộ nhớ.
+6. Khi phát bài hát cục bộ, `NAudioService` nhận diện đường dẫn tệp trên đĩa và khởi tạo `AudioFileReader` giải mã trực tiếp mà không cần qua tầng mạng trung gian.
+
+#### D. Luồng Đồng Bộ Lời Bài Hát Thời Gian Thực (Synchronized Lyrics Flow)
+1. Khi phát một bài hát, `MainViewModel` kích hoạt `LyricsService.LoadLyricsForTrackAsync(track)`.
+2. Dịch vụ kiểm tra sự tồn tại của tệp lời bài hát đồng hành `.lrc` trên đĩa (`{trackPath}.lrc` hoặc `{title}.lrc`). Nếu không có, tự động nạp lời bài hát nhúng sẵn trong danh mục.
+3. `LrcParser` bóc tách từng dòng lời, chuyển đổi các thẻ mốc thời gian đa điểm `[mm:ss.xx]` thành các đối tượng `LyricLine` độc lập, áp dụng độ lệch thời gian `[offset:+/-ms]` và sắp xếp theo thứ tự thời gian tăng dần.
+4. Đồng hồ vị trí bài hát `_positionTimer` trong `NowPlayingViewModel` phát tín hiệu mốc thời gian hiện tại (`TimeSpan`) mỗi 100ms.
+5. `LyricsViewModel.UpdatePosition()` sử dụng thuật toán tìm kiếm nhị phân $O(\log N)$ để định vị dòng lời bài hát tương ứng.
+6. Áp dụng cơ chế lọc sự kiện ngưỡng (Event Gating): Chỉ khi chỉ số dòng hát thực sự thay đổi (`newIndex != _activeLineIndex`), sự kiện `ActiveLineChanged` mới được phát đi.
+7. `LyricsSyncView.xaml.cs` đón nhận sự kiện, tính toán độ dịch chuyển trên trục thẳng đứng và điều khiển `ScrollViewer.ScrollToVerticalOffset()` để đưa dòng đang hát vào chính giữa màn hình với chuyển động mượt mà.
+
+---
+
+### 1.2. Kiến Trúc Đồ Thị Âm Thanh & Xử Lý Tín Hiệu DSP (Audio Graph Pipeline)
+
+Toàn bộ quá trình xử lý tín hiệu số (DSP) được xâu chuỗi tuần tự theo đồ thị âm thanh hướng luồng:
+
+```
++-------------------------------------------------------------+
+| Nguồn Giải Mã: AudioFileReader (Local) / MediaFoundationReader (HTTP) |
++-------------------------------------------------------------+
+                              | (Mẫu số thực 32-bit Float IEEE)
+                              v
++-------------------------------------------------------------+
+| DspEqualizerSampleProvider (Bộ Cân Bằng 10 Băng Tần DSP)     |
+| - 10 bộ lọc Peaking EQ chuẩn ISO (32Hz đến 16kHz)            |
+| - Cách ly bộ nhớ bộ lọc theo kênh âm thanh (Stereo: 20 bộ)  |
+| - Cập nhật hệ số tại chỗ qua SetPeakingEq (Zero Allocation)  |
+| - Bộ kẹp biên độ chống méo tràn số (Soft Limiter: [-1.0, 1.0]) |
++-------------------------------------------------------------+
+                              |
+                              v
++-------------------------------------------------------------+
+| SampleAggregator (Cầu Nối Thu Thập Mẫu Tín Hiệu)            |
+| - Vùng đệm xoay vòng tĩnh (Ring Buffer 2048 mẫu, Zero Alloc) |
+| - Phát hiện đủ khung tín hiệu -> Gọi FftCalculator           |
++-------------------------------------------------------------+
+               |                               |
+               v (Tín hiệu đã cân âm)           v (Sao chép khung 2048 mẫu)
++-------------------------------+  +-------------------------------+
+| WaveOutEvent (Thiết Bị Phát)  |  | FftCalculator (Xử Lý Phổ FFT) |
+| - Độ trễ: 100ms               |  | - Cửa sổ Hanning chống rò phổ |
+| - Số bộ đệm: 3 buffers        |  | - FFT radix-2 2048 điểm       |
+| - Xuất tín hiệu ra loa/tai nghe| | - Gom nhóm 16 cột logarit     |
++-------------------------------+  +-------------------------------+
+                                                   |
+                                                   v (Điều tiết 30fps / 33ms)
+                                   +-------------------------------+
+                                   | Giao Diện Phổ Sóng Realtime   |
+                                   | - NowPlayingCardView (16 cột) |
+                                   +-------------------------------+
+```
+
+**Nguyên lý sắp đặt thứ tự đường truyền âm thanh:**
+1. `DspEqualizerSampleProvider` nằm ngay sau nguồn giải mã và đứng trước `SampleAggregator`. Điều này bảo đảm rằng khi người dùng nâng dải trầm (32Hz / 64Hz) hoặc dải cao (8kHz / 16kHz), năng lượng của tín hiệu âm thanh biến đổi tương ứng và truyền trực tiếp vào bộ phân tích FFT, làm cho các cột phổ quang hiển thị biến động trực quan ngay lập tức.
+2. Tách biệt bộ nhớ trạng thái giữa các kênh: Thuật toán lọc nhị thức (BiQuad) dựa trên các giá trị trễ quá khứ ($x_1, x_2, y_1, y_2$). Đối với luồng âm thanh Stereo, hai kênh Trái và Phải đan xen liên tục ($L, R, L, R...$). Nếu dùng chung một thể hiện bộ lọc, dữ liệu giữa hai kênh sẽ ghi đè lên nhau gây méo pha và triệt tiêu âm thanh. Hệ thống khởi tạo ma trận độc lập `BiQuadFilter[channels, bands]`, bảo đảm độ toàn vẹn âm trường.
+
+---
+
+### 1.3. Cơ Chế Đa Luồng & Quản Trị Đồng Bộ (Concurrency & Threading Model)
+
+Hệ thống phân định ranh giới hoạt động rõ ràng giữa các luồng để triệt tiêu nguy cơ nghẽn giao diện (UI Freeze) và xung đột tài nguyên:
+
+| Luồng (Thread) | Nhiệm Vụ & Phạm Vi Hoạt Động | Cơ Chế Đồng Bộ & Bảo Vệ Tài Nguyên |
+|---|---|---|
+| **WPF UI Thread (Dispatcher)** | Dựng Visual Tree, phản hồi thao tác click, kéo thả, thực thi animation quay đĩa than và cập nhật độ cao cột phổ. | Nhận dữ liệu phổ qua sự kiện có điều tiết (Throttling 33ms). Dùng `DispatcherPriority.Background` cho việc cuộn lời bài hát. |
+| **Audio Playback Thread** | Luồng ưu tiên cao do NAudio quản lý, liên tục gọi phương thức `Read(buffer, offset, count)` để đẩy dữ liệu ra card âm thanh. | Khóa `lock (_lock)` phạm vi hẹp cực ngắn (vài micro-giây) khi đổi bài hoặc đổi tham số EQ. Tuyệt đối không cấp phát bộ nhớ heap trong luồng này. |
+| **BFF Web API Thread Pool** | Tiếp nhận yêu cầu HTTP từ client nội bộ, đọc dữ liệu stream từ nguồn mạng ngoài và proxy nhị phân về. | Xử lý bất đồng bộ hoàn toàn (`async/await`) với `Stream.CopyToAsync()`, giải phóng thread khi đang chờ I/O mạng. |
+| **Background Scanner Task** | Quét đĩa cứng đọc file và trích xuất thẻ ID3 của thư viện cục bộ. | Chạy trên `Task.Run()`, báo cáo tiến độ qua `IProgress<ScanProgress>`, hỗ trợ hủy tác vụ an toàn bằng `CancellationToken`. |
+
+**Các giải pháp quản trị rủi ro bộ nhớ:**
+- **Chống rò rỉ bộ nhớ với hình ảnh:** Thư viện WPF mặc định duy trì tham chiếu luồng đối với các đối tượng `BitmapImage`. Bằng cách gọi `image.Freeze()`, đối tượng trở thành bất biến (Immutable), cho phép chia sẻ an toàn giữa các luồng và giúp bộ nhớ thu gom rác dọn dẹp các mảng byte thô trung gian ngay lập tức.
+- **Vòng đời tài nguyên (IDisposable Lifecycle):** Phương thức `App.OnExit()` và `MainViewModel.Dispose()` thực hiện chuỗi dọn dẹp phân cấp: Dừng phát nhạc -> Hủy đối tượng WaveOut -> Đóng tệp AudioReader -> Hủy máy chủ OWIN Self-Host.
+
+---
+
+### 1.4. Mô Hình Quản Trị Trạng Thái & Tương Tác MVVM (MVVM State Architecture)
+
+Ứng dụng áp dụng mô hình phân rã ViewModel chuyên biệt xoay quanh ViewModel trung tâm `MainViewModel`:
+
+```
+                    +--------------------+
+                    |   MainViewModel    |
+                    +--------------------+
+                      /    |    |    \    \
+                     /     |    |     \    \
+                    v      v    v      v    v
+       +---------------+   |    |   +---------------+
+       | NowPlayingVM  |   |    |   | LocalLibraryVM|
+       +---------------+   |    |   +---------------+
+              |            |    |
+              |            v    v
+              |    +---------------+  +---------------+
+              |    | PlayQueueVM   |  |   LyricsVM    |
+              |    +---------------+  +---------------+
+              v                        
+       +---------------+
+       | DspEqualizerVM|
+       +---------------+
+```
+
+- **`MainViewModel`**: Đóng vai trò tổng chỉ huy, sở hữu danh mục bài hát gốc, điều phối thanh điều hướng Sidebar, lắng nghe lệnh tìm kiếm và chuyển đổi giao diện động qua `CurrentViewName`.
+- **`NowPlayingViewModel`**: Quản lý trạng thái phát hiện tại (`PlaybackState`), thời gian phát, thời lượng, âm lượng, tốc độ quay của đĩa than và mảng 16 giá trị chiều cao cột sóng. Cung cấp ủy quyền `PlayNextAction` cho phép tự động chuyển bài.
+- **`PlayQueueViewModel`**: Quản lý danh sách hàng đợi bài hát sắp phát, triển khai giao diện `IDropTarget` của GongSolutions để đón nhận các sự kiện kéo thả từ người dùng.
+- **`LocalLibraryViewModel`**: Chịu trách nhiệm tương tác với dịch vụ quét đĩa, lưu trữ danh sách nhạc ngoại tuyến và áp dụng bộ lọc văn bản nhanh.
+- **`LyricsViewModel`**: Quản lý danh sách các dòng lời bài hát đã qua phân tích, trạng thái kích hoạt của từng dòng và cung cấp lệnh tua nhạc khi người dùng nhấn trực tiếp vào dòng lời.
+- **`DspEqualizerViewModel`**: Quản lý trạng thái của 10 thanh trượt dải tần, lưu trữ danh sách cấu hình mẫu (Rock, Pop, Jazz...) và tự động chuyển sang chế độ "Custom" khi người dùng can thiệp vào bất kỳ cần gạt nào.
 
 ---
 

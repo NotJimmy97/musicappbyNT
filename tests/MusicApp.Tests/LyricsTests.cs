@@ -9,6 +9,25 @@ using MusicApp.ViewModels;
 
 namespace MusicApp.Tests
 {
+    /// <summary>
+    /// Bo kiem thu don vi va kiem dinh chat luong (Gate 4 Verification) cho tinh nang dong bo loi bai hat (Lyrics Service & ViewModel).
+    /// 
+    /// - Tac dung: Kiem thu kha nang phan tich cu phap tep LRC (LrcParser), tai loi bai hat tu bo nho
+    ///   hoac tep dong hanh (.lrc disk companion), va co che chuyen doi dong loi kich hoat (Active Line Transition)
+    ///   theo thoi gian thuc tren LyricsViewModel.
+    /// 
+    /// - Van de giai quyet:
+    ///   1. Kiem thu bo parser LRC (LrcParser): Ho tro cac dinh dang moc thoi gian tieu chuan [mm:ss.xx],
+    ///      nhieu moc thoi gian tren mot dong [mm:ss][mm:ss], the bu thoi gian [offset:ms], sap xep dong theo thu tu thoi gian.
+    ///   2. Kiem thu tai tep dong hanh: Tu dong tim va doc tep .lrc co cung ten va cung thu muc voi tep am thanh tren o dia.
+    ///   3. Kiem dinh Gate 4 (Lyrics Gating & Anti-Spam Transition): Dam bao khi thoi gian troi trong cung mot dong
+    ///      (vi du giay 5 den giay 9 cua dong 1), he thong khong duoc phep phat su kien ActiveLineChanged lien tuc,
+    ///      tranh gay ngheo luong giao dien (UI Stutter). Chi phat su kien khi chi so dong thuc su hoan doi.
+    ///   4. Kiem thu Click-to-Seek: Bam vao cau hat goi chinh xac vi tri thoi gian can tua.
+    /// 
+    /// - Cach thuc van hanh:
+    ///   Su dung thu muc tam de kiem thu tep .lrc; khoi tao LyricsViewModel va truyen cac moc thoi gian de kiem tra su kien.
+    /// </summary>
     [TestClass]
     public class LyricsTests
     {

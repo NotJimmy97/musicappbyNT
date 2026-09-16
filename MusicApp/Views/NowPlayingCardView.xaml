@@ -7,6 +7,31 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="850">
 
+    <!--
+        KIEN TRUC GIAO DIEN: NowPlayingCardView.xaml - The phat nhac hien tai (Bottom Player Bar)
+        
+        - Tac dung: Cung cap giao dien phat nhac chuyen nghiep ghim co dinh o duoi day man hinh,
+          lay cam hung thiet ke tu widget Spotify-Readme. Bao gom dia than quay vinyl (Vinyl Disc Animation),
+          thong tin bai hat dang phat, he thong cot equalizer dong bo, thanh tua bai hat (Timeline Slider)
+          va cac nut dieu khien phat nhac (Play/Pause, Next, Previous, Shuffle, Repeat, Volume).
+          
+        - Van de giai quyet:
+          1. Mo phong trai nghiem dia than quay (Vinyl Spin): Tich hop Storyboard "VinylSpinStoryboard"
+             thuc hien phep xoay 360 do lien tuc (10s cycle). Code-behind lang nghe trang thai PlaybackState
+             de Resume/Pause Storyboard dong bo voi am thanh thuc te.
+          2. Truc quan hoa song am (Animated Equalizer Bars): Su dung ItemsControl hien thi cac cot song
+             EqualizerBars tu ViewModel, tao hieu ung sinh dong nhu trinh phat nhac hien dai.
+          3. Chong giat con tro thoi gian (Anti-Scrubbing Jitter): Phoi hop giua XAML Slider va Code-behind
+             de tam hoan cap nhat thoi gian tu timer khi nguoi dung dang de chuot keo thanh tua nhac.
+          4. Toi uu hoa tai anh bia album: Dung FrozenImageConverter de Freeze BitmapImage tren luong nen,
+             khong gay giat lag giao dien khi chuyen bai lien tuc.
+             
+        - Cach thuc van hanh:
+          1. View nhan DataContext la NowPlayingViewModel.
+          2. Cac nut phat/dung, chuyen bai, ngau nhien, lap lai duoc binding vao cac ICommand tuong ung.
+          3. Slider Timeline binding Two-Way voi CurrentPositionSeconds va Maximum binding DurationSeconds.
+    -->
+
     <UserControl.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />

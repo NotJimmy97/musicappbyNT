@@ -8,6 +8,29 @@
              Width="220"
              Background="{DynamicResource CardBackgroundBrush}">
 
+    <!--
+        KIEN TRUC GIAO DIEN: SidebarNavigationView.xaml - Thanh dieu huong doc ben trai
+        
+        - Tac dung: Cung cap he thong menu dieu huong chinh cho ung dung, hien thi logo thuong hieu,
+          danh sach cac phan he chuc nang (Kham pha, Nhac Viet Nam, Thu vien noi bo, Hang doi, Loi bai hat, Equalizer)
+          va thong tin trang thai backend BFF / Audio Engine.
+          
+        - Van de giai quyet:
+          1. Dieu huong tuyen tinh theo mau thiet ke MVVM: Thay vi goi code chuyen trang truc tiep,
+             Sidebar su dung ListBox lien ket Two-Way Binding giua SelectedItem va SelectedNavigationItem
+             tren MainViewModel.
+          2. Phan hoi thi giac linh hoat (Interactive Styling): Su dung ControlTemplate.Triggers tren
+             ListBoxItem de xu ly hieu ung hover (ListHoverBackgroundBrush) va selected (AccentBrandBrush)
+             giup giao dien phan hoi ngay tuc thi khi tuong tac chuot.
+          3. Thiet ke co dinh chieu rong (Fixed Width): Co dinh Width=220px voi duong ke bien Border phai
+             ngan cach ro rang giua thanh dieu huong va vung noi dung trung tam.
+             
+        - Cach thuc van hanh:
+          1. ListBox nhan nguon du lieu tu thuoc tinh NavigationItems cua MainViewModel.
+          2. Khi nguoi dung bam vao mot dong menu, thuoc tinh SelectedNavigationItem duoc cap nhat,
+             tu do kich hoat setter trong MainViewModel de thay doi CurrentViewName va hoan doi DataTemplate tren MainWindow.
+    -->
+
     <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0">
         <Grid Margin="12,16,12,16">
             <Grid.RowDefinitions>
