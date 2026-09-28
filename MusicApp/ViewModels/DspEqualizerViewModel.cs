@@ -8,26 +8,17 @@ using MusicApp.Core.Interfaces;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel quan ly bo can bang am thanh ky thuat so 10 bang tan (10-Band DSP Equalizer ViewModel).
-    /// 
-    /// Tac dung:
-    /// - Cung cap danh sach 10 bang tan EqualizerBandViewModel cho giao dien DspEqualizerView.xaml.
-    /// - Cung cap cac cau hinh am thanh cai dat san (Presets: Flat, Rock, Pop, Jazz, Classical, Bass Boost, Vocal Boost).
-    /// - Quan ly trang thai Bat/Tat (Bypass Mode) va chuc nang Reset ve mac dinh Flat (0 dB).
-    /// - Tu dong nhan dien cau hinh dang ap dung (Preset Detection) khi nguoi dung keo chinh bat ky thanh Slider nao.
-    /// 
-    /// Van de giai quyet:
-    /// - Tranh hien tuong xung dot vong lap phan hoi (Feedback Loop Ping-pong):
-    ///   Khi nguoi dung chon mot Preset, cac Slider phai duoc cap nhat gia tri moi nhung KHONG duoc phep
-    ///   goi nguoc lai ham ApplyPreset. Bien co _isUpdatingInternally va phuong thuc SetGainSilent
-    ///   ngan chan triet de van de nay.
-    /// - Tuan thu chat che nguyen ly phan tach trach nhiem (Separation of Concerns): Giao dien chi tuong tac voi ViewModel;
-    ///   moi phep tinh toan DSP thuc su duoc uy thac hoan toan xuong IDspEqualizerService.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Khoi tao 10 doi tuong EqualizerBandViewModel voi tan so tieu chuan tu 32Hz den 16kHz.
-    /// - Khi mot bang tan thay doi do loi, OnBandGainChanged goi _equalizerService.SetBandGain va goi DetectMatchingPreset.
+    /// ViewModel quản lý bộ cân bằng âm thanh kỹ thuật số 10 băng tần.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Quản lý trạng thái 10 băng tần EqualizerBandViewModel, các preset cấu hình, và Toggle Bypass.
+    /// 2. Không chịu trách nhiệm: Xử lý tín hiệu số DSP (Digital Signal Processing) thực tế (thuộc IDspEqualizerService).
+    /// 3. Vòng đời: Singleton/Tồn tại suốt vòng đời ứng dụng.
+    /// 4. Đa luồng: Hoạt động hoàn toàn trên UI thread. Sử dụng _isUpdatingInternally để tránh feedback loop khi cập nhật qua lại.
+    /// State transitions:
+    /// - Khi thay đổi Slider: Cập nhật gain xuống Service và gọi DetectMatchingPreset (chuyển qua Custom nếu không khớp).
+    /// - Khi chọn Preset: Đặt toàn bộ băng tần xuống Service, update giá trị lên giao diện qua SetGainSilent.
+    /// </remarks>
     public class DspEqualizerViewModel : ObservableObject
     {
         private readonly IDspEqualizerService _equalizerService;

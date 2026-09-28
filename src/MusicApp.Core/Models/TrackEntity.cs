@@ -3,9 +3,14 @@ using System;
 namespace MusicApp.Core.Models
 {
     /// <summary>
-    /// Thuc the dai dien cho mot ban nhac trong he thong luu tru hop nhat (Unified Track Catalog).
-    /// Tuong thich ca nguon Local Files va Streaming CDN (Jamendo, Zing, Archive.org).
+    /// Thực thể đại diện cho một bản nhạc trong hệ thống lưu trữ hợp nhất (Unified Track Catalog).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Chứa thông tin metadata của bản nhạc.
+    /// KHÔNG chịu trách nhiệm: Thực thi logic truy xuất DB hay phát nhạc.
+    /// Vòng đời: Tồn tại trong bộ nhớ khi được query hoặc khởi tạo.
+    /// Ràng buộc: TrackKey phải duy nhất (Fuzzy Fingerprint) chống trùng lặp. SourceType phân biệt nguồn (local/jamendo/vn).
+    /// </remarks>
     public class TrackEntity
     {
         public int Id { get; set; }

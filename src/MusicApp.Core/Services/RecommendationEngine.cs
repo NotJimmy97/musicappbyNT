@@ -8,9 +8,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Services
 {
     /// <summary>
-    /// Dong co goi y bai hat thong minh chay hoan toan cuc bo (Client-Side Affinity Recommendation Engine).
-    /// Hoc gu nguoi dung tu hanh vi Click, Play, Skip, Heart va thuc thi thuat toan Smart Shuffle Boltzmann.
+    /// Động cơ gợi ý bài hát thông minh.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Tính toán và đề xuất bài hát mới dựa trên lịch sử nghe.
+    /// KHÔNG chịu trách nhiệm: Ghi log tương tác trực tiếp (dùng InteractionRepository).
+    /// Vòng đời: Transient/Scoped.
+    /// Luồng: Thao tác DB và tính toán bất đồng bộ qua Task.
+    /// </remarks>
     public class RecommendationEngine
     {
         private readonly ITrackRepository _trackRepo;

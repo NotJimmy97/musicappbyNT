@@ -4,18 +4,14 @@ using System.Windows.Input;
 namespace MusicApp.Core.Common
 {
     /// <summary>
-    /// Trien khai mau ICommand tieu chuan cho kien truc MVVM trong WPF.
-    /// 
-    /// Tac dung:
-    /// - Dong goi cac hanh vi thuc thi (Action) va dieu kien cho phep thuc thi (Predicate) thanh doi tuong Command co the gan ket (Bind) vao XAML.
-    /// 
-    /// Van de giai quyet:
-    /// - Tach roi hoan toan logic xu ly su kien khoi Code-Behind (.xaml.cs), dam bao tinh don trach nhiem cua ViewModel va de dang kiem thu don vi.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Uy quyen lenh qua delegate Action<object> va kiem tra trang thai qua Predicate<object>.
-    /// - Mok ket noi CanExecuteChanged truc tiep voi CommandManager.RequerySuggested cua WPF de tu dong danh gia lai trang thai bat/tat (Enabled/Disabled) cua nut bam tren giao dien nguoi dung.
+    /// Triển khai mẫu ICommand tiêu chuẩn cho kiến trúc MVVM.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Đóng gói hành vi thực thi đồng bộ và điều kiện vào Command.
+    /// KHÔNG chịu trách nhiệm: Chạy các tác vụ bất đồng bộ (dùng AsyncRelayCommand).
+    /// Vòng đời: Tồn tại cùng vòng đời của ViewModel.
+    /// Luồng: Thường liên kết với UI thread qua CommandManager.RequerySuggested.
+    /// </remarks>
     public class RelayCommand : ICommand
     {
         private readonly Action<object> _execute;

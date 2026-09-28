@@ -8,30 +8,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
-    <!--
-        KIEN TRUC GIAO DIEN: PlayQueueView.xaml - Giao dien quan ly hang doi phat nhac
-        
-        - Tac dung: Cung cap man hinh quan ly danh sach phat hien tai (Play Queue), ho tro xem danh sach
-          bai hat cho phat, xoa bai hat, xoa toan bo hang doi, va sap xep lai thu tu bai hat bang keo-tha.
-          
-        - Van de giai quyet:
-          1. Keo-tha khong can Code-Behind (Declarative Drag-and-Drop): Su dung thu vien GongSolutions.Wpf.DragDrop
-             gan truc tiep tren ListBox thong qua cac Attached Property:
-             - dd:DragDrop.IsDragSource="True": Cho phep keo phan tu khoi vi tri hien tai.
-             - dd:DragDrop.IsDropTarget="True": Cho phep tha phan tu vao vi tri moi.
-             - dd:DragDrop.DropHandler="{Binding}": Uy quyen xu ly su kien Drop cho PlayQueueViewModel
-               (thong qua viec implements interface IDropTarget).
-          2. Phan biet bai hat dang phat: Thiet ke DataTemplate danh dau rieng bai hat dang phat voi
-             mau chu xanh la thuong hieu (AccentBrandBrush) va bieu tuong song am.
-          3. Thao tac xoa nhanh va xoa sach: Nut "Xoa khoi hang doi" tren tung dong va nut "Xoa toan bo"
-             (ClearQueueCommand) tren header giup quan ly danh sach phat tien loi.
-             
-        - Cach thuc van hanh:
-          1. View nhan DataContext la PlayQueueViewModel.
-          2. ListBox ItemsSource binding vao ObservableCollection QueueItems.
-          3. Khi nguoi dung thao tac keo tha, GongSolutions tu dong goi phuong thuc Drop trong ViewModel
-             de hoan doi vi tri hai phan tu trong ObservableCollection.
-    -->
+    <!-- Content area: Quản lý Play Queue. Hỗ trợ kéo thả thông qua thư viện GongSolutions.Wpf.DragDrop. -->
 
     <UserControl.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
@@ -94,51 +71,13 @@
 
                 <!-- Quick Actions -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <!-- Smart Shuffle Toggle Button -->
-                    <Button Command="{Binding ToggleSmartShuffleCommand}"
-                            Height="34"
-                            Padding="12,0"
-                            Margin="0,0,8,0"
-                            BorderThickness="1"
-                            Cursor="Hand"
-                            ToolTip="Smart Shuffle: Lựa chọn bài hát dựa trên gu nghe nhạc (Boltzmann Sampling)">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Background" Value="{DynamicResource CardSurfaceBrush}" />
-                                <Setter Property="Foreground" Value="{DynamicResource SubtitleForegroundBrush}" />
-                                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsSmartShuffle}" Value="True">
-                                        <Setter Property="Background" Value="{DynamicResource CardSurfaceBrush}" />
-                                        <Setter Property="Foreground" Value="{DynamicResource AccentBrandBrush}" />
-                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrandBrush}" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}"
-                                        BorderBrush="{TemplateBinding BorderBrush}"
-                                        BorderThickness="{TemplateBinding BorderThickness}"
-                                        CornerRadius="6"
-                                        Padding="{TemplateBinding Padding}">
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Path Data="{StaticResource IconShuffle}" Fill="{TemplateBinding Foreground}" Stretch="Uniform" Width="13" Height="13" Margin="0,0,6,0" />
-                                        <TextBlock Text="Smart Shuffle" FontSize="12" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" />
-                                    </StackPanel>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-
                     <!-- Play Next in Queue Button -->
                     <Button Command="{Binding PlayNextInQueueCommand}"
                             Content="Phát bài tiếp theo"
                             Height="34"
                             Padding="16,0"
                             Background="{DynamicResource AccentBrandBrush}"
-                            Foreground="#FFFFFF"
+                            Foreground="{DynamicResource PureWhiteBrush}"
                             FontWeight="SemiBold"
                             FontSize="12"
                             Cursor="Hand">
@@ -323,7 +262,7 @@
                                            VerticalAlignment="Center" />
 
                                 <!-- Cover Art Thumbnail with Frozen Image -->
-                                <Border Grid.Column="2" Width="42" Height="42" CornerRadius="6" ClipToBounds="True" Background="#161B22">
+                                <Border Grid.Column="2" Width="42" Height="42" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource ThumbnailPlaceholderBrush}">
                                     <Image Source="{Binding CoverImageUrl, Converter={StaticResource FrozenImageConverter}}"
                                            Stretch="UniformToFill" />
                                 </Border>
@@ -384,7 +323,7 @@
                                             ToolTip="Phát ngay"
                                             Width="28" Height="28"
                                             Background="{DynamicResource AccentBrandBrush}"
-                                            Foreground="#FFFFFF"
+                                            Foreground="{DynamicResource PureWhiteBrush}"
                                             FontSize="11"
                                             BorderThickness="0"
                                             Cursor="Hand">

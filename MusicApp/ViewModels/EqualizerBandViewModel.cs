@@ -4,23 +4,16 @@ using MusicApp.Core.Common;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel quan ly mot bang can bang tan so cu the (Equalizer Frequency Band Slider).
-    /// 
-    /// Tac dung:
-    /// - Dong goi cac thuoc tinh: Chi so bang tan (BandIndex), Tan so trung tam (Frequency),
-    ///   Nhan hien thi (Label: "32Hz", "1kHz",...), va Muc do loi (GainDb [-12.0dB..+12.0dB]).
-    /// - Cung cap chuoi dinh dang do loi co dau cong tru (FormattedGain: "+3.5 dB", "-2.0 dB").
-    /// - Phat delegate _onGainChanged khi nguoi dung thao tac keo Slider tren giao dien.
-    /// 
-    /// Van de giai quyet:
-    /// - Cho phep phan tach ro rang giua thao tac nguoi dung (User Gesture) va viec nap gia tri tu Preset (Programmatic Update).
-    /// - Phuong thuc SetGainSilent cho phep cap nhat giao dien khi chon Preset ma KHONG kich hoat lai su kien _onGainChanged,
-    ///   tranh gay ra vong lap vo tan (Event Loop Ping-pong) giua ViewModel va DSP Engine.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Slider trong DspEqualizerView.xaml TwoWay Binding voi GainDb.
-    /// - Khi GainDb thay doi, kiem tra SetProperty va kich hoat _onGainChanged(BandIndex, clampedGain).
+    /// ViewModel quản lý một băng tần số trong bộ cân bằng âm thanh.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Quản lý BandIndex, Frequency, GainDb và phát tín hiệu cho DspEqualizerViewModel.
+    /// 2. Không chịu trách nhiệm: Quản lý toàn bộ 10 băng tần hoặc xử lý âm thanh thực tế.
+    /// 3. Vòng đời: Tồn tại cùng DspEqualizerViewModel.
+    /// 4. Đa luồng: Phương thức SetGainSilent dùng để cập nhật UI từ Preset mà không gây loop event.
+    /// State transitions:
+    /// - Khi GainDb thay đổi từ UI: Kích hoạt _onGainChanged để báo cho ViewModel cha cập nhật Service.
+    /// </remarks>
     public class EqualizerBandViewModel : ObservableObject
     {
         private readonly Action<int, float> _onGainChanged;

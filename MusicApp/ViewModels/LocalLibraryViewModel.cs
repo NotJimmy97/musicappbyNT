@@ -11,25 +11,17 @@ using MusicApp.Core.Models;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel quan ly quet va tim kiem thu vien am nhac cuc bo (Local Audio Library Scanner ViewModel).
-    /// 
-    /// Tac dung:
-    /// - Cho phep nguoi dung chon thu muc tren o cung thong qua hop thoai FolderBrowserDialog.
-    /// - Dieu phoi tien trinh quet de quy cac tap tin am thanh (MP3, FLAC, M4A, WAV,...) tren luong nen.
-    /// - Cap nhat tien do quet theo thoi gian thuc len giao dien: so file da doc, so bai hat tim thay, ten file dang xu ly.
-    /// - Cung cap chuc nang tim kiem, loc nhanh danh sach bai hat offline theo tieu de, ca si, hoac album.
-    /// 
-    /// Van de giai quyet:
-    /// - Tranh gay treo giao dien (UI Freeze): Thao tac I/O tren dia duoc thuc thi hoan toan bat dong bo (Async/Await).
-    /// - Cung cap nut dung quet (Cancel Scan): Nguoi dung co the chu dong ngat tien trinh quet bat ky luc nao
-    ///   ma khong gay loi crash ung dung nho co che CancellationTokenSource.
-    /// - Quan ly bo nho hieu qua: Danh sach FilteredTracks chi luu cac tham chieu TrackItemViewModel phu hop voi bo loc SearchFilter.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Mac dinh chon thu muc Windows MyMusic cua nguoi dung.
-    /// - Khi nhan nut "Quét Thư Mục", goi _localLibraryService.ScanDirectoryAsync kem progress report.
-    /// - Sau khi quet xong, danh sach bai hat duoc nap vao AllTracks va hien thi qua FilteredTracks.
+    /// ViewModel quản lý quét và tìm kiếm thư viện âm nhạc cục bộ.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Quản lý đường dẫn, thực thi quét thư mục bất đồng bộ, và lọc kết quả tìm kiếm offline.
+    /// 2. Không chịu trách nhiệm: Đọc thẻ ID3 (thuộc ILocalLibraryService).
+    /// 3. Vòng đời: Tồn tại cùng ứng dụng, AllTracks được lưu trữ trên RAM.
+    /// 4. Đa luồng: Tiến trình quét chạy ngầm (Task), tiến độ được cập nhật qua IProgress về UI thread. CancellationTokenSource dùng để hủy quét.
+    /// State transitions:
+    /// - Khi quét: Bật IsScanning = true, khóa UI, báo cáo tiến độ qua StatusMessage.
+    /// - Khi nhập từ khóa SearchFilter: Tự động ApplyFilter để cập nhật danh sách FilteredTracks.
+    /// </remarks>
     public class LocalLibraryViewModel : ObservableObject
     {
         private readonly ILocalLibraryService _localLibraryService;

@@ -10,27 +10,14 @@ using PlaybackState = MusicApp.Core.Models.PlaybackState;
 namespace MusicApp.AudioEngine
 {
     /// <summary>
-    /// Lop dich vu am thanh trung tam thuc thi boi NAudio (Central NAudio Service Coordinator).
-    /// 
-    /// Tac dung:
-    /// - Hien thuc hoa hai giao dien cot loi: IAudioService (Dieu khien phat nhac) va IDspEqualizerService (Can bang am thanh DSP).
-    /// - Xay dung va quan ly vong doi cua do thi xu ly tin hieu am thanh (Audio Graph Pipeline):
-    ///   Reader (AudioFileReader / MediaFoundationReader) 
-    ///     -> DspEqualizerSampleProvider (10-Band Bi-quad Filter)
-    ///       -> SampleAggregator (FFT Calculator) 
-    ///         -> WaveOutEvent (Direct Hardware Output).
-    /// 
-    /// Van de giai quyet:
-    /// - Tu dong phan loai nguon am thanh:
-    ///   + Voi tap tin cuc bo tren o cung (Local File): Su dung AudioFileReader de doc va giai ma voi do tre bang 0 (Zero Latency).
-    ///   + Voi dia chi mang (HTTP Stream): Su dung MediaFoundationReader de ho tro stream chunk va tu dong xu ly cac codec mang.
-    /// - Chong nghen hang doi giao dien WPF (Dispatcher Queue Flooding):
-    ///   Tan so FFT duoc tinh toan lien tuc trong Audio Thread co the tao ra hang tram event moi giay.
-    ///   NAudioService su dung Stopwatch de khao sat toc do (Rate Limiting) va chi phat su kien SpectrumDataReady
-    ///   toi da 30 khung hinh moi giay (chu ky 33ms), dam bao giao dien WPF hoat dong muot ma khong bi treo.
-    /// - An toan da luong (Thread Safety): Dong bo hoa moi thao tac Play, Pause, Seek, SetVolume va SetBandGain
-    ///   thong qua doi tuong khoa _lock, ngan chan xung dot giua Audio Render Thread va UI Dispatcher Thread.
+    /// Điều phối viên dịch vụ âm thanh trung tâm thực thi bởi NAudio.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Quản lý vòng đời đồ thị âm thanh, điều khiển phát nhạc và cấu hình bộ lọc DSP.
+    /// 2. Không chịu trách nhiệm: Quản lý giao diện người dùng, giải mã codec mạng.
+    /// 3. Thời gian sống: Tồn tại suốt vòng đời ứng dụng (Singleton). State _wavePlayer sống theo từng bài hát.
+    /// 4. Đa luồng/Vòng đời: Mọi thao tác public đều thread-safe thông qua _lock. Playback phải được dừng hoàn toàn trước khi Dispose.
+    /// </remarks>
     public class NAudioService : IAudioService, IDspEqualizerService
     {
         private IWavePlayer _wavePlayer;
@@ -179,10 +166,10 @@ namespace MusicApp.AudioEngine
         public event EventHandler<PlaybackState> StateChanged;
 
         /// <summary>
-        /// Khoi tao luong am thanh bat dong bo tren luong Worker Thread.
-        /// Tu dong don dep phien phat truoc do va thiet lap do thi DSP moi.
+        /// Khởi tạo luồng âm thanh bất đồng bộ. Chạy trên Worker Thread.
+        /// Tự động dọn dẹp phiên phát trước đó và thiết lập đồ thị DSP mới.
         /// </summary>
-        /// <param name="streamUrl">Duong dan HTTP stream hoac duong dan file cuc bo tren o dia.</param>
+        /// <param name="streamUrl">Đường dẫn HTTP stream hoặc đường dẫn file cục bộ.</param>
         public Task InitializeAsync(string streamUrl)
         {
             if (string.IsNullOrWhiteSpace(streamUrl))

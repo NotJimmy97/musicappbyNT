@@ -5,27 +5,14 @@ using NAudio.Wave;
 namespace MusicApp.AudioEngine.Dsp
 {
     /// <summary>
-    /// Bo loc can bang am thanh ky thuat so 10 bang tan (10-Band DSP Parametric Equalizer).
-    /// 
-    /// Tac dung:
-    /// - Ap dung mang cac bo loc IIR bac hai (Bi-quad Peaking EQ Filters) tren tung kenh am thanh (Stereo/Mono).
-    /// - Cho phep tang giam do loi (Gain) tu -12dB den +12dB tren 10 dai tan so tieu chuan ISO tu 32Hz den 16kHz.
-    /// - Cung cap co che cat am dinh cao (Soft Limiter) nham triet tieu hien tuong meo tieng ky thuat so (Digital Clipping).
-    /// 
-    /// Van de giai quyet:
-    /// - Hieu nang toi uu tren Audio Thread:
-    ///   + Khi tat bo loc hoac khi tat ca cac bang tan deu o muc 0 dB (Unity Gain), thuat toan tu dong kich hoat che do
-    ///     chuyen tiep truc tiep (Bypass Optimization), bo qua toan bo phep toan ma tran tren 20 bo loc biquad.
-    ///   + Khi nguoi dung keo thanh Slider tren UI, phuong thuc SetPeakingEq cap nhat truc tiep he so loc tren doi tuong cu
-    ///     (In-place Coefficient Update) ma khong tao ra bat ky doi tuong moi nao tren Heap, tranh nghen luong am thanh.
-    /// - An toan toan hoc (Nyquist Frequency Guard): Tan so bang cao nhat (16kHz) co the gay ra hien tuong suy bien toan hoc
-    ///   neu tan so lay mau la 32kHz hoac 44.1kHz. Ham ClampFrequencyToNyquist tu dong gioi han tan so toi da o muc 48% SampleRate.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Khoi tao ma tran bo loc _filters[channels][10].
-    /// - Trong ham Read, neu co bang tan hoat dong, tin hieu tung mau se duoc bien doi tuan tu qua 10 bo loc biquad.
-    /// - Cuoi cung, mau duoc kep trong khoang [-1.0f, +1.0f] truoc khi ghi vao buffer dau ra.
+    /// Bộ lọc cân bằng âm thanh kỹ thuật số 10 băng tần (10-Band DSP Parametric Equalizer).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Áp dụng mảng bộ lọc IIR bậc hai (Bi-quad Peaking EQ Filters) trên dòng mẫu (PCM 32-bit float).
+    /// 2. Không chịu trách nhiệm: Đọc dữ liệu từ file hay tính toán FFT.
+    /// 3. Thời gian sống: Tồn tại theo từng đồ thị âm thanh (Audio Graph) khi một bài hát được phát.
+    /// 4. Đa luồng/Vòng đời: Hàm Read chạy trên Audio Thread, tuyệt đối không cấp phát vùng nhớ (zero allocation). Các thao tác điều chỉnh Gain thread-safe qua _lock.
+    /// </remarks>
     public class DspEqualizerSampleProvider : ISampleProvider
     {
         /// <summary>
@@ -173,7 +160,7 @@ namespace MusicApp.AudioEngine.Dsp
 
             lock (_lock)
             {
-                // Toi uu chuyen tiep (Bypass): Bo qua toan bo phep tinh neu EQ bi tat hoac tat ca cac dai deu la 0 dB
+                // Chế độ bypass: Bỏ qua tính toán nếu EQ tắt hoặc tất cả các dải có mức gain 0 dB.
                 if (!_isEnabled || !_anyNonZeroGain || _filters == null || _channels <= 0)
                 {
                     return samplesRead;

@@ -4,23 +4,14 @@ using NAudio.Wave;
 namespace MusicApp.AudioEngine.Dsp
 {
     /// <summary>
-    /// Bo thu thap va gom mau am thanh (Sample Aggregator Decorator Pattern).
-    /// 
-    /// Tac dung:
-    /// - Nam trong chuoi xu ly do thi am thanh (DSP Graph), chen giua bo loc Equalizer va WaveOutEvent.
-    /// - Trich xuat du lieu mau am thanh (Float Samples) khi chung di qua ham Read ma khong lam thay doi tin hieu am thanh goc.
-    /// - Tich luy cac mau vao bo dem vong (Ring Buffer) de kich hoat tinh toan FFT khi du 1024 mau.
-    /// 
-    /// Van de giai quyet:
-    /// - Giu cho audio pipeline tiep tuc phat lien tuc trong khi van co the trich xuat du lieu cho do hoa (Visualization).
-    /// - Tuyet doi tuan thu quy tac Zero Allocation: Khong khoi tao bat ky mang byte hay float nao ben trong vong lap Read,
-    ///   giup luong phat am thanh duy tri do tre thap nhat (Low Latency) va on dinh nhat.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Goi _source.Read de nap am thanh tu bo loc phia truoc.
-    /// - Sao chep tung mau vao _sampleRingBuffer. Khi chi so cham moc FftCalculator.FftSize (1024),
-    ///   goi FftCalculator.Calculate va phat su kien FftCalculated cho tang quan ly NAudioService.
+    /// Bộ thu thập và gom mẫu âm thanh (Sample Aggregator Decorator Pattern).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Trích xuất và tích luỹ dữ liệu mẫu PCM 32-bit float từ luồng âm thanh để tính toán FFT.
+    /// 2. Không chịu trách nhiệm: Phát nhạc ra loa hoặc hiển thị đồ hoạ UI.
+    /// 3. Thời gian sống: Tồn tại cùng đồ thị âm thanh (Audio Graph) cho mỗi bài hát.
+    /// 4. Đa luồng/Vòng đời: Hàm Read chạy trên Audio Thread, cấm cấp phát đối tượng mới (Zero Allocation). Sự kiện FftCalculated có thể phát ở Audio Thread.
+    /// </remarks>
     public class SampleAggregator : ISampleProvider
     {
         private readonly ISampleProvider _source;
@@ -60,7 +51,7 @@ namespace MusicApp.AudioEngine.Dsp
         {
             int samplesRead = _source.Read(buffer, offset, count);
 
-            // Vong lap xu ly dong chay am thanh: Nghiem cam cap phat new float[] hoac new byte[] tai day
+            // Thu thập mẫu, tránh cấp phát bộ nhớ (Zero Allocation) để tối ưu Audio Thread.
             for (int i = 0; i < samplesRead; i++)
             {
                 _sampleRingBuffer[_ringBufferIndex] = buffer[offset + i];

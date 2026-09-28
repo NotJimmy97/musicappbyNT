@@ -9,6 +9,15 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.Core.Persistence.Repositories
 {
+    /// <summary>
+    /// Repository quản lý hàng đợi phát nhạc cục bộ.
+    /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Lưu trữ và phục hồi Play Queue giữa các phiên.
+    /// KHÔNG chịu trách nhiệm: Giữ trạng thái con trỏ bài hát đang phát.
+    /// Vòng đời: Transient/Scoped.
+    /// Luồng/DB: Thao tác DB qua Task bất đồng bộ.
+    /// </remarks>
     public class QueueRepository : IQueueRepository
     {
         private readonly string _connectionString;

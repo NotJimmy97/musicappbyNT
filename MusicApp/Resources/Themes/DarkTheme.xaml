@@ -7,20 +7,28 @@
     <SolidColorBrush x:Key="CardSurfaceBrush" Color="#21262D" />
     <SolidColorBrush x:Key="CardBorderBrush" Color="#30363D" />
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#0D1117" />
+    <SolidColorBrush x:Key="ThumbnailPlaceholderBrush" Color="#161B22" />
+
+    <!-- Vinyl Disc Graphic Brushes -->
     <SolidColorBrush x:Key="VinylBaseBrush" Color="#121212" />
     <SolidColorBrush x:Key="VinylBorderBrush" Color="#282828" />
+    <SolidColorBrush x:Key="VinylGrooveBrush" Color="#1E1E1E" />
+    <SolidColorBrush x:Key="VinylGrooveHighlightBrush" Color="#242424" />
+    <SolidColorBrush x:Key="VinylCenterHoleBrush" Color="#0D1117" />
 
     <!-- Typography Brushes -->
     <SolidColorBrush x:Key="TitleForegroundBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="SubtitleForegroundBrush" Color="#8B949E" />
     <SolidColorBrush x:Key="MutedForegroundBrush" Color="#6E7681" />
+    <SolidColorBrush x:Key="PureWhiteBrush" Color="#FFFFFF" />
 
     <!-- Brand Accent Brushes (Spotify Green) -->
     <SolidColorBrush x:Key="AccentBrandBrush" Color="#1ED760" />
     <SolidColorBrush x:Key="AccentHoverBrush" Color="#22EC6A" />
     <SolidColorBrush x:Key="AccentPressedBrush" Color="#1AA34A" />
 
-    <!-- List & Interaction Brushes -->
+    <!-- Functional & State Brushes -->
+    <SolidColorBrush x:Key="DangerBrush" Color="#E02424" />
     <SolidColorBrush x:Key="ListHoverBackgroundBrush" Color="#1F242C" />
     <SolidColorBrush x:Key="ListSelectedBackgroundBrush" Color="#282E38" />
     <SolidColorBrush x:Key="SliderTrackBackgroundBrush" Color="#30363D" />

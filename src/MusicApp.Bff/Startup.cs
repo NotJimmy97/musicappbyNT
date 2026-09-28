@@ -4,22 +4,19 @@ using Owin;
 
 namespace MusicApp.Bff
 {
+    // OWNS: Cấu hình Web API routing và JSON formatters.
+    // DOES NOT OWN: Logic request handlers hay vòng đời HTTP listener.
+    // CONSTRAINTS: Định dạng response ép buộc dùng camelCase JSON, vô hiệu hoá XML formatter.
+
     /// <summary>
-    /// Lop cau hinh khoi tao duong ong xu ly HTTP cua may chu OWIN (OWIN Pipeline Configuration).
-    /// 
-    /// Tac dung:
-    /// - Dinh tuyen cac yeu cau HTTP den dung Controller tuong ung (Route Configuration).
-    /// - Cau hinh bo dinh dang du lieu (Formatters) tra ve dinh dang JSON chuan phong cach camelCase.
-    /// - Loai bo dinh dang XML mac dinh de tiet kiem bang thong va tang toc do serialize.
-    /// 
-    /// Van de giai quyet:
-    /// - Thong nhat chuan giao tiep JSON giua BFF va WPF client, tranh cac loi bat dong bo giua cac thuoc tinh PascalCase va camelCase.
-    /// - Ho tro ca co che Attribute Routing ([Route(...)]) va Convention Routing truyen thong.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Phuong thuc Configuration duoc goi tu dong boi OWIN host khi WebApp.Start khoi dong.
-    /// - Gan HttpConfiguration vao duong ong OWIN thong qua phuong thuc mo rong app.UseWebApi(config).
+    /// Lớp khởi tạo cấu hình đường ống xử lý HTTP của OWIN Web API.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Đăng ký HTTP Route (API endpoint) và thay đổi formatter JSON.
+    /// 2. Không chịu trách nhiệm: Xử lý hoặc start/stop server thực tế.
+    /// 3. Vòng đời trạng thái: Khởi chạy một lần duy nhất lúc khởi động process BFF.
+    /// 4. Yêu cầu đặc biệt: Đảm bảo format payload khớp với client WPF (camelCase).
+    /// </remarks>
     public class Startup
     {
         /// <summary>

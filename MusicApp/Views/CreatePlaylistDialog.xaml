@@ -75,7 +75,7 @@
                 <Button Content="Tạo Mới"
                         Width="90" Height="34"
                         Background="{DynamicResource AccentBrandBrush}"
-                        Foreground="#FFFFFF"
+                        Foreground="{DynamicResource PureWhiteBrush}"
                         FontWeight="Bold"
                         BorderThickness="0"
                         Cursor="Hand"

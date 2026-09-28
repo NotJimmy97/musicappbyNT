@@ -1,23 +1,21 @@
 using System;
 using Microsoft.Owin.Hosting;
 
+// OWNS: Quản lý vòng đời của OWIN Self-host server.
+// DOES NOT OWN: Logic routing, controller, hoặc kết nối mạng chi tiết.
+// CONSTRAINTS: Chạy cùng process với WPF UI, chỉ lắng nghe trên localhost.
+
 namespace MusicApp.Bff
 {
     /// <summary>
-    /// Lop quan ly khoi chay may chu Backend For Frontend (BFF Host Manager).
-    /// 
-    /// Tac dung:
-    /// - Khoi tao va luu tru may chu web nhung (Self-hosted OWIN Server) chay ngay ben trong tien trinh cua ung dung WPF.
-    /// - Lang nghe cac ket noi HTTP cuc bo tren dia chi http://localhost:5245 de phuc vu cac yeu cau API va audio stream.
-    /// 
-    /// Van de giai quyet:
-    /// - Khong can cai dat IIS hay web server ben ngoai, giup ung dung WPF co the chay doc lap (Self-contained) tren moi may tinh.
-    /// - Tao ra lop trung gian co lap giao dien WPF khoi cac dich vu web ben ngoai, quan ly tap trung viec proxy stream va cache du lieu.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Su dung Microsoft.Owin.Hosting.WebApp.Start de nap lop cau hinh Startup.
-    /// - Tra ve doi tuong IDisposable de App.xaml.cs giai phong khi tat ung dung.
+    /// Quản lý khởi chạy máy chủ Backend For Frontend (BFF).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Khởi tạo và lưu trữ instance của máy chủ OWIN chạy ngầm.
+    /// 2. Không chịu trách nhiệm: Xử lý request HTTP, routing, hay xác thực.
+    /// 3. Vòng đời trạng thái: Tồn tại suốt thời gian ứng dụng WPF chạy (process-level).
+    /// 4. Yêu cầu đặc biệt: Trả về IDisposable cần được giải phóng khi ứng dụng tắt.
+    /// </remarks>
     public static class BffServerHost
     {
         /// <summary>

@@ -5,8 +5,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Interfaces.Persistence
 {
     /// <summary>
-    /// Giao dien quan ly cac danh sach phat tuy bien cua nguoi dung (Custom Playlists Repository).
+    /// Giao diện quản lý các danh sách phát tùy biến của người dùng.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Quản lý CRUD (Create, Read, Update, Delete) danh sách phát.
+    /// KHÔNG chịu trách nhiệm: Thực thi logic hiển thị UI.
+    /// Vòng đời: Transient/Scoped tùy DI.
+    /// Luồng/DB: Thao tác qua Task bất đồng bộ, lưu trữ ở local SQLite.
+    /// </remarks>
     public interface IPlaylistRepository
     {
         Task<IEnumerable<PlaylistEntity>> GetAllPlaylistsAsync();

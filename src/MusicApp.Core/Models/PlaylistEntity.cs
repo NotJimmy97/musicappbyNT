@@ -4,8 +4,14 @@ using System.Collections.Generic;
 namespace MusicApp.Core.Models
 {
     /// <summary>
-    /// Thuc the dai dien cho Danh sach phat ca nhan cua nguoi dung (Custom Playlist).
+    /// Thực thể đại diện cho danh sách phát cá nhân của người dùng (Playlist).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Chứa metadata của Playlist.
+    /// KHÔNG chịu trách nhiệm: Thực thi thêm/xóa bài hát vật lý.
+    /// Vòng đời: Tồn tại trong bộ nhớ khi được query.
+    /// Ràng buộc: Name không được null hay rỗng.
+    /// </remarks>
     public class PlaylistEntity
     {
         public int Id { get; set; }

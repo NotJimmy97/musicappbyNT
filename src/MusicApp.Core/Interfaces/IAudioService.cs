@@ -5,23 +5,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Interfaces
 {
     /// <summary>
-    /// Giao dien truu tuong hoa toan bo he thong am thanh (Audio Engine Abstraction Layer).
-    /// 
-    /// Tac dung:
-    /// - Cung cap API dieu khien phat am thanh: Khoi tao, Phat, Tam dung, Dung, Tua vi tri va Dieu chinh am luong.
-    /// - Phat su kien cap nhat trang thai (StateChanged) va du lieu pho tan so FFT thoi gian thuc (SpectrumDataReady).
-    /// - Dong vai tro la nut goc ket noi toi bo can bang am thanh ky thuat so (Equalizer).
-    /// 
-    /// Van de giai quyet:
-    /// - Tuan thu chat che nguyen ly Dependency Inversion (DIP): Tang UI va ViewModel chi giao tiep qua Interface,
-    ///   hoan toan khong phu thuoc truc tiep vao thu vien NAudio hay phan cung am thanh DirectSound/WaveOut.
-    /// - Giup viec kiem thu don vi (Unit Test) de dang thong qua cac Mock Object ma khong can thiet bi phan cung am thanh that.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc thuc thi boi NAudioService trong project MusicApp.AudioEngine.
-    /// - Su dung do thi xu ly tin hieu so (DSP Graph):
-    ///   Nguon am thanh (File / HTTP Stream) -> DspEqualizerSampleProvider -> SampleAggregator -> WaveOutEvent.
+    /// Giao diện trừu tượng hóa hệ thống âm thanh (Audio Engine Abstraction Layer).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Cung cấp API phát âm thanh và phát sự kiện trạng thái/FFT.
+    /// KHÔNG chịu trách nhiệm: Thao tác trực tiếp với phần cứng hay thư viện NAudio.
+    /// Vòng đời: Scoped hoặc Singleton. Cần Dispose để giải phóng tài nguyên.
+    /// Luồng: Các method điều khiển chạy trên UI thread, event có thể chạy trên background thread.
+    /// </remarks>
     public interface IAudioService : IDisposable
     {
         /// <summary>

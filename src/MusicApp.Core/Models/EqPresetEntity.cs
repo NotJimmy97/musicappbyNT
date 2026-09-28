@@ -1,8 +1,14 @@
 namespace MusicApp.Core.Models
 {
     /// <summary>
-    /// Thuc the luu tru cac preset can bang am thanh 10 bang tan (EQ Presets).
+    /// Thực thể lưu trữ cấu hình cân bằng âm thanh (EQ Preset).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Cung cấp thông số JSON cho bộ Equalizer.
+    /// KHÔNG chịu trách nhiệm: Xử lý âm thanh trực tiếp.
+    /// Vòng đời: Tồn tại trong bộ nhớ khi load từ DB.
+    /// Ràng buộc: Name phải duy nhất. GainsJson chứa chuỗi định dạng float array.
+    /// </remarks>
     public class EqPresetEntity
     {
         public string Name { get; set; }
@@ -11,8 +17,14 @@ namespace MusicApp.Core.Models
     }
 
     /// <summary>
-    /// Thuc the luu tru trang thai phien lam viec de phuc hoi khi mo lai app (Session Resume).
+    /// Thực thể lưu trữ trạng thái phiên làm việc để phục hồi (Session Resume).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Lưu trữ thông tin phát lần cuối cùng.
+    /// KHÔNG chịu trách nhiệm: Thực thi logic phục hồi.
+    /// Vòng đời: Tồn tại trong bộ nhớ khi load từ DB.
+    /// Ràng buộc: Chỉ có 1 bản ghi trong DB (Id = 1).
+    /// </remarks>
     public class AppSessionStateEntity
     {
         public int Id { get; set; } = 1;

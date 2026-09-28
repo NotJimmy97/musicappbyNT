@@ -6,9 +6,14 @@ using System.Text.RegularExpressions;
 namespace MusicApp.Core.Common
 {
     /// <summary>
-    /// Bo tien ich tao ma van tay chuan hoa giup hop nhat va khu trung lap bai hat giua cac nguon
-    /// (Track Identity & Deduplication Helper).
+    /// Bộ tiện ích tạo mã vân tay chuẩn hóa giúp hợp nhất và khử trùng lặp bài hát.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Sinh khóa định danh duy nhất (TrackKey).
+    /// KHÔNG chịu trách nhiệm: Thực hiện truy vấn cơ sở dữ liệu.
+    /// Vòng đời: Các hàm tĩnh, không lưu trạng thái.
+    /// Luồng: Thread-safe vì là static methods không có shared state.
+    /// </remarks>
     public static class TrackIdentityHelper
     {
         /// <summary>

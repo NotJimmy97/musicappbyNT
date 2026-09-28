@@ -8,28 +8,7 @@
              Width="220"
              Background="{DynamicResource CardBackgroundBrush}">
 
-    <!--
-        KIEN TRUC GIAO DIEN: SidebarNavigationView.xaml - Thanh dieu huong doc ben trai
-        
-        - Tac dung: Cung cap he thong menu dieu huong chinh cho ung dung, hien thi logo thuong hieu,
-          danh sach cac phan he chuc nang (Kham pha, Nhac Viet Nam, Thu vien noi bo, Hang doi, Loi bai hat, Equalizer)
-          va thong tin trang thai backend BFF / Audio Engine.
-          
-        - Van de giai quyet:
-          1. Dieu huong tuyen tinh theo mau thiet ke MVVM: Thay vi goi code chuyen trang truc tiep,
-             Sidebar su dung ListBox lien ket Two-Way Binding giua SelectedItem va SelectedNavigationItem
-             tren MainViewModel.
-          2. Phan hoi thi giac linh hoat (Interactive Styling): Su dung ControlTemplate.Triggers tren
-             ListBoxItem de xu ly hieu ung hover (ListHoverBackgroundBrush) va selected (AccentBrandBrush)
-             giup giao dien phan hoi ngay tuc thi khi tuong tac chuot.
-          3. Thiet ke co dinh chieu rong (Fixed Width): Co dinh Width=220px voi duong ke bien Border phai
-             ngan cach ro rang giua thanh dieu huong va vung noi dung trung tam.
-             
-        - Cach thuc van hanh:
-          1. ListBox nhan nguon du lieu tu thuoc tinh NavigationItems cua MainViewModel.
-          2. Khi nguoi dung bam vao mot dong menu, thuoc tinh SelectedNavigationItem duoc cap nhat,
-             tu do kich hoat setter trong MainViewModel de thay doi CurrentViewName va hoan doi DataTemplate tren MainWindow.
-    -->
+    <!-- Sidebar region: Thanh điều hướng. ListBox bound tới SelectedNavigationItem trong MainViewModel. -->
 
     <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0">
         <Grid Margin="12,16,12,16">
@@ -46,7 +25,7 @@
             <StackPanel Grid.Row="0" Margin="4,0,4,20">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Border Width="30" Height="30" CornerRadius="8" Background="{DynamicResource AccentBrandBrush}" Margin="0,0,10,0">
-                        <TextBlock Text="♫" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Path Data="{StaticResource IconMusicNote}" Fill="{DynamicResource PureWhiteBrush}" Stretch="Uniform" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="JUN MUSIC" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TitleForegroundBrush}" />
@@ -88,7 +67,7 @@
                                                 </Trigger>
                                                 <Trigger Property="IsSelected" Value="True">
                                                     <Setter TargetName="NavBorder" Property="Background" Value="{DynamicResource AccentBrandBrush}" />
-                                                    <Setter Property="Foreground" Value="#FFFFFF" />
+                                                    <Setter Property="Foreground" Value="{DynamicResource PureWhiteBrush}" />
                                                 </Trigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
@@ -136,7 +115,7 @@
                     Margin="0,12,0,0">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Width="6" Height="6" CornerRadius="3" Background="#1DB954" Margin="0,0,6,0" VerticalAlignment="Center" />
+                        <Border Width="6" Height="6" CornerRadius="3" Background="{DynamicResource AccentBrandBrush}" Margin="0,0,6,0" VerticalAlignment="Center" />
                         <TextBlock Text="BFF Online • Port 5245" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TitleForegroundBrush}" />
                     </StackPanel>
                     <TextBlock Text="NAudio Engine • v1.2.0" FontSize="9" Foreground="{DynamicResource SubtitleForegroundBrush}" Margin="12,2,0,0" />

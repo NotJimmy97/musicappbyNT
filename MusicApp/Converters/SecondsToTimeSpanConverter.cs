@@ -5,21 +5,14 @@ using System.Windows.Data;
 namespace MusicApp.Converters
 {
     /// <summary>
-    /// Bo chuyen doi thoi gian tinh bang giay sang chuoi dinh dang gio phut giay (Seconds to TimeSpan String Converter).
-    /// 
-    /// Tac dung:
-    /// - Chuyen doi gia tri thoi luong (double, int, float) tinh theo tong so giay thanh chuoi van ban hien thi tren giao dien.
-    /// - Dinh dang dau ra: "mm:ss" neu thoi luong duoi 1 gio, hoac "hh:mm:ss" neu thoi luong tu 1 gio tro len.
-    /// 
-    /// Van de giai quyet:
-    /// - Giup nguoi dung doc hieu thoi gian bai hat mot cach truc quan tren thanh tien do (Timeline Slider)
-    ///   va trong danh sach hang doi/thu vien offline.
-    /// - Xu ly an toan cac gia tri am hoac null, luon dam bao tra ve dinh dang chuan ma khong bi loi runtime.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Doc so giay tu gia tri value, chuyen ve TimeSpan bang TimeSpan.FromSeconds(Math.Max(0, seconds)).
-    /// - Kiem tra TotalHours de quyet dinh mau format chuoi phu hop.
+    /// Bộ chuyển đổi số giây sang chuỗi định dạng (mm:ss hoặc hh:mm:ss).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Định dạng chuỗi hiển thị thời gian cho UI.
+    /// 2. Không chịu trách nhiệm: Tính toán thời gian phát thực tế.
+    /// 3. Vòng đời: Đối tượng tĩnh không trạng thái.
+    /// 4. Đa luồng: Chỉ thực thi trên UI thread.
+    /// </remarks>
     public class SecondsToTimeSpanConverter : IValueConverter
     {
         /// <summary>

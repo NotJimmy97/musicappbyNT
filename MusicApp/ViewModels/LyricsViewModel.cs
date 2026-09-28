@@ -10,27 +10,17 @@ using MusicApp.Core.Models;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel quan ly hien thi va dong bo loi bai hat (Synchronized Lyrics ViewModel).
-    /// 
-    /// Tac dung:
-    /// - Nap va quan ly danh sach cac dong loi LyricLineViewModel cho ca khuc dang duoc phat hien tai.
-    /// - Dong bo hoa thoi gian thuc giua vi tri phat am thanh cua IAudioService va dong loi tuong ung.
-    /// - Phat su kien ActiveLineChanged de giao dien LyricsSyncView.xaml.cs tu dong cuon man hinh (Auto-scroll).
-    /// - Cung cap cac trang thai IsLoading va HasLyrics giup hien thi Empty State thich hop khi khong co loi.
-    /// 
-    /// Van de giai quyet:
-    /// - Thuat toan tim kiem nhi phan toi uu O(log N): Thay vi duyet tuyen tinh O(N) qua hang tram dong loi moi 250ms,
-    ///   UpdatePosition su dung thuat toan Binary Search tim ra dong loi co Timestamp &lt;= vi tri hien tai,
-    ///   giup tiet kiem CPU toi da khi phat nhac.
-    /// - Bo loc chuyen doi trang thai (State Transition Gate): Chi cap nhat thuoc tinh IsActive va thong bao len UI
-    ///   khi vi tri dong loi THUC SU thay doi (candidate != _activeLineIndex), tranh gay giat man hinh do trigger layout lai lien tuc.
-    /// - Quan ly Task an toan thong qua CancellationTokenSource: Tu dong huy bo tac vu nap loi cu neu nguoi dung chuyen bai lien tiep.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Khi MainViewModel phat bai hat moi, goi LoadLyricsForTrackAsync.
-    /// - Dong ho vi tri cua NowPlayingViewModel lien tuc goi UpdatePosition(currentTime).
-    /// - Khi dong loi hat thay doi, activeLine.IsActive = true va kich hoat su kien ActiveLineChanged.
+    /// ViewModel quản lý hiển thị và đồng bộ lời bài hát.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Nạp danh sách dòng lời, đồng bộ thời gian thực (synchronization) sử dụng Binary Search.
+    /// 2. Không chịu trách nhiệm: Phân tích file LRC (thuộc ILyricsService), cuộn tự động (thuộc View code-behind).
+    /// 3. Vòng đời: Tồn tại suốt vòng đời ứng dụng, thay đổi trạng thái theo CurrentTrack.
+    /// 4. Đa luồng: Phương thức LoadLyricsForTrackAsync cập nhật ObservableCollection thông qua Dispatcher.
+    /// State transitions:
+    /// - Khi LoadLyricsForTrackAsync: Hủy task đang chạy (nếu có), đặt IsLoading = true, lấy lời và gán vào UI.
+    /// - Khi UpdatePosition được gọi: Thay đổi ActiveLineIndex và báo hiệu ActiveLineChanged nếu có chuyển dòng.
+    /// </remarks>
     public class LyricsViewModel : ObservableObject
     {
         private readonly ILyricsService _lyricsService;

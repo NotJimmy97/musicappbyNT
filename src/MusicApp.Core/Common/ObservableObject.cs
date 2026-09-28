@@ -5,19 +5,14 @@ using System.Runtime.CompilerServices;
 namespace MusicApp.Core.Common
 {
     /// <summary>
-    /// Lop co so truu tuong trien khai giao dien INotifyPropertyChanged cho toan bo cac ViewModel trong he thong MVVM.
-    /// 
-    /// Tac dung:
-    /// - Cung cap co che thong bao bien dong du lieu tu tang logic ViewModel len tang giao dien WPF XAML.
-    /// 
-    /// Van de giai quyet:
-    /// - Dong bo hoa tu dong hai chieu (TwoWay DataBinding) giua ViewModel va View.
-    /// - Triet tieu cac thong bao PropertyChanged du thua khi gia tri thuoc tinh khong thay doi, giup tiet kiem chu ky CPU cua luong UI.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Su dung [CallerMemberName] de tu dong xac dinh ten thuoc tinh ma khong can truyen chuoi thu cong.
-    /// - Phuong thuc SetProperty so sanh gia tri hien tai va gia tri moi bang EqualityComparer; chi khi gia tri thuc su thay doi moi cap nhat bo nho dem va phat su kien.
+    /// Lớp cơ sở trừu tượng triển khai INotifyPropertyChanged cho các ViewModel.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Cung cấp cơ chế thông báo biến động dữ liệu lên giao diện WPF XAML.
+    /// KHÔNG chịu trách nhiệm: Thực thi logic nghiệp vụ.
+    /// Vòng đời: Kế thừa bởi ViewModel, tồn tại cùng với vòng đời của View.
+    /// Luồng: Việc kích hoạt sự kiện nên được thực hiện hoặc đồng bộ về UI thread (Dispatcher).
+    /// </remarks>
     public abstract class ObservableObject : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;

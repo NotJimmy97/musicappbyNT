@@ -1,20 +1,14 @@
 namespace MusicApp.AudioEngine.Dsp
 {
     /// <summary>
-    /// Cau truc du lieu bieu dien mot cot pho tan so (Frequency Spectrum Bin).
-    /// 
-    /// Tac dung:
-    /// - Luu tru chi so cot (Index), tan so dai dien tinh theo Hz (FrequencyHz) va bien do nang luong (Value).
-    /// - Duoc su dung lam kieu du lieu gia tri (Value Type Struct) nhe nhang phuc vu bo tinh toan FFT va ve do thi song.
-    /// 
-    /// Van de giai quyet:
-    /// - Khi phan tich pho am thanh voi toc do 30 den 60 khung hinh moi giay, viec khoi tao cac Class doi tuong tren Heap
-    ///   se lien tuc kich hoat bo don rac (Garbage Collection GC) gay ra hien tuong khuc xa am thanh (Audio Glitches).
-    /// - Dinh nghia duoi dang Struct giup cap phat bo nho truc tiep tren Stack hoac mang lien tuc, loai bo hoan toan ap luc GC.
-    /// 
-    /// Cach thuc van hanh:
-    /// - FftCalculator tinh toan bien do tu cac he so Complex FFT va nap vao tung SpectrumBin tuong ung.
+    /// Cấu trúc dữ liệu biểu diễn một cột phổ tần số (Frequency Spectrum Bin).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Lưu trữ chỉ số, tần số (Hz) và biên độ năng lượng của một dải phổ.
+    /// 2. Không chịu trách nhiệm: Tính toán FFT hay vẽ đồ hoạ UI.
+    /// 3. Thời gian sống: Rất ngắn, cấp phát trên Stack (Value Type).
+    /// 4. Đa luồng/Vòng đời: An toàn khi truyền qua các luồng do là value type, không gây áp lực dọn rác (Zero GC Allocation).
+    /// </remarks>
     public struct SpectrumBin
     {
         /// <summary>

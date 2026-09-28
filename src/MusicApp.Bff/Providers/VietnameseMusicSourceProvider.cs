@@ -10,25 +10,21 @@ using System.Threading.Tasks;
 using MusicApp.Core.Dtos;
 using MusicApp.Core.Interfaces;
 
+// OWNS: Tích hợp nguồn nhạc curated Việt Nam từ Archive.org.
+// DOES NOT OWN: Quản lý stream pipeline hoặc định tuyến kết hợp (MusicSourceRouter).
+// CONSTRAINTS: Phải chuẩn hóa unicode (khử dấu) để search tiếng Việt. Dùng HTTP timeout 15s.
+
 namespace MusicApp.Bff.Providers
 {
     /// <summary>
-    /// Nha cung cap am nhac Viet Nam dac tuyen (Vietnamese Curated Music Source Provider Strategy).
-    /// 
-    /// Tac dung:
-    /// - Cung cap danh muc am nhac Viet Nam chat luong cao (Nhac Trinh Cong Son hoa tau guitar, Tinh ca que huong Huong Lan, Ha Thanh).
-    /// - Ho tro tim kiem tieng Viet khong dau (Accent-insensitive / Diacritics-insensitive Search) thong qua thuat toan Unicode FormD.
-    /// - Dinh tuyen va phat am thanh stream truc tiep tu Archive.org ho tro HTTP 206 Partial Content.
-    /// 
-    /// Van de giai quyet:
-    /// - Dap ung nhu cau nghe nhac que huong, nhac acoustic Viet Nam cua nguoi dung ma cac API quoc te khong ho tro.
-    /// - Nguoi dung go tim kiem co the co dau ("diễm xưa") hoac khong dau ("diem xua"), viet hoa hoac viet thuong;
-    ///   phuong thuc RemoveDiacritics chuan hoa toan bo ve dang khong dau chuan de so khop chinh xac.
-    /// 
-    /// Cach thuc van hanh:
-    /// - AudioUrlMap anh xa ma bai hat vn_track_xx toi duong dan MP3 tren Archive.org.
-    /// - GetTracksMatching loc danh muc CuratedCatalog dua tren tieu de, ca si, album va the loai da loai bo dau tieng Viet.
+    /// Nhà cung cấp âm nhạc Việt Nam đặc tuyến.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Lọc danh mục bài hát có sẵn cục bộ và cung cấp stream URL từ Archive.org.
+    /// 2. Không chịu trách nhiệm: Phân giải nguồn Jamendo hoặc lưu trữ cache kết quả.
+    /// 3. Vòng đời trạng thái: Stateless provider. Danh mục tĩnh tồn tại process-level.
+    /// 4. Yêu cầu đặc biệt: Bắt buộc khử dấu tiếng Việt (RemoveDiacritics) trước khi matching.
+    /// </remarks>
     public class VietnameseMusicSourceProvider : IMusicSourceProvider
     {
         private static readonly HttpClient HttpClientInstance;

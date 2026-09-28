@@ -5,22 +5,14 @@ using System.Windows.Input;
 namespace MusicApp.Core.Common
 {
     /// <summary>
-    /// Lop lenh bat dong bo (Asynchronous Command) danh cho mo hinh MVVM trong WPF.
-    /// 
-    /// Tac dung:
-    /// - Dong goi cac tac vu bat dong bo (Func&lt;object, Task&gt;) vao giao dien ICommand tieu chuan cua WPF.
-    /// - Cho phep DataBinding truc tiep tu Button hoac CommandBinding trong XAML den cac phuong thuc async trong ViewModel.
-    /// 
-    /// Van de giai quyet:
-    /// - Giao dien ICommand mac dinh chi ho tro thuc thi dong bo (void Execute), de dan den hien tuong khoa UI (UI Freeze)
-    ///   neu goi tac vu I/O nang, hoac gay loi khong the bat duoc Exception (Unobserved Task Exception) khi dung async void tuy tien.
-    /// - Ngan ngua tinh trang nguoi dung nhan nut lien tiep (Re-entrancy / Double Click) gay xung dot luong hoac goi API trung lap.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Quan ly bien co _isExecuting. Khi tac vu dang chay, CanExecute tu dong tra ve false de vo hieu hoa control tren UI.
-    /// - Su dung khoi try-finally de dam bao trang thai thuc thi luon duoc khoi phuc ve false ngay ca khi xay ra ngoai le.
-    /// - Tich hop CommandManager.RequerySuggested de tu dong thong bao cho WPF cap nhat trang thai Enabled/Disabled cua nut bam.
+    /// Lớp lệnh bất đồng bộ (Asynchronous Command) dành cho mô hình MVVM.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Đóng gói các tác vụ bất đồng bộ (Task) vào giao diện ICommand.
+    /// KHÔNG chịu trách nhiệm: Quản lý vòng đời luồng độc lập.
+    /// Vòng đời: Scoped hoặc Transient gắn với ViewModel.
+    /// Luồng: Đảm bảo tác vụ không chặn UI thread, chặn double click/re-entrancy an toàn.
+    /// </remarks>
     public class AsyncRelayCommand : ICommand
     {
         private readonly Func<object, Task> _executeAsync;

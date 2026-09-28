@@ -8,25 +8,14 @@ using System.Windows.Media.Imaging;
 namespace MusicApp.Converters
 {
     /// <summary>
-    /// Bo chuyen doi hinh anh chong ro ri bo nho WPF (Memory-Leak Safe Image Converter).
-    /// 
-    /// Tac dung:
-    /// - Chuyen doi da dang cac dinh dang anh dau vao thanh doi tuong BitmapImage hien thi tren Image Control cua WPF.
-    /// - Ho tro: Chuoi Base64 Data URI (data:image/jpeg;base64,...), duong dan file o cung cuc bo, URL HTTP/HTTPS, va mang byte[].
-    /// - Goi phuong thuc bitmap.Freeze() de dong bang trang thai doi tuong hinh anh.
-    /// 
-    /// Van de giai quyet:
-    /// - Phong ngua ro ri bo nho unmanaged nghiem trong trong WPF: Cac doi tuong BitmapSource mac dinh luu tru tham chieu
-    ///   toi luong UI va bo nho unmanaged. Khi danh sach bai hat cuon lien tuc va nap hang tram anh bia, viec khong goi Freeze()
-    ///   se khien bo nho RAM tang vot (Out of Memory - OOM) do Garbage Collector khong the tu do thu hoi.
-    /// -bitmap.Freeze() bien BitmapImage thanh doi tuong bat bien (Immutable) va cho phep chia se da luong (Cross-thread accessible),
-    ///   giup giao dien render muot ma ma khong ton hao bo nho.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Nhan gia tri value tu DataBinding XAML.
-    /// - Phan loai kieu du lieu: neu la base64 thi giai ma ve byte[], neu la file thi doc truc tiep, neu la URL thi download.
-    /// - Khoi tao BitmapImage voi BitmapCacheOption.OnLoad va goi Freeze() truoc khi tra ve cho WPF Visual Tree.
+    /// Bộ chuyển đổi hình ảnh WPF chống rò rỉ bộ nhớ.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Chuyển đổi đường dẫn, base64 thành BitmapImage an toàn.
+    /// 2. Không chịu trách nhiệm: Quản lý lưu trữ/cache file vật lý.
+    /// 3. Vòng đời: Đối tượng tĩnh không trạng thái. Gọi Freeze() để biến BitmapImage thành đối tượng bất biến.
+    /// 4. Đa luồng: Nhờ hàm Freeze(), ảnh có thể chia sẻ đa luồng an toàn.
+    /// </remarks>
     public class FrozenImageConverter : IValueConverter
     {
         /// <summary>

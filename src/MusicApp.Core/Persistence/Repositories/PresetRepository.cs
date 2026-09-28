@@ -7,6 +7,15 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.Core.Persistence.Repositories
 {
+    /// <summary>
+    /// Repository quản lý Preset EQ.
+    /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Thêm sửa xóa các cấu hình EQ tự tạo.
+    /// KHÔNG chịu trách nhiệm: Giao tiếp với Audio Engine.
+    /// Vòng đời: Transient/Scoped.
+    /// Luồng/DB: Thao tác DB qua Task bất đồng bộ.
+    /// </remarks>
     public class PresetRepository : IPresetRepository
     {
         private readonly string _connectionString;

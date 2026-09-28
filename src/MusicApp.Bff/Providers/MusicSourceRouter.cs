@@ -8,27 +8,19 @@ using MusicApp.Core.Interfaces;
 
 namespace MusicApp.Bff.Providers
 {
+    // OWNS: Phân giải intent tìm kiếm và điều phối kết quả giữa các nhà cung cấp.
+    // DOES NOT OWN: Tương tác mạng thực tế HTTP hoặc caching metadata.
+    // CONSTRAINTS: Phải kết hợp song song (Task.WhenAll) và tự động loại bỏ bản ghi trùng (Deduplication).
+
     /// <summary>
-    /// Bo dinh tuyen va dieu phoi cac nha cung cap nguon am nhac (Music Source Router Coordinator).
-    /// 
-    /// Tac dung:
-    /// - Dong vai tro la Facade tap trung ket noi hai nha cung cap: JamendoSourceProvider va VietnameseMusicSourceProvider.
-    /// - Phan tich y dinh tim kiem cua nguoi dung (Intent Recognition) de uu tien ket qua Viet Nam hoac quoc te phu hop.
-    /// - Thuc thi tim kiem song song (Parallel Search) thong qua Task.WhenAll va hop nhat ket qua khong trung lap (Deduplication).
-    /// - Phan giai ma bai hat de tra ve dung duong dan stream audio cua nha cung cap tuong ung.
-    /// 
-    /// Van de giai quyet:
-    /// - Giam thoi gian cho cua nguoi dung: Thay vi goi tuan tu tung provider, Router ban hai Task tim kiem song song.
-    /// - Nhan dien thong minh cac tu khoa tieng Viet ("trinh", "acoustic", "guitar", "que huong", "vpop",...)
-    ///   de uu tien hien thi nhac Viet truoc, neu chua du so luong moi lay them tu Jamendo.
-    /// - Loai bo cac ban ghi trung lap dua tren Id bai hat thong qua GroupBy va Select First.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Neu chuoi query rong, ghep danh sach mac dinh cua ca hai provider.
-    /// - Kiem tra isVietnameseIntent: neu dung se uu tien lay Vietnamese truoc, phan con lai moi goi Jamendo.
-    /// - Neu la tim kiem tong quat, chay song song Task.WhenAll, ghep hai danh sach ket qua va cat theo gioi han safeLimit.
-    /// - Khi nhan yeu cau phat audio, neu Id bat dau bang "vn_track_" thi chuyen cho Vietnamese, nguoc lai chuyen cho Jamendo.
+    /// Bộ định tuyến và điều phối các nhà cung cấp nguồn âm nhạc.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Phân tích keyword để chọn provider ưu tiên, gửi request song song và gộp kết quả.
+    /// 2. Không chịu trách nhiệm: Quản lý cache RAM/Disk hoặc tải file trực tiếp.
+    /// 3. Vòng đời trạng thái: Stateless coordinator (thường dùng static cho vòng đời process-level).
+    /// 4. Yêu cầu đặc biệt: Logic fallback thông minh (Curated -> Jamendo) và chuẩn hoá fallback chain.
+    /// </remarks>
     public class MusicSourceRouter
     {
         /// <summary>

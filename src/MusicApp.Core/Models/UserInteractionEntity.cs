@@ -1,9 +1,14 @@
 namespace MusicApp.Core.Models
 {
     /// <summary>
-    /// Nhat ky ghi nhan hanh vi tuong tac cua nguoi dung phuc vu mo hinh hoc so thich ngam (Implicit Feedback Matrix).
-    /// ActionType: 'click' | 'play_start' | 'play_complete' | 'skip' | 'favorite' | 'unfavorite' | 'add_playlist'
+    /// Nhật ký ghi nhận hành vi tương tác của người dùng (User Interaction).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Log dữ liệu thô phục vụ Recommendation.
+    /// KHÔNG chịu trách nhiệm: Tính toán điểm ưu tiên (Affinity score).
+    /// Vòng đời: Tồn tại trong quá trình query từ DB.
+    /// Ràng buộc: ActionType phải thuộc tập hợp hợp lệ (click, play_start, etc.).
+    /// </remarks>
     public class UserInteractionEntity
     {
         public int Id { get; set; }

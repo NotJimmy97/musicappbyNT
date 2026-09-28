@@ -9,9 +9,16 @@ using MusicApp.Core.Models;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel chi tiet mot danh sach phat (Playlist Detail ViewModel).
-    /// Ho tro xem danh sach bai hat, xoa bai, doi thu tu va phat toan bo playlist.
+    /// ViewModel quản lý chi tiết một danh sách phát cụ thể.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Quản lý TrackItemViewModel bên trong playlist, thao tác xóa bài, Back về PlaylistsViewModel.
+    /// 2. Không chịu trách nhiệm: Chỉnh sửa thông tin playlist tổng.
+    /// 3. Vòng đời: Được tạo khi mở chi tiết 1 playlist, bị hủy khi Back ra danh sách tổng.
+    /// 4. Đa luồng: LoadTracksAsync dùng Task ngầm lấy nhạc từ DB, Invoke sang UI Thread.
+    /// State transitions:
+    /// - Khi RemoveTrackAsync: Xóa khỏi DB, loại bỏ khỏi UI và tự động tính lại TotalDuration.
+    /// </remarks>
     public class PlaylistDetailViewModel : ObservableObject
     {
         private readonly IPlaylistRepository _playlistRepo;

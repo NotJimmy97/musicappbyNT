@@ -11,24 +11,14 @@ using Newtonsoft.Json;
 namespace MusicApp.Services
 {
     /// <summary>
-    /// Lop Client HTTP thuc thi giao tiep giua WPF va dich vu BFF (Presentation Music API Client).
-    /// 
-    /// Tac dung:
-    /// - Hien thuc hoa giao dien IMusicApiClient, thuc hien cac cuoc goi API bat dong bo toi endpoint /api/v1/search cua BFF.
-    /// - Cung cap phuong thuc SearchTracksAsync tra ve SearchResponseDto da duoc deserialize tu dong.
-    /// - Cung cap phuong thuc SearchTracksRawAsync tra ve chuoi JSON nguyen ban.
-    /// 
-    /// Van de giai quyet:
-    /// - Quan ly vong doi ket noi TCP (Socket Lifecycle): Su dung the hien HttpClientInstance dang Singleton tinh
-    ///   nham loai bo triet de loi Socket Exhaustion khi nguoi dung thuc hien tim kiem lien tuc.
-    /// - Thiet lap Tls12 va Tls11 cho tien trinh ung dung tren .NET Framework 4.6.1.
-    /// - Gioi han thoi gian cho (Timeout 4 giay) de tranh treo giao dien khi may chu backend bi nghen.
-    /// - Ho tro CancellationToken: cho phep huy yeu cau mang cu khi nguoi dung go tiep ky tu moi vao o tim kiem.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Gui yeu cau HTTP GET toi BFF Server Host (http://localhost:5245/api/v1/search?query=...&amp;limit=...).
-    /// - Doc stream phan hoi bang HttpCompletionOption.ResponseHeadersRead va deserialize bang JsonConvert.
+    /// Lớp HTTP Client thực hiện gọi API tới BFF (Backend-for-Frontend).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Thực hiện request HTTP GET để lấy dữ liệu tìm kiếm, deserialize JSON.
+    /// 2. Không chịu trách nhiệm: Quản lý logic UI hoặc xử lý tín hiệu.
+    /// 3. Vòng đời: Sử dụng HttpClient tĩnh (Singleton) để tránh lỗi cạn kiệt Socket (Socket Exhaustion).
+    /// 4. Đa luồng: Hoạt động bất đồng bộ (async), hỗ trợ CancellationToken cho phép hủy giữa chừng.
+    /// </remarks>
     public class MusicApiClient : IMusicApiClient
     {
         private static readonly HttpClient HttpClientInstance;

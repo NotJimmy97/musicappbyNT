@@ -5,22 +5,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel dai dien cho mot ban nhac trong danh sach hien thi (Track Item Presentation Model).
-    /// 
-    /// Tac dung:
-    /// - Dong goi thuc the TrackModel va bo sung cac thuoc tinh phuc vu trinh dien giao dien nhu FormattedDuration (mm:ss),
-    ///   anh bia da Freeze, va lenh phat PlayCommand.
-    /// - Duoc su dung trong danh sach ket qua tim kiem (MainViewModel), danh sach phat (PlayQueueViewModel),
-    ///   va danh sach thu vien offline (LocalLibraryViewModel).
-    /// 
-    /// Van de giai quyet:
-    /// - Tranh viec code logic dinh dang thoi gian hoac xu ly su kien Click trong code-behind cua tung View.
-    /// - Gan nut Play truc tiep vao tung dong bai hat thong qua PlayCommand nhan tham so la TrackModel,
-    ///   giup nguoi dung chi can click mot lan la co the phat ngay ban nhac mong muon.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Khi PlayCommand duoc goi, no kich hoat callback onPlay(Track) do ViewModel cha (MainViewModel hoac PlayQueueViewModel) truyen vao.
+    /// ViewModel đại diện cho một bài hát trong các danh sách UI.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Đóng gói TrackModel, định dạng hiển thị FormattedDuration và cung cấp PlayCommand.
+    /// 2. Không chịu trách nhiệm: Trực tiếp phát nhạc (chỉ gọi delegate truyền từ ViewModel cha).
+    /// 3. Vòng đời: Tạo mới liên tục trong các thao tác tìm kiếm, danh sách. Dọn dẹp nhờ Garbage Collector.
+    /// 4. Đa luồng: Hoạt động hoàn toàn trên UI thread.
+    /// </remarks>
     public class TrackItemViewModel : ObservableObject
     {
         /// <summary>

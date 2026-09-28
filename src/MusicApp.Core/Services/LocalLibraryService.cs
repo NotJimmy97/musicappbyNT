@@ -12,25 +12,14 @@ using MusicApp.Core.Persistence;
 namespace MusicApp.Core.Services
 {
     /// <summary>
-    /// Dich vu quet va doc sieu du lieu thu vien am thanh cuc bo (Local Audio Library Scanner).
-    /// 
-    /// Tac dung:
-    /// - Quet toan bo tap tin am thanh trong thu muc chi dinh tren may tinh nguoi dung.
-    /// - Doc the ID3 metadata (Title, Artist, Album, Genre, Duration, Album Art) bang thu vien TagLibSharp.
-    /// - Tao doi tuong TrackModel hoan chinh phuc vu danh sach phat va giao dien.
-    /// 
-    /// Van de giai quyet:
-    /// - Tranh gay treo ung dung (UI Freeze): Toan bo qua trinh quet I/O va phan tich nhi phan deu chay tren Task.Run luong nen.
-    /// - Xu ly ngoai le an toan tuyet doi: Thuat toan duyet thu muc theo chieu rong (BFS Queue) bat giu va bo qua cac loi
-    ///   nhu khong co quyen truy cap (UnauthorizedAccessException), thu muc he thong bao ve (SecurityException)
-    ///   hoac duong dan vuot qua gioi han 260 ky tu (PathTooLongException) ma khong lam dung chuong trinh.
-    /// - Ho tro co che huy tac vu (CancellationToken) va bao cao tien do thoi gian thuc (IProgress) len UI.
-    /// - Chuyen doi anh bia ID3 thanh chuoi Base64 Data URI de WPF Image Control co the bind truc tiep ma khong can ghi file ra dia.
-    /// 
-    /// Cach thuc van hanh:
-    /// - EnumerateAudioFilesSafely duyet cay thu muc bang Queue, yield return tung duong dan file thoa man phan mo rong am thanh.
-    /// - ExtractTrackFromFile tao ID deterministic dua tren ma bam MD5/HashCode cua duong dan de tranh trung lap.
+    /// Dịch vụ quét và đọc siêu dữ liệu thư viện âm thanh cục bộ.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Quét file trên máy, trích xuất siêu dữ liệu (ID3 Tag) và cập nhật metadata.
+    /// KHÔNG chịu trách nhiệm: Lưu xuống SQLite hay điều khiển UI.
+    /// Vòng đời: Scoped hoặc Singleton, tái sử dụng giữa các lần quét.
+    /// Luồng: Thao tác I/O nặng và phân tích nhị phân chạy trên background thread. Cần xử lý cẩn thận CancellationToken để hủy tác vụ.
+    /// </remarks>
     public class LocalLibraryService : ILocalLibraryService
     {
         // Danh sach cac phan mo rong am thanh duoc ho tro boi TagLib va NAudio

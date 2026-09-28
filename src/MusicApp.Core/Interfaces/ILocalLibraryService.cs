@@ -7,12 +7,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Interfaces
 {
     /// <summary>
-    /// Bao cao tien do quet thu muc am thanh cuc bo (Scan Progress Report DTO).
-    /// 
-    /// Tac dung:
-    /// - Mang thong tin tien do theo thoi gian thuc tu background thread sang UI thread:
-    ///   so file da quet, so ban nhac da nhan dien va ten file hien tai dang duoc xu ly.
+    /// Báo cáo tiến độ quét thư mục âm thanh cục bộ.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Mang thông tin tiến độ theo thời gian thực.
+    /// KHÔNG chịu trách nhiệm: Thực thi logic quét.
+    /// Vòng đời: Transient, tạo liên tục trong quá trình quét.
+    /// Luồng: Được tạo ở background thread và gửi sang UI thread.
+    /// </remarks>
     public class ScanProgressReport
     {
         /// <summary>
@@ -32,20 +34,14 @@ namespace MusicApp.Core.Interfaces
     }
 
     /// <summary>
-    /// Giao dien dich vu quet va quan ly thu vien nhac offline cuc bo (Local Library Service Interface).
-    /// 
-    /// Tac dung:
-    /// - Cung cap phuong thuc quet de quy cac thu muc tren o dia nguoi dung de tim kiem tap tin am thanh.
-    /// - Cung cap phuong thuc boc tach sieu du lieu (ID3 Metadata) tu tap tin am thanh don le.
-    /// 
-    /// Van de giai quyet:
-    /// - Xu ly quet thu muc tren luong nen (Background Worker), khong gay treo hoac giat lag giao dien WPF.
-    /// - Co lap toan bo cac loi phan quyen truy cap (UnauthorizedAccessException), duong dan qua dai (PathTooLongException),
-    ///   hoac file bi khoa boi tien trinh khac, dam bao qua trinh quet khong bi crash giua chung.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc thuc thi boi LocalLibraryService su dung thu vien TagLibSharp va thuat toan duyet theo chieu rong BFS an toan.
+    /// Giao diện dịch vụ quét và quản lý thư viện nhạc offline cục bộ.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Quét đệ quy thư mục và bóc tách siêu dữ liệu (ID3 Metadata).
+    /// KHÔNG chịu trách nhiệm: Quản lý playlist hay tương tác với Database.
+    /// Vòng đời: Scoped hoặc Singleton.
+    /// Luồng: Chạy quét trên luồng nền (Background Worker) để không gây treo giao diện WPF, xử lý biệt lập các lỗi hệ thống tệp.
+    /// </remarks>
     public interface ILocalLibraryService
     {
         /// <summary>

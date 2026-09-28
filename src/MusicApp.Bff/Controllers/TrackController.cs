@@ -6,25 +6,21 @@ using MusicApp.Bff.Providers;
 using MusicApp.Bff.Services;
 using MusicApp.Core.Dtos;
 
+// OWNS: API xử lý tìm kiếm bài hát (HTTP GET /api/v1/search).
+// DOES NOT OWN: Nguồn cung cấp dữ liệu thực tế (dùng MusicSourceRouter) hoặc cơ chế Cache.
+// CONSTRAINTS: Phải clamp limit [1..50] để chống overload. Cache sử dụng chỉ lưu RAM.
+
 namespace MusicApp.Bff.Controllers
 {
     /// <summary>
-    /// Dieu khien API xu ly truy van va tim kiem thong tin bai hat (Track Search Web API Controller).
-    /// 
-    /// Tac dung:
-    /// - Tiep nhan yeu cau tim kiem HTTP GET tai endpoint: /api/v1/search?query={query}&amp;limit={limit}.
-    /// - Kiem tra tinh hop le cua tham so dau vao, gioi han so luong ban ghi an toan (Clamping [1..50]).
-    /// - Tra ve doi tuong SearchResponseDto chua danh sach TrackDto da duoc tong hop tu nhieu nguon.
-    /// 
-    /// Van de giai quyet:
-    /// - Bao ve backend khoi cac cuoc tan cong DoS hoac query qua tai bang cach ap dung Clamped Limit va MemoryCache.
-    /// - Ket hop MemoryCacheService voi thoi gian luu dem 30 phut giup phan hoi ngay lap tuc cho cac tu khoa trung lap.
-    /// - Che dau su phuc tap cua viec dinh tuyen da nguon (Vietnamese vs Jamendo) thong qua lop MusicSourceRouter.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Tao cacheKey theo dinh dang "search:{query}:{limit}".
-    /// - Goi Cache.GetOrCreateAsync: neu cache hit, tra ve ket qua ngay lap tuc; neu cache miss, goi Router.SearchAsync.
+    /// Điều khiển API xử lý truy vấn và tìm kiếm thông tin bài hát (Track Search).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Validate query/limit, kiểm tra cache và trả về dữ liệu bài hát dạng JSON.
+    /// 2. Không chịu trách nhiệm: Gọi trực tiếp sang các API ngoài như Jamendo.
+    /// 3. Vòng đời trạng thái: Stateless Controller (mỗi request 1 instance).
+    /// 4. Yêu cầu đặc biệt: Static Router và Cache tồn tại ở process-level. Cache chỉ lưu trên RAM (mất khi restart).
+    /// </remarks>
     public class TrackController : ApiController
     {
         private static readonly MusicSourceRouter Router = new MusicSourceRouter();

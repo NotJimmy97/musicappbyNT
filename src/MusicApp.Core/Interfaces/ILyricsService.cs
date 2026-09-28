@@ -6,20 +6,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Interfaces
 {
     /// <summary>
-    /// Giao dien dich vu quan ly va phan tich loi bai hat dong bo (Lyrics Service Interface).
-    /// 
-    /// Tac dung:
-    /// - Cung cap phuong thuc phan tich chuoi dinh dang LRC thanh danh sach LyricLine.
-    /// - Cung cap co che tu dong tim nap loi bai hat tu file .lrc di kem tren o dia hoac tu danh muc tich hop san.
-    /// 
-    /// Van de giai quyet:
-    /// - Chuan hoa quy trinh xu ly loi bai hat cho ca nguon nhac offline (file dia phuong) va nguon nhac online (catalog san co).
-    /// - Cho phep ung dung hien thi loi dong bo thoi gian thuc dang Karaoke cho nguoi dung.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc thuc thi boi LyricsService, ben trong su dung bo phan tich Regex LrcParser.
-    /// - Duoc goi boi LyricsViewModel khi bai hat hien tai thay doi tren bo phat nhac.
+    /// Giao diện dịch vụ quản lý và phân tích lời bài hát đồng bộ.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Phân tích file LRC và tải lời bài hát.
+    /// KHÔNG chịu trách nhiệm: Quản lý việc hiển thị UI hay trạng thái phát nhạc.
+    /// Vòng đời: Scoped hoặc Singleton.
+    /// Luồng: Thao tác file/I-O bất đồng bộ chạy trên background thread, có hỗ trợ CancellationToken.
+    /// </remarks>
     public interface ILyricsService
     {
         /// <summary>

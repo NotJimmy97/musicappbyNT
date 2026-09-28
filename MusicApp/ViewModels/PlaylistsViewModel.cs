@@ -9,9 +9,16 @@ using MusicApp.Core.Models;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel quan ly toan bo danh sach cac playlist cua nguoi dung (Playlists Overview ViewModel).
-    /// Cho phep xem danh sach dang Card/Bento, tao playlist moi, xoa playlist va mo xem chi tiet.
+    /// ViewModel quản lý toàn bộ danh sách các playlist của người dùng.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Hiển thị danh sách Playlists, quản lý tạo mới/xóa/mở chi tiết.
+    /// 2. Không chịu trách nhiệm: Thực thi query trực tiếp (ủy thác qua IPlaylistRepository).
+    /// 3. Vòng đời: Tồn tại cùng MainViewModel.
+    /// 4. Đa luồng: Các thao tác I/O DB chạy ngầm, Invoke qua Dispatcher để cập nhật ObservableCollection.
+    /// State transitions:
+    /// - Khi gọi OpenPlaylistCommand: Tạo PlaylistDetailViewModel, gán CurrentDetail và nạp Tracks.
+    /// </remarks>
     public class PlaylistsViewModel : ObservableObject
     {
         private readonly IPlaylistRepository _playlistRepo;

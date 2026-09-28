@@ -12,27 +12,18 @@ using MusicApp.Core.Services;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel dieu khien phat nhac hien tai va truc quan hoa song am (Now Playing &amp; Audio Visualizer ViewModel).
-    /// 
-    /// Tac dung:
-    /// - Dong vai tro la trung tam dieu khien phat nhac (Play, Pause, Stop, Seek, Next, Previous, Volume).
-    /// - Ket noi truc tiep toi IAudioService va cap nhat vi tri thoi gian thuc tren thanh Slider (250ms interval).
-    /// - Tiep nhan 16 cot bien do FFT tu su kien SpectrumDataReady va dieu khien chieu cao 16 cot EqualizerBarViewModel.
-    /// - Ho tro cac hieu ung giao dien: Dia than xoay 360 do (Spin Effect), Bang mau cau vong 16 sac do (Rainbow Mode vs Spotify Green).
-    /// - Tu dong chuyen bai (Auto Play Next) khi ban nhac hien tai phat het thoi luong.
-    /// 
-    /// Van de giai quyet:
-    /// - Chuyen giao luong an toan (Thread Marshaling): Su dung Dispatcher.InvokeAsync voi DispatcherPriority.Render
-    ///   de cap nhat bien do Visualizer ma khong bao gio gay khoa UI hoac canh tranh khoa voi luong am thanh unmanaged.
-    /// - Chong rung giat thanh tua nhac (Anti-Scrubbing Stutter): Khi nguoi dung giu chuot keo thanh Slider,
-    ///   co _isUserSeeking tam thoi chan timer cap nhat, giup thanh truot di chuyen chinh xac theo tay nguoi dung.
-    /// - Don dep tai nguyen (IDisposable): Huy dang ky su kien SpectrumDataReady va StateChanged tranh ro ri bo nho ViewModel.
-    /// 
-    /// Cach thuc van hanh:
-    /// - PlayTrackAsync nap StreamUrl vao Audio Engine va ra lenh phat.
-    /// - OnSpectrumDataReady doc 16 bin FFT va gan vao mang EqualizerBars de WPF DataTemplate hien thi cot chieu cao.
-    /// - OnAudioStateChanged phat hien khi am thanh dung de goi PlayNextAction.
+    /// ViewModel điều khiển phát nhạc và hiển thị visualizer.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Cung cấp commands (Play/Pause/Seek), đồng bộ UI slider và xử lý phổ tần số âm thanh.
+    /// 2. Không chịu trách nhiệm: Quản lý hàng đợi (PlayQueue), gọi API lấy nhạc.
+    /// 3. Vòng đời: Singleton/Tồn tại suốt vòng đời ứng dụng.
+    /// 4. Đa luồng: Sự kiện SpectrumDataReady và AudioStateChanged bắn từ luồng Audio, phải InvokeAsync sang UI thread.
+    /// State transitions:
+    /// - Khi đổi bài: Đặt lại CurrentPositionSeconds = 0, cập nhật TrackDuration.
+    /// - Khi AudioStateChanged báo Stopped (do hết bài): Kích hoạt PlayNextAction.
+    /// - Khi play/pause: Cập nhật CanSeek, khởi động/dừng DispatcherTimer.
+    /// </remarks>
     public class NowPlayingViewModel : ObservableObject, IDisposable
     {
         private readonly IAudioService _audioService;

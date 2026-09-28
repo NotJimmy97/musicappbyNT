@@ -6,20 +6,14 @@ using MusicApp.Core.Dtos;
 namespace MusicApp.Core.Interfaces
 {
     /// <summary>
-    /// Giao dien Client HTTP ket noi giua ung dung WPF va may chu Backend For Frontend (BFF).
-    /// 
-    /// Tac dung:
-    /// - Cung cap cac phuong thuc goi API tim kiem bai hat bat dong bo tu xa.
-    /// - Ho tro ca phuong thuc tra ve DTO da deserialize va phuong thuc tra ve chuoi JSON goc (Raw JSON).
-    /// 
-    /// Van de giai quyet:
-    /// - Dong goi logic su dung HttpClient, quan ly vong doi ket noi TCP (Connection Pooling) va tranh hien tuong Socket Exhaustion.
-    /// - Cho phep huy yeu cau mang thoi gian thuc bang CancellationToken khi nguoi dung go tiep tu khoa tim kiem (Debounce).
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc thuc thi boi lop MusicApiClient trong du an MusicApp (Presentation Layer).
-    /// - Giao tiep voi may chu ASP.NET OWIN Host chay ngam tren cong cuc bo (vi du: http://127.0.0.1:5005).
+    /// Giao diện Client HTTP kết nối với BFF.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Giao tiếp qua HTTP lấy dữ liệu bài hát từ xa.
+    /// KHÔNG chịu trách nhiệm: Quản lý trạng thái cache hay logic phát nhạc.
+    /// Vòng đời: Cần Dispose (thường quản lý bởi IHttpClientFactory hoặc DI container).
+    /// Luồng: Thực hiện I/O mạng qua Task bất đồng bộ (Network thread).
+    /// </remarks>
     public interface IMusicApiClient : IDisposable
     {
         /// <summary>

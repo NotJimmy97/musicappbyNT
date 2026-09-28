@@ -7,6 +7,15 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.Core.Persistence.Repositories
 {
+    /// <summary>
+    /// Repository quản lý nhật ký tương tác người dùng.
+    /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Ghi và đọc log hành vi người dùng (Play, Skip...).
+    /// KHÔNG chịu trách nhiệm: Xử lý logic tính toán Recommendation.
+    /// Vòng đời: Transient/Scoped.
+    /// Luồng/DB: Thao tác DB qua Task bất đồng bộ.
+    /// </remarks>
     public class InteractionRepository : IInteractionRepository
     {
         private readonly string _connectionString;

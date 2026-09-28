@@ -7,28 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="850">
 
-    <!--
-        KIEN TRUC GIAO DIEN: LocalLibraryScannerView.xaml - Giao dien thu vien nhac ngoai tuyen
-        
-        - Tac dung: Cung cap man hinh quan ly va phat cac tep nhac luu tru noi bo tren o dia may tinh
-          (MP3, FLAC, M4A, WAV, AAC, OGG). Ho tro chon thu muc, quet metadata ID3 bat dong bo,
-          tim kiem loc nhanh va them vao danh sach phat.
-          
-        - Van de giai quyet:
-          1. Giao dien chon thu muc & quet khong block UI: Ket noi voi LocalLibraryViewModel qua
-             BrowseFolderCommand va ScanFolderCommand. Hien thi thanh ProgressBar va trang thai IsScanning
-             giup nguoi dung biet he thong dang quet thu muc tren thread nen.
-          2. Bang du lieu chi tiet & Ao hoa danh sach: ListBox duoc cau hinh UI Virtualization
-             (VirtualizingStackPanel.VirtualizationMode="Recycling") giup hien thi muot ma danh sach
-             hang nghin bai hat noi bo ma khong gay cham may hay ngons RAM.
-          3. Thao tac da dang tren tung bai hat: Ho tro nut "Play" phat truc tiep, nut "+" them vao hang doi,
-             va nut "Phat tat ca" (PlayAllCommand) de phat toan bo thu muc chi voi mot cu click chuot.
-             
-        - Cach thuc van hanh:
-          1. View nhan DataContext la LocalLibraryViewModel.
-          2. Khi go tu khoa vao TextBox loc, thuoc tinh FilterText duoc binding Two-Way,
-             kich hoat CollectionView hoac bo loc linq trong ViewModel de cap nhat danh sach hien thi.
-    -->
+    <!-- Content area: Quản lý và quét thư viện nhạc cục bộ. Chứa VirtualizingStackPanel cho danh sách lớn. -->
 
     <UserControl.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
@@ -128,7 +107,7 @@
                             Padding="18,0"
                             Margin="8,0,0,0"
                             Background="{DynamicResource AccentBrandBrush}"
-                            Foreground="#FFFFFF"
+                            Foreground="{DynamicResource PureWhiteBrush}"
                             FontWeight="SemiBold"
                             FontSize="12"
                             Cursor="Hand">
@@ -150,8 +129,8 @@
                             Height="36"
                             Padding="14,0"
                             Margin="8,0,0,0"
-                            Background="#D32F2F"
-                            Foreground="#FFFFFF"
+                            Background="{DynamicResource DangerBrush}"
+                            Foreground="{DynamicResource PureWhiteBrush}"
                             FontWeight="SemiBold"
                             FontSize="12"
                             Cursor="Hand"
@@ -378,7 +357,7 @@
                                            VerticalAlignment="Center" />
 
                                 <!-- Cover Art Thumbnail with Frozen Image -->
-                                <Border Grid.Column="1" Width="42" Height="42" CornerRadius="6" ClipToBounds="True" Background="#161B22">
+                                <Border Grid.Column="1" Width="42" Height="42" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource ThumbnailPlaceholderBrush}">
                                     <Image Source="{Binding CoverImageUrl, Converter={StaticResource FrozenImageConverter}}"
                                            Stretch="UniformToFill" />
                                 </Border>
@@ -436,7 +415,7 @@
                                             Content="Play"
                                             Width="52" Height="28"
                                             Background="{DynamicResource AccentBrandBrush}"
-                                            Foreground="#FFFFFF"
+                                            Foreground="{DynamicResource PureWhiteBrush}"
                                             FontWeight="SemiBold"
                                             FontSize="12"
                                             BorderThickness="0"

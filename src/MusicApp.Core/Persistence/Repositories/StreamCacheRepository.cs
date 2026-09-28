@@ -7,6 +7,15 @@ using MusicApp.Core.Interfaces.Persistence;
 
 namespace MusicApp.Core.Persistence.Repositories
 {
+    /// <summary>
+    /// Repository quản lý metadata của Stream Cache.
+    /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Ánh xạ trackHash ra FilePath.
+    /// KHÔNG chịu trách nhiệm: Đọc ghi file nhị phân trực tiếp.
+    /// Vòng đời: Transient/Scoped.
+    /// Luồng/DB: Thao tác DB qua Task bất đồng bộ.
+    /// </remarks>
     public class StreamCacheRepository : IStreamCacheRepository
     {
         private readonly string _connectionString;

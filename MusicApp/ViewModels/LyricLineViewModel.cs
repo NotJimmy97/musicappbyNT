@@ -5,23 +5,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel dai dien cho mot dong loi bai hat tren giao dien Lyrics (Synchronized Lyric Line Item).
-    /// 
-    /// Tac dung:
-    /// - Bao boc thuc the LyricLine de cung cap du lieu cho ListBox trong LyricsSyncView.xaml.
-    /// - Cung cap thuoc tinh IsActive de Visual Tree ap dung DataTrigger thay doi font chu, mau sac,
-    ///   va phong to dong loi hat hien tai (Karaoke Highlight Effect).
-    /// - Cung cap lenh SeekCommand cho phep nguoi dung click truc tiep vao dong loi de tua am thanh den dung giay do.
-    /// 
-    /// Van de giai quyet:
-    /// - Nguoi dung nghe nhac thuong co nhu cau nghe lai mot cau hat cu the. Viec ho tro SeekCommand ngay tren dong loi
-    ///   mang lai trai nghiem tuong tac cao cap nhu Spotify hoac Apple Music.
-    /// - Ke thua ObservableObject de cap nhat IsActive tuc thi khi luong nhac chuyen dong loi moi.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Timestamp, Text va Index duoc lay tu doi tuong bat bien LyricLine.
-    /// - SeekCommand thuc thi callback onSeek(Timestamp), delegate nay se goi truc tiep xuong IAudioService.Seek.
+    /// ViewModel đại diện cho một dòng lời bài hát trên giao diện Lyrics.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Đóng gói LyricLine, cung cấp trạng thái IsActive để UI highlight, và cung cấp SeekCommand.
+    /// 2. Không chịu trách nhiệm: Phân tích cú pháp LRC (thuộc ILyricsService).
+    /// 3. Vòng đời: Nằm trong danh sách của LyricsViewModel, được tạo lại khi bài hát thay đổi.
+    /// 4. Đa luồng: IsActive được cập nhật nhanh từ UI Dispatcher.
+    /// </remarks>
     public class LyricLineViewModel : ObservableObject
     {
         /// <summary>

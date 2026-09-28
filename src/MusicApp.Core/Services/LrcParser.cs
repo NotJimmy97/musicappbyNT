@@ -9,22 +9,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Services
 {
     /// <summary>
-    /// Bo phan tich cu phap tap tin loi bai hat chuan LRC (LRC Format Parser).
-    /// 
-    /// Tac dung:
-    /// - Phan tich chuoi van ban dinh dang LRC thanh danh sach cac doi tuong LyricLine co dinh moc thoi gian.
-    /// - Ho tro day du cac dac ta chuan cua LRC: tag toan cuc [offset:+/-ms], the thong tin [ti:], [ar:], [al:],
-    ///   va cac dong loi chua nhieu timestamp tren cung mot dong (Compressed LRC syntax).
-    /// 
-    /// Van de giai quyet:
-    /// - Chuyen doi dinh dang van ban khong dong nhat cua cac file .lrc tren thi truong thanh cau truc du lieu manh (Strongly-typed),
-    ///   chuan hoa cac sai so ve phan tram giay (2 chu so centiseconds) va mili-giay (3 chu so milliseconds).
-    /// - Tu dong sap xep lai thu tu thoi gian va danh chi so dong lien tuc (0..N-1) phuc vu thuat toan Binary Search tren UI.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Su dung Regex da duoc bien dich (RegexOptions.Compiled) de toi uu hieu nang, khong gay cham tre khi doc file loi dai.
-    /// - Doc tung dong thong qua StringReader, loc bo metadata, trich xuat thoi gian va ghep phan noi dung loi.
+    /// Bộ phân tích cú pháp tập tin lời bài hát chuẩn LRC.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Parse text định dạng LRC thành LyricLine list.
+    /// KHÔNG chịu trách nhiệm: Đọc file từ ổ cứng hay mạng.
+    /// Vòng đời: Lớp tĩnh hoặc Transient.
+    /// Luồng: Hàm thuần túy, an toàn luồng khi dùng Regex đã biên dịch.
+    /// </remarks>
     public class LrcParser
     {
         // Regex nhan dien timestamp tieu chuan dang [mm:ss] hoac [mm:ss.xx] hoac [mm:ss.xxx]

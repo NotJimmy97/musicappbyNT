@@ -9,9 +9,14 @@ using MusicApp.Core.Persistence;
 namespace MusicApp.Core.Services
 {
     /// <summary>
-    /// Dich vu quan ly bo nho dem luong am thanh truc tuyen (Spotify CAS Audio Cache Service).
-    /// Tu dong luu tru tep nhị phan tren dia cuc bo de nghe lai khong can mang internet.
+    /// Dịch vụ quản lý bộ nhớ đệm luồng âm thanh trực tuyến.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Ghi/đọc/xóa file âm thanh trên đĩa vật lý.
+    /// KHÔNG chịu trách nhiệm: Truy xuất database (giao lại cho StreamCacheRepository).
+    /// Vòng đời: Singleton/Scoped, tái sử dụng directory path.
+    /// Luồng: Thực hiện I/O bất đồng bộ. Phải đảm bảo an toàn ghi đè.
+    /// </remarks>
     public class LocalAudioCacheService
     {
         private readonly IStreamCacheRepository _cacheRepo;

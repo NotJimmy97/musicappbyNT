@@ -9,26 +9,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Services
 {
     /// <summary>
-    /// Dich vu quan ly va dieu phoi loi bai hat (Lyrics Management Service).
-    /// 
-    /// Tac dung:
-    /// - Cung cap phuong thuc tim kiem, nap va phan tich loi bai hat cho bat ky ban nhac nao dang phat tren he thong.
-    /// - Tu dong phoi hop giua nguon file .lrc vat ly tren o cung (Offline) va danh muc loi tich hop san (Embedded Catalog).
-    /// 
-    /// Van de giai quyet:
-    /// - Cho phep nguoi dung nghe nhac offline co the kem theo file .lrc cung thu muc (Companion File Pattern)
-    ///   ma khong can cau hinh phuc tap.
-    /// - Cung cap san loi bai hat dong bo cho cac ca khuc pho bien (nhac Viet Nam Trinh Cong Son, nhac Jamendo Creative Commons)
-    ///   giup tinh nang cuon loi luon hoat dong ngay ca khi khong co ket noi Internet.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Khi nhan duoc TrackModel, tien hanh kiem tra 3 ung vien duong dan file .lrc tren o cung:
-    ///   1. File cung ten thay doi phan mo rong thanh .lrc.
-    ///   2. File trong thu muc co ten tap tin goc + .lrc.
-    ///   3. File trong thu muc co ten trung voi tieu de bai hat + .lrc.
-    /// - Neu khong tim thay file dia phuong hoac day la ban nhac stream online, tra cuu trong tu dien embedded theo Track ID hoac Title.
-    /// - Su dung LrcParser de chuyen doi noi dung van ban thanh danh sach LyricLine dong bo thoi gian.
+    /// Dịch vụ quản lý và điều phối lời bài hát.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Tìm kiếm, nạp và phân tích file LRC theo Track.
+    /// KHÔNG chịu trách nhiệm: Hiển thị giao diện Karaoke.
+    /// Vòng đời: Singleton/Scoped.
+    /// Luồng: Đọc file và mạng I/O chạy trên background thread.
+    /// </remarks>
     public class LyricsService : ILyricsService
     {
         private readonly LrcParser _parser = new LrcParser();

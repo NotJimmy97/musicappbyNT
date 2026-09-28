@@ -1,20 +1,14 @@
 namespace MusicApp.Core.Models
 {
     /// <summary>
-    /// Thuc the mieu ta thong tin mot bai hat trong mien nghiep vu (Core Domain Entity).
-    /// 
-    /// Tac dung:
-    /// - Luu tru day du sieu du lieu (Metadata) cua mot ban nhac, bao gom tieu de, nghe si, thoi luong, anh bia va duong dan phat.
-    /// - Duoc su dung lam du lieu chuan trao doi giua cac module: Local Library Scanner, BFF Service, Audio Engine va UI Queue.
-    /// 
-    /// Van de giai quyet:
-    /// - Thong nhat cau truc ban ghi giua nguon nhac Online (Jamendo API, Cloud Stream) va nguon nhac Offline (Local File ID3 tag).
-    /// - Dong nhat hoa giao dien phat nhac, giup Audio Engine chi can tiep nhan StreamUrl ma khong can quan tam nguon goc du lieu.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc tao ra boi LocalLibraryService khi doc file tren o cung hoac duoc chuyen doi tu TrackDto khi nhan ket qua tu BFF.
-    /// - Duoc luu tru trong danh sach phat (PlayQueueViewModel) va gan vao NowPlayingViewModel de hien thi thong tin hien tai.
+    /// Thực thể miêu tả thông tin một bài hát trong miền nghiệp vụ (Core Domain).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Lưu trữ Metadata và đường dẫn phát để dùng trong ViewModel và AudioEngine.
+    /// KHÔNG chịu trách nhiệm: Tương tác với Database hay thực thi API.
+    /// Vòng đời: Tồn tại khi thêm vào PlayQueue hoặc NowPlaying.
+    /// Ràng buộc: Id không đổi, StreamUrl có thể là FilePath cục bộ hoặc HTTP url.
+    /// </remarks>
     public class TrackModel
     {
         /// <summary>

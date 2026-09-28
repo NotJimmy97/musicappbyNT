@@ -6,6 +6,15 @@ using Newtonsoft.Json;
 
 namespace MusicApp.Core.Persistence.Repositories
 {
+    /// <summary>
+    /// Repository lưu trữ cài đặt ứng dụng.
+    /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Lưu cấu hình dạng Key-Value (JSON format).
+    /// KHÔNG chịu trách nhiệm: Ràng buộc giá trị hợp lệ của cấu hình.
+    /// Vòng đời: Transient/Scoped.
+    /// Luồng/DB: Thao tác DB qua Task bất đồng bộ.
+    /// </remarks>
     public class SettingsRepository : ISettingsRepository
     {
         private readonly string _connectionString;

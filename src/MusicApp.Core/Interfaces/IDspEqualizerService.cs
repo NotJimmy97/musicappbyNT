@@ -3,21 +3,14 @@ using System;
 namespace MusicApp.Core.Interfaces
 {
     /// <summary>
-    /// Giao dien truu tuong quan ly bo can bang am thanh ky thuat so 10 bang tan (10-Band DSP Equalizer).
-    /// 
-    /// Tac dung:
-    /// - Cung cap cac thao tac dieu khien do loi (Gain dB) cho 10 dai tan so tieu chuan ISO (31Hz den 16kHz).
-    /// - Ho tro bat/tat bo loc (Bypass Mode) va thong bao su thay doi cau hinh cho cac thanh phan lien quan.
-    /// 
-    /// Van de giai quyet:
-    /// - Ngan ngua su can thiep truc tiep cua tang ViewModel vao cac he so tinh toan bo loc IIR Bi-quad ben duoi DSP Engine.
-    /// - Cho phep nguoi dung tuy bien am sac (Bass Boost, Treble, Vocal, Classical...) ma khong lam gian doan luong audio.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc thuc thi boi DspEqualizerSampleProvider trong MusicApp.AudioEngine.
-    /// - Khi SetBandGain hoac SetAllBands duoc goi, bo loc cap nhat he so noi bo ma khong cap phat bo nho moi (Zero Heap Allocation),
-    ///   dam bao luong am thanh (Audio Render Thread) chay muot ma khong gap hien tuong khuc xa bo nho hay do tre (Glitch/Pop).
+    /// Giao diện quản lý bộ cân bằng âm thanh kỹ thuật số 10 băng tần.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Điều khiển độ lợi (Gain dB) cho 10 dải tần số.
+    /// KHÔNG chịu trách nhiệm: Xử lý IIR Bi-quad trực tiếp.
+    /// Vòng đời: Tồn tại cùng với AudioEngine.
+    /// Luồng: Phải thread-safe, không cấp phát bộ nhớ (Zero Allocation) khi gọi trên Audio Render Thread.
+    /// </remarks>
     public interface IDspEqualizerService
     {
         /// <summary>

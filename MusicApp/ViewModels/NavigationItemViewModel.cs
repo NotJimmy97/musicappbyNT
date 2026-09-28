@@ -1,21 +1,14 @@
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel dai dien cho mot muc dieu huong tren thanh Sidebar Navigation (Sidebar Navigation Item).
-    /// 
-    /// Tac dung:
-    /// - Luu tru thong tin tieu de (Title), bieu tuong Segoe MDL2 Assets (IconSymbol),
-    ///   khoa phan biet View (ViewKey: "Explore", "Queue", "LocalLibrary", "Lyrics", "Equalizer"), va nhom phan loai (Category).
-    /// - Duoc su dung trong danh sach ObservableCollection&lt;NavigationItemViewModel&gt; tren SidebarNavigationView.
-    /// 
-    /// Van de giai quyet:
-    /// - Cho phep cau hinh dong danh muc dieu huong ma khong can hardcode cac nut bam vao file XAML.
-    /// - Khi nguoi dung click vao mot muc, MainViewModel lang nghe su kien SelectionChanged va thay doi
-    ///   CurrentContentView phu hop theo mau ViewModel-First Navigation.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Binding truc tiep vao ListBoxItem / RadioButton trong SidebarNavigationView.xaml.
+    /// ViewModel đại diện cho một mục điều hướng trên thanh Sidebar.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Lưu trữ Title, ViewKey, IconSymbol, Category để binding lên UI.
+    /// 2. Không chịu trách nhiệm: Quản lý logic điều hướng thực sự (thuộc MainViewModel).
+    /// 3. Vòng đời: Khởi tạo một lần tại MainViewModel và tồn tại cùng ứng dụng.
+    /// 4. Đa luồng: Hoạt động thuần trên UI thread.
+    /// </remarks>
     public class NavigationItemViewModel
     {
         /// <summary>

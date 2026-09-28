@@ -8,6 +8,16 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.Core.Persistence.Repositories
 {
+    /// <summary>
+    /// Repository quản lý dữ liệu danh sách phát.
+    /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Thêm, sửa, xóa, và truy vấn danh sách phát (Playlist).
+    /// KHÔNG chịu trách nhiệm: Cache bộ nhớ hay phát nhạc.
+    /// Vòng đời: Transient, được khởi tạo theo mỗi yêu cầu truy cập DB.
+    /// DB Path: Lấy từ DatabaseInitializer.ConnectionString.
+    /// Luồng & Transaction: Có sử dụng transaction cho thao tác ghi nhiều dữ liệu. Các method chạy bất đồng bộ qua Task.Run trên background thread.
+    /// </remarks>
     public class PlaylistRepository : IPlaylistRepository
     {
         private readonly string _connectionString;

@@ -2,25 +2,21 @@ using System;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
 
+// OWNS: Logic bộ nhớ đệm tạm thời (RAM cache) cho metadata kết quả tìm kiếm.
+// DOES NOT OWN: Cache file âm thanh thực tế trên đĩa (disk cache).
+// CONSTRAINTS: Phải đảm bảo an toàn luồng (Thread-safe) do có truy xuất đồng thời (concurrent access).
+
 namespace MusicApp.Bff.Services
 {
     /// <summary>
-    /// Dich vu luu dem trong bo nho RAM cua tien trinh (In-Memory Cache Service).
-    /// 
-    /// Tac dung:
-    /// - Luu tru tam thoi ket qua tim kiem bai hat hoac thong tin metadata trong bo nho RAM.
-    /// - Cung cap phuong thuc GetOrCreateAsync su dung mau Cache-Aside Pattern.
-    /// - Ho tro co che het han truot (Sliding Expiration): Reset lai thoi gian song neu item tiep tuc duoc truy cap.
-    /// 
-    /// Van de giai quyet:
-    /// - Giam thieu so luong yeu cau mang ra ngoai Internet den Jamendo API hoac CDN Archive.org khi nguoi dung tim kiem lai tu khoa quen thuoc.
-    /// - Tranh tinh trang bi gioi han tan suat goi (Rate Limiting) tu cac may chu am nhac ben thu ba.
-    /// - Dam bao an toan dong thoi (Thread-Safe) khi nhieu luong cung yeu cau doc/ghi mot khoa bo dem bang doi tuong SyncLock.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Kiem tra MemoryCache.Default voi khoa key. Neu co san gia tri dung kieu T, tra ve ngay lap tuc ma khong goi factory.
-    /// - Neu chua co, thuc thi ham delegate factory() bat dong bo, luu ket qua vao cache roi tra ve cho caller.
+    /// Dịch vụ lưu đệm trong bộ nhớ RAM của tiến trình (In-Memory Cache).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Cung cấp API lưu trữ tạm `GetOrCreateAsync` cho các kết quả API/Router tốn thời gian.
+    /// 2. Không chịu trách nhiệm: Persistence dài hạn, không thay thế cho Database.
+    /// 3. Vòng đời trạng thái: Cache chỉ là tạm thời (RAM only), mất hoàn toàn khi tiến trình BFF bị restart.
+    /// 4. Yêu cầu đặc biệt: Các thao tác đọc/ghi sử dụng SyncLock để đảm bảo luồng (Thread-safe).
+    /// </remarks>
     public class MemoryCacheService
     {
         private static readonly ObjectCache Cache = MemoryCache.Default;

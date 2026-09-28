@@ -12,24 +12,17 @@ using MusicApp.Core.Services;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel quan ly hang doi phat nhac ho tro keo tha sap xep (Play Queue ViewModel with Drag &amp; Drop).
-    /// 
-    /// Tac dung:
-    /// - Quan ly danh sach cac ban nhac tiep theo se duoc phat (QueueTracks).
-    /// - Hien thuc hoa giao dien IDropTarget tu thu vien GongSolutions.Wpf.DragDrop, cho phep nguoi dung
-    ///   keo va tha truc quan de thay doi thu tu phat uu tien trong hang doi.
-    /// - Tinh toan tong so luong bai hat (QueueCount) va tong thoi luong phat (TotalQueueDuration) tu dong.
-    /// - Cung cap cac thao tac: Enqueue, DequeueNext, Remove, Move, Clear, PlayNow.
-    /// 
-    /// Van de giai quyet:
-    /// - Cho phep nguoi dung chu dong sap dat danh sach bai hat phat theo y muon ma khong lam gian doan ca khuc dang nghe.
-    /// - Tu dong lay bai hat tiep theo trong hang doi (Priority 1) khi ca khuc hien tai ket thuc truoc khi fallback sang danh sach chung.
-    /// - Cap nhat so lieu thong ke (so bai, tong thoi luong) tuc thi nho su kien CollectionChanged cua ObservableCollection.
-    /// 
-    /// Cach thuc van hanh:
-    /// - GongSolutions.Wpf.DragDrop goi DragOver va Drop de di chuyen item trong collection.
-    /// - Ham DequeueNext lay bai hat dau tien o vi tri 0 (FIFO), xoa khoi hang doi va tra ve cho NowPlayingViewModel phat.
+    /// ViewModel quản lý hàng đợi phát nhạc hỗ trợ kéo thả (Drag & Drop).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Quản lý danh sách QueueTracks, xử lý logic Enqueue/Dequeue, lưu trữ trạng thái xuống SQLite.
+    /// 2. Không chịu trách nhiệm: Trực tiếp phát nhạc (chỉ gọi delegate OnPlayTrack).
+    /// 3. Vòng đời: Tồn tại suốt vòng đời ứng dụng.
+    /// 4. Đa luồng: Tự động update trên UI thread thông qua Dispatcher khi RestoreQueueFromDatabaseAsync.
+    /// State transitions:
+    /// - Khi QueueTracks thay đổi: Tự động tính lại tổng thời lượng và gọi PersistQueueToDatabase.
+    /// - Khi rút bài (DequeueNext): Chạy theo FIFO hoặc ưu tiên Smart Shuffle nếu được bật.
+    /// </remarks>
     public class PlayQueueViewModel : ObservableObject, IDropTarget
     {
         private readonly Action<TrackModel> _onPlayTrack;

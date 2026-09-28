@@ -12,20 +12,21 @@ using MusicApp.Core.Persistence;
 using MusicApp.Core.Persistence.Repositories;
 using MusicApp.Core.Services;
 
+// OWNS: API truyền phát âm thanh (streaming), xử lý cache đĩa và forward byte range.
+// DOES NOT OWN: Logic phân giải nguồn nhạc (MusicSourceRouter) hoặc giao diện người dùng.
+// CONSTRAINTS: Phải hỗ trợ HTTP 206 Partial Content (Range requests) cho seeking. Tuyệt đối không nạp toàn bộ file vào RAM (streaming pipeline).
+
 namespace MusicApp.Bff.Controllers
 {
     /// <summary>
-    /// Dieu khien API truyen phat am thanh truc tiep (Audio Streaming Reverse Proxy Controller).
-    /// 
-    /// Tac dung:
-    /// - Tiep nhan yeu cau stream HTTP GET tai endpoint: /api/v1/stream/{id}.
-    /// - Dong vai tro la may chu proxy chuyen tiep am thanh (Reverse Proxy) giua Audio Engine cua Client va may chu CDN goc.
-    /// - Tich hop bo nho dem Spotify CAS (Content-Addressable Storage) tren o dia cuc bo (%LOCALAPPDATA%\MusicApp\Cache):
-    ///   + Neu tep am thanh da co tren dia cuc bo: Phuc vu truc tiep tu o dia (X-Cache: HIT) voi do tre < 50ms, tiet kiem 100% bang thong.
-    ///   + Neu tep chua co: Chuyen tiep stream tu CDN goc ve client (X-Cache: MISS), dong thoi kich hoat tai ngam de luu cache cho lan phat sau.
-    /// - Ho tro day du tieu chuan HTTP 206 Partial Content thong qua header pham vi byte (Range Requests) giup tua nhac tuc thi (Scrubbing/Seeking).
-    /// - Tiet kiem bo nho RAM: Su dung Streaming Pipeline va BoundedStream, tuyet doi khong nap toan bo tep am thanh vao RAM.
+    /// Điều khiển API truyền phát âm thanh trực tiếp (Audio Streaming Reverse Proxy Controller).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Tiếp nhận HTTP GET `/api/v1/stream/{id}`, proxy luồng stream từ CDN và đọc/ghi local disk cache.
+    /// 2. Không chịu trách nhiệm: Phân giải nguồn nhạc từ API ngoài (đã có MusicSourceRouter lo).
+    /// 3. Vòng đời trạng thái: Stateless Controller, tạo mới mỗi request. Dữ liệu cache và HTTP client là static process-level.
+    /// 4. Yêu cầu đặc biệt: Xử lý Range Request (HTTP 206) để phục vụ tuỳ chỉnh tua nhạc (seeking). Không cấp phát bộ nhớ mảng lớn.
+    /// </remarks>
     public class StreamController : ApiController
     {
         private static readonly MusicSourceRouter Router = new MusicSourceRouter();

@@ -10,9 +10,16 @@ using MusicApp.Core.Models;
 namespace MusicApp.ViewModels
 {
     /// <summary>
-    /// ViewModel quan ly danh sach bai hat yeu thich cua nguoi dung (Favorites ViewModel).
-    /// Nap truc tiep tu SQLite database voi toc do cao va ho tro tim kiem, loc va phat nhac.
+    /// ViewModel quản lý danh sách bài hát yêu thích của người dùng.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Nạp danh sách từ SQLite, quản lý bộ lọc tìm kiếm và xử lý lệnh xóa/phát nhạc.
+    /// 2. Không chịu trách nhiệm: Quản lý playlist (thuộc PlaylistsViewModel) hay lịch sử nghe.
+    /// 3. Vòng đời: Tồn tại suốt vòng đời ứng dụng. Dữ liệu nạp từ DB lên RAM.
+    /// 4. Đa luồng: Thao tác I/O chạy trên Task nền, Invoke qua Dispatcher để cập nhật ObservableCollection.
+    /// State transitions:
+    /// - Khi nạp, xóa hoặc lọc: Tự động tính toán lại TotalTracksCount và TotalDuration.
+    /// </remarks>
     public class FavoritesViewModel : ObservableObject
     {
         private readonly ITrackRepository _trackRepo;

@@ -3,21 +3,14 @@ using System;
 namespace MusicApp.Core.Models
 {
     /// <summary>
-    /// Thuc the dai dien cho mot dong loi bai hat dong bo theo thoi gian (Synchronized Lyric Line).
-    /// 
-    /// Tac dung:
-    /// - Luu tru thoi diem bat dau (Timestamp), noi dung loi (Text) va thu tu hien thi (Index) cua cau hat.
-    /// - Cung cap cau truc du lieu bat bien (Immutable Object) giup dam bao an toan tuyet doi khi truy cap da luong.
-    /// 
-    /// Van de giai quyet:
-    /// - Phu vu tinh nang cuon loi bai hat tu dong (Karaoke-style Auto-scroll) theo vi tri phat am thanh hien tai.
-    /// - Tranh tinh trang sai lech moc thoi gian hoac bi sua doi gia tri trong qua trinh phat.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc tao ra boi LrcParser sau khi phan tich noi dung dinh dang .lrc.
-    /// - LyricsViewModel se so sanh Timestamp cua tung LyricLine voi CurrentTime cua IAudioService 
-    ///   de tim ra dong loi hat hien tai bang thuat toan Binary Search O(log N).
+    /// Thực thể đại diện cho một dòng lời bài hát đồng bộ thời gian (Synchronized Lyric Line).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Lưu trữ dữ liệu dòng text và timestamp từ file LRC.
+    /// KHÔNG chịu trách nhiệm: Cuộn lời bài hát trên UI.
+    /// Vòng đời: Tạo mới khi đọc file LRC và xóa khi chuyển bài.
+    /// Ràng buộc: Immutable state, thuộc tính Timestamp phải không âm.
+    /// </remarks>
     public class LyricLine
     {
         /// <summary>

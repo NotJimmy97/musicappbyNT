@@ -9,26 +9,21 @@ using MusicApp.Core.Dtos;
 using MusicApp.Core.Interfaces;
 using Newtonsoft.Json.Linq;
 
+// OWNS: Tích hợp API Jamendo v3.0 và quản lý fallback catalog nội bộ.
+// DOES NOT OWN: Logic phát nhạc, routing hoặc cache bộ nhớ.
+// CONSTRAINTS: Phải tuân thủ timeout khắt khe (2.5s). Bắt buộc fallback sang curated catalog nếu gặp sự cố mạng hoặc API lỗi.
+
 namespace MusicApp.Bff.Providers
 {
     /// <summary>
-    /// Nha cung cap nguon am nhac tu nen tang Jamendo (Jamendo Music Source Provider Strategy).
-    /// 
-    /// Tac dung:
-    /// - Ket noi toi dich vu Jamendo API v3.0 de tim kiem cac ca khuc phat hanh duoi giay phep Creative Commons.
-    /// - Cung cap danh muc nhac du phong tich hop san (Resilient Curated Catalog) gom 12 bai hat duoc xac minh 100% playable.
-    /// - Phan giai dia chi stream truc tiep tu may chu CDN mp3d.jamendo.com ho tro HTTP Range Request.
-    /// 
-    /// Van de giai quyet:
-    /// - Khac phuc su co mang va gioi han API: Jamendo API co the bi chan DNS hoac phan hoi cham tu mot so mang tai Viet Nam.
-    ///   Lop nay cau hinh thoi gian cho cuc ngan (Aggressive Timeout 2.5s) va lap tuc fallback sang Curated Catalog,
-    ///   dam bao trai nghiem nguoi dung khong bao gio bi treo hoac tra ve danh sach trang.
-    /// - Bat buoc su dung giao thuc bao mat TLS 1.2 tren .NET Framework 4.6.1 de tranh loi ket noi SSL Handshake.
-    /// 
-    /// Cach thuc van hanh:
-    /// - SearchTracksAsync gui yeu cau toi API Jamendo; neu thanh cong se parse JSON thanh TrackDto.
-    /// - Neu that bai hoac timeout, goi GetCuratedTracksMatching de tra ve cac bai hat phu hop trong bo nho.
+    /// Nhà cung cấp dữ liệu âm nhạc từ nền tảng Jamendo.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Tìm kiếm bài hát qua Jamendo API và phân giải stream URL từ CDN Jamendo.
+    /// 2. Không chịu trách nhiệm: Cache kết quả tìm kiếm hay quản lý stream pipeline.
+    /// 3. Vòng đời trạng thái: Stateless provider. HttpClient static tồn tại suốt thời gian sống của ứng dụng.
+    /// 4. Yêu cầu đặc biệt: Yêu cầu TLS 1.2. Mức timeout upstream rất ngắn để tránh treo ứng dụng.
+    /// </remarks>
     public class JamendoSourceProvider : IMusicSourceProvider
     {
         private const string JamendoClientId = "c4eead12";

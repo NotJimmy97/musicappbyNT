@@ -1,21 +1,14 @@
 namespace MusicApp.Core.Models
 {
     /// <summary>
-    /// Dinh nghia tap hop cac trang thai van hanh cua bo phat nhac (Audio Engine).
-    /// 
-    /// Tac dung:
-    /// - Cung cap mo hinh may trang thai huu han (Finite State Machine) dong nhat cho toan bo ung dung.
-    /// - Cho phep tang ViewModel va Presentation Layer theo doi, phan ung va binding giao dien (Play/Pause/Buffering/Faulted).
-    /// 
-    /// Van de giai quyet:
-    /// - Co lap thu vien am thanh ben thu ba (NAudio) khoi giao dien nguoi dung, tranh phu thuoc chat che vao NAudio.PlaybackState.
-    /// - Bo sung cac trang thai chuyen tiep mang tinh chat ung dung nhu Buffering (khi stream mang chua san sang) 
-    ///   hoac Faulted (khi gap su co ket noi hoac loi giai ma), giup nguoi dung co phan hoi truc quan ro rang.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Duoc phat ra tu IAudioService thong qua su kien StateChanged.
-    /// - MainViewModel lang nghe su kien nay va dong bo hoa trang thai sang NowPlayingViewModel, tu do cap nhat UI WPF.
+    /// Định nghĩa tập hợp các trạng thái vận hành của bộ phát nhạc (Audio Engine).
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Cung cấp State Machine cho toàn bộ ứng dụng.
+    /// KHÔNG chịu trách nhiệm: Phản ánh trạng thái thư viện mạng.
+    /// Vòng đời: Dùng như kiểu giá trị Enum.
+    /// Ràng buộc: Giá trị Enum được dùng trên UI và Audio Thread để binding.
+    /// </remarks>
     public enum PlaybackState
     {
         /// <summary>

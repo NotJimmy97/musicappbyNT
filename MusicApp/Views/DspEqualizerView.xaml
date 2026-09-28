@@ -43,7 +43,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Thumb}">
                         <Grid>
-                            <Ellipse Width="18" Height="18" Fill="#FFFFFF">
+                            <Ellipse Width="18" Height="18" Fill="{DynamicResource PureWhiteBrush}">
                                 <Ellipse.Effect>
                                     <DropShadowEffect BlurRadius="6" ShadowDepth="1" Opacity="0.4" />
                                 </Ellipse.Effect>
@@ -142,7 +142,7 @@
                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Width="28" Height="28" CornerRadius="6" Background="{DynamicResource AccentBrandBrush}" Margin="0,0,10,0">
-                            <TextBlock Text="≡" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Path Data="{StaticResource IconEqualizer}" Fill="{DynamicResource PureWhiteBrush}" Stretch="Uniform" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <TextBlock Text="BỘ CHỈNH ÂM ĐỒ HỌA (10-BAND DSP EQUALIZER)"
                                    FontSize="18"
@@ -178,7 +178,7 @@
                                         <Ellipse Width="8" Height="8" Margin="0,0,6,0">
                                             <Ellipse.Style>
                                                 <Style TargetType="Ellipse">
-                                                    <Setter Property="Fill" Value="#E02424" />
+                                                    <Setter Property="Fill" Value="{DynamicResource DangerBrush}" />
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsEnabled}" Value="True">
                                                             <Setter Property="Fill" Value="{DynamicResource AccentBrandBrush}" />

@@ -5,22 +5,14 @@ using NAudio.Wave;
 namespace MusicApp.AudioEngine.Stream
 {
     /// <summary>
-    /// Lop stream am thanh ho tro bo dem cho luong HTTP (Buffered HTTP Wave Stream Decorator).
-    /// 
-    /// Tac dung:
-    /// - Bao boc mot doi tuong WaveStream goc va ket hop voi BufferedWaveProvider cua NAudio.
-    /// - Cung cap co che luu dem truoc (Pre-buffering) cac goi am thanh tu mang HTTP ve bo nho.
-    /// - Tich hop co che DiscardOnBufferOverflow de chong tran bo dem va giam thieu hien tuong lag/giat khi mang cham.
-    /// 
-    /// Van de giai quyet:
-    /// - Mang Internet co the bi bien thien bang thong (Network Jitter) hoac mat goi tam thoi.
-    ///   Viec doc truc tiep tu mang ma khong co bo dem on dinh se gay ra loi giat dung am thanh (Stuttering).
-    /// - BufferedHttpWaveStream dam bao luon co san mot luong buffer tu 3 den 5 giay de phat muot ma.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Chuyen tiep cac thuoc tinh Position, Length, WaveFormat tu luong goc.
-    /// - Khi duoc giai phong (Dispose), don dep ca luong stream nguon va bo dem BufferedWaveProvider mot cach dong bo.
+    /// Luồng âm thanh hỗ trợ bộ đệm cho luồng mạng HTTP.
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Cung cấp cơ chế lưu đệm trước (Pre-buffering) các mẫu âm thanh vào RAM để chống giật lag mạng.
+    /// 2. Không chịu trách nhiệm: Giải mã định dạng âm thanh (MediaFoundationReader đảm nhiệm).
+    /// 3. Thời gian sống: Tồn tại cùng vòng đời stream nguồn của một bài hát.
+    /// 4. Đa luồng/Vòng đời: Quá trình lưu đệm diễn ra trong RAM. Khi Dispose phải dọn dẹp luồng nguồn và xoá bộ đệm.
+    /// </remarks>
     public class BufferedHttpWaveStream : WaveStream
     {
         private readonly WaveStream _sourceStream;

@@ -7,30 +7,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="850">
 
-    <!--
-        KIEN TRUC GIAO DIEN: NowPlayingCardView.xaml - The phat nhac hien tai (Bottom Player Bar)
-        
-        - Tac dung: Cung cap giao dien phat nhac chuyen nghiep ghim co dinh o duoi day man hinh,
-          lay cam hung thiet ke tu widget Spotify-Readme. Bao gom dia than quay vinyl (Vinyl Disc Animation),
-          thong tin bai hat dang phat, he thong cot equalizer dong bo, thanh tua bai hat (Timeline Slider)
-          va cac nut dieu khien phat nhac (Play/Pause, Next, Previous, Shuffle, Repeat, Volume).
-          
-        - Van de giai quyet:
-          1. Mo phong trai nghiem dia than quay (Vinyl Spin): Tich hop Storyboard "VinylSpinStoryboard"
-             thuc hien phep xoay 360 do lien tuc (10s cycle). Code-behind lang nghe trang thai PlaybackState
-             de Resume/Pause Storyboard dong bo voi am thanh thuc te.
-          2. Truc quan hoa song am (Animated Equalizer Bars): Su dung ItemsControl hien thi cac cot song
-             EqualizerBars tu ViewModel, tao hieu ung sinh dong nhu trinh phat nhac hien dai.
-          3. Chong giat con tro thoi gian (Anti-Scrubbing Jitter): Phoi hop giua XAML Slider va Code-behind
-             de tam hoan cap nhat thoi gian tu timer khi nguoi dung dang de chuot keo thanh tua nhac.
-          4. Toi uu hoa tai anh bia album: Dung FrozenImageConverter de Freeze BitmapImage tren luong nen,
-             khong gay giat lag giao dien khi chuyen bai lien tuc.
-             
-        - Cach thuc van hanh:
-          1. View nhan DataContext la NowPlayingViewModel.
-          2. Cac nut phat/dung, chuyen bai, ngau nhien, lap lai duoc binding vao cac ICommand tuong ung.
-          3. Slider Timeline binding Two-Way voi CurrentPositionSeconds va Maximum binding DurationSeconds.
-    -->
+    <!-- Playback transport: Commands from NowPlayingViewModel. Slider two-way cho việc seek. Hỗ trợ hiển thị Visualizer qua ItemsControl. -->
 
     <UserControl.Resources>
         <converters:FrozenImageConverter x:Key="FrozenImageConverter" />
@@ -96,9 +73,9 @@
                                 BorderThickness="2">
                             <Grid>
                                 <!-- Grooves -->
-                                <Ellipse Width="106" Height="106" Stroke="#1E1E1E" StrokeThickness="1" />
-                                <Ellipse Width="92" Height="92" Stroke="#242424" StrokeThickness="1" />
-                                <Ellipse Width="78" Height="78" Stroke="#1E1E1E" StrokeThickness="1" />
+                                <Ellipse Width="106" Height="106" Stroke="{DynamicResource VinylGrooveBrush}" StrokeThickness="1" />
+                                <Ellipse Width="92" Height="92" Stroke="{DynamicResource VinylGrooveHighlightBrush}" StrokeThickness="1" />
+                                <Ellipse Width="78" Height="78" Stroke="{DynamicResource VinylGrooveBrush}" StrokeThickness="1" />
 
                                 <!-- Center Album Art (Circular) -->
                                 <Image Width="64" Height="64"
@@ -110,7 +87,7 @@
                                 </Image>
 
                                 <!-- Spindle Hole -->
-                                <Ellipse Width="12" Height="12" Fill="#0D1117" Stroke="#30363D" StrokeThickness="1.5" />
+                                <Ellipse Width="12" Height="12" Fill="{DynamicResource VinylCenterHoleBrush}" Stroke="{DynamicResource CardBorderBrush}" StrokeThickness="1.5" />
                             </Grid>
                         </Border>
                     </Grid>
@@ -123,12 +100,12 @@
                         <!-- Spotify Official Logo Icon -->
                         <Viewbox Width="22" Height="22" Margin="0,0,10,0" VerticalAlignment="Center">
                             <Canvas Width="24" Height="24">
-                                <Ellipse Width="24" Height="24" Fill="#1ED760" />
-                                <Path Fill="#121212"
+                                <Ellipse Width="24" Height="24" Fill="{DynamicResource AccentBrandBrush}" />
+                                <Path Fill="{DynamicResource CardBackgroundBrush}"
                                       Data="M 6.2 8.5 C 10.4 7.2 15.6 7.6 18.6 9.4 C 18.2 10.0 17.4 10.2 16.8 9.8 C 14.1 8.2 9.5 7.8 5.7 9.0 C 5.1 9.2 4.4 8.8 4.2 8.2 C 4.0 7.6 4.4 6.9 5.0 6.7 C 5.4 6.6 5.8 6.5 6.2 8.5 Z" />
-                                <Path Fill="#121212"
+                                <Path Fill="{DynamicResource CardBackgroundBrush}"
                                       Data="M 6.8 11.5 C 10.2 10.4 14.4 10.8 17.0 12.4 C 16.5 13.0 15.8 13.2 15.2 12.8 C 13.0 11.5 9.4 11.2 6.4 12.1 C 5.8 12.3 5.2 11.9 5.0 11.3 C 4.8 10.7 5.2 10.1 5.8 9.9 C 6.1 9.8 6.5 9.7 6.8 11.5 Z" />
-                                <Path Fill="#121212"
+                                <Path Fill="{DynamicResource CardBackgroundBrush}"
                                       Data="M 7.5 14.5 C 10.1 13.7 13.3 14.0 15.4 15.3 C 14.9 15.8 14.3 16.0 13.8 15.7 C 12.1 14.6 9.3 14.4 7.1 15.1 C 6.5 15.3 5.9 14.9 5.7 14.3 C 5.5 13.7 5.9 13.1 6.5 12.9 C 6.8 12.8 7.1 12.7 7.5 14.5 Z" />
                             </Canvas>
                         </Viewbox>
@@ -250,7 +227,7 @@
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="21">
-                                        <Path Fill="#FFFFFF" Data="M 0 0 L 12 7 L 0 14 Z" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3,0,0,0" />
+                                        <Path Fill="{DynamicResource PureWhiteBrush}" Data="M 0 0 L 12 7 L 0 14 Z" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3,0,0,0" />
                                     </Border>
                                 </ControlTemplate>
                             </Button.Template>
@@ -278,8 +255,8 @@
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" CornerRadius="21">
                                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                            <Rectangle Width="4" Height="14" Fill="#FFFFFF" Margin="1.5,0" RadiusX="1" RadiusY="1" />
-                                            <Rectangle Width="4" Height="14" Fill="#FFFFFF" Margin="1.5,0" RadiusX="1" RadiusY="1" />
+                                            <Rectangle Width="4" Height="14" Fill="{DynamicResource PureWhiteBrush}" Margin="1.5,0" RadiusX="1" RadiusY="1" />
+                                            <Rectangle Width="4" Height="14" Fill="{DynamicResource PureWhiteBrush}" Margin="1.5,0" RadiusX="1" RadiusY="1" />
                                         </StackPanel>
                                     </Border>
                                 </ControlTemplate>

@@ -4,26 +4,14 @@ using NAudio.Dsp;
 namespace MusicApp.AudioEngine.Dsp
 {
     /// <summary>
-    /// Bo tinh toan bien doi Fourier nhanh (Fast Fourier Transform - FFT Calculator).
-    /// 
-    /// Tac dung:
-    /// - Chuyen doi tin hieu am thanh tu mien thoi gian (Time Domain Samples) sang mien tan so (Frequency Domain Spectrum).
-    /// - Tich hop cua so Hann (Hann Windowing) de giam thieu hien tuong ro ri pho (Spectral Leakage).
-    /// - Gom nhom 512 tan so thuc te thanh 16 dai tan so cam nhan (Perceptual Bins) phuc vu hien thi Audio Visualizer tren WPF.
-    /// 
-    /// Van de giai quyet:
-    /// - Nguyen ly Zero Heap Allocation: Toan bo cac bo dem (Complex buffer, Output bins, Window array) deu duoc cap phat
-    ///   co dinh mot lan duy nhat khi khoi tao (Pre-allocated Static Buffers), loai bo hoan toan hien tuong cap phat tren
-    ///   Large Object Heap (LOH) va ngan chan tinh trang nghen GC trong Audio Render Loop.
-    /// - Ty le hoa phi tuyen (Logarithmic Scaling): Tai nguoi cam nhan am luong theo ham logarit, do do ham Calculate
-    ///   ap dung cong thuc Log10 ket hop bo gioi han bao hoa (Saturation Clamping [0..35]) de chieu cao cot tren UI giao dong tu nhien.
-    /// 
-    /// Cach thuc van hanh:
-    /// - Nhan mang 1024 mau am thanh tu SampleAggregator.
-    /// - Nhan tung mau voi he so cua so Hann da tinh truoc de lam muot hai dau bien.
-    /// - Thuc thi thuat toan Radix-2 FFT truc tiep tren mang Complex (In-place FFT).
-    /// - Tinh bien do Euclid: Magnitude = Sqrt(Real^2 + Imag^2) cho tung dai tan so va tinh trung binh vao 16 cot.
+    /// Bộ tính toán biến đổi Fourier nhanh (Fast Fourier Transform - FFT Calculator).
     /// </summary>
+    /// <remarks>
+    /// 1. Trách nhiệm: Chuyển đổi mảng mẫu âm thanh (miền thời gian) sang phổ (miền tần số) bằng thuật toán Radix-2 FFT, áp dụng cửa sổ Hann giảm nhiễu rò rỉ phổ (Spectral Leakage).
+    /// 2. Không chịu trách nhiệm: Thu thập luồng âm thanh hoặc giao tiếp trực tiếp với giao diện đồ hoạ.
+    /// 3. Thời gian sống: Tồn tại cùng vòng đời của đồ thị âm thanh cho mỗi bài hát.
+    /// 4. Đa luồng/Vòng đời: Thường được gọi bởi Audio Thread. Các bộ đệm được cấp phát cố định 1 lần duy nhất (Zero Allocation) để ngăn ngừa giật lag do Garbage Collection.
+    /// </remarks>
     public class FftCalculator
     {
         /// <summary>
@@ -70,10 +58,10 @@ namespace MusicApp.AudioEngine.Dsp
         }
 
         /// <summary>
-        /// Thuc hien bien doi FFT va tra ve mang 16 gia tri bien do pho da qua chuan hoa.
+        /// Thực hiện biến đổi FFT và trả về mảng 16 giá trị biên độ phổ. Hàm này chạy trên Audio Thread, không cấp phát heap.
         /// </summary>
-        /// <param name="inputSamples">Mang cac mau am thanh dau vao o mien thoi gian.</param>
-        /// <returns>Mang co dinh gom 16 gia tri bien do dai tan so.</returns>
+        /// <param name="inputSamples">Mảng các mẫu âm thanh đầu vào ở miền thời gian.</param>
+        /// <returns>Mảng cố định gồm 16 giá trị biên độ dải tần.</returns>
         public float[] Calculate(float[] inputSamples)
         {
             if (inputSamples == null)

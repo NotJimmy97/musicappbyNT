@@ -5,8 +5,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Interfaces.Persistence
 {
     /// <summary>
-    /// Giao dien thao tac du lieu kho bai hat hop nhat (Unified Track Catalog Repository).
+    /// Giao diện thao tác dữ liệu kho bài hát hợp nhất.
     /// </summary>
+    /// <remarks>
+    /// Chịu trách nhiệm: Thao tác DB (CRUD) với thư viện nhạc hợp nhất (Local + Online).
+    /// KHÔNG chịu trách nhiệm: Quản lý thư mục vật lý hay bóc tách ID3 Tag.
+    /// Vòng đời: Transient/Scoped tùy DI.
+    /// Luồng/DB: Thao tác bất đồng bộ qua Task. Sử dụng SQLite DB path cấu hình sẵn.
+    /// </remarks>
     public interface ITrackRepository
     {
         Task<TrackEntity> GetByIdAsync(int id);
