@@ -281,6 +281,46 @@ namespace MusicApp.ViewModels
 
         public RelayCommand ToggleFavoriteCommand { get; }
 
+        private int _currentDbTrackId;
+
+        private async Task<int> EnsureTrackEntityIdAsync(TrackModel track)
+        {
+            if (track == null || _trackRepo == null) return 0;
+            if (int.TryParse(track.Id, out int id) && id > 0)
+            {
+                var existing = await _trackRepo.GetByIdAsync(id).ConfigureAwait(false);
+                if (existing != null) return id;
+            }
+
+            string trackKey = TrackIdentityHelper.GenerateTrackKey(track.Title, track.Artist);
+            var byKey = await _trackRepo.GetByTrackKeyAsync(trackKey).ConfigureAwait(false);
+            if (byKey != null)
+            {
+                track.Id = byKey.Id.ToString();
+                return byKey.Id;
+            }
+
+            var newEntity = new TrackEntity
+            {
+                TrackKey = trackKey,
+                SourceType = track.StreamUrl != null && track.StreamUrl.StartsWith("http") ? "online" : "local",
+                SourceId = track.Id,
+                Title = track.Title ?? "Unknown Title",
+                Artist = track.Artist ?? "Unknown Artist",
+                Album = track.Album,
+                Genre = track.Genre,
+                DurationSeconds = track.DurationSeconds,
+                CoverUri = track.CoverImageUrl,
+                AffinityScore = 1.0
+            };
+            int newId = await _trackRepo.InsertOrUpdateAsync(newEntity).ConfigureAwait(false);
+            if (newId > 0)
+            {
+                track.Id = newId.ToString();
+            }
+            return newId;
+        }
+
         /// <summary>
         /// Khoi tao NowPlayingViewModel va cau hinh 16 cot visualizer kem bo dem timer.
         /// </summary>
@@ -315,12 +355,10 @@ namespace MusicApp.ViewModels
             NextTrackCommand = new RelayCommand(_ =>
             {
                 // Neu skip truoc 30 giay, ghi nhan hanh vi skip de ha diem affinity
-                if (CurrentTrack != null && int.TryParse(CurrentTrack.Id, out int tId))
+                if (_currentDbTrackId > 0 && CurrentPositionSeconds < 30)
                 {
-                    if (CurrentPositionSeconds < 30)
-                    {
-                        Task.Run(() => _recEngine?.LogActionAsync(tId, "skip", (int)CurrentPositionSeconds));
-                    }
+                    int trackId = _currentDbTrackId;
+                    Task.Run(() => _recEngine?.LogActionAsync(trackId, "skip", (int)CurrentPositionSeconds));
                 }
                 PlayNextAction?.Invoke();
             });
@@ -331,16 +369,17 @@ namespace MusicApp.ViewModels
 
             ToggleFavoriteCommand = new RelayCommand(async _ =>
             {
-                if (CurrentTrack != null && int.TryParse(CurrentTrack.Id, out int tId))
+                if (_currentDbTrackId > 0)
                 {
+                    int trackId = _currentDbTrackId;
                     IsCurrentTrackFavorite = !IsCurrentTrackFavorite;
                     if (_trackRepo != null)
                     {
-                        await _trackRepo.ToggleFavoriteAsync(tId).ConfigureAwait(false);
+                        await _trackRepo.ToggleFavoriteAsync(trackId).ConfigureAwait(false);
                     }
                     if (_recEngine != null)
                     {
-                        await _recEngine.LogActionAsync(tId, IsCurrentTrackFavorite ? "favorite" : "unfavorite").ConfigureAwait(false);
+                        await _recEngine.LogActionAsync(trackId, IsCurrentTrackFavorite ? "favorite" : "unfavorite").ConfigureAwait(false);
                     }
                 }
             });
@@ -377,17 +416,21 @@ namespace MusicApp.ViewModels
             CurrentTrack = track;
             CurrentPositionSeconds = 0;
 
-            if (_trackRepo != null && int.TryParse(track.Id, out int trkId))
+            if (_trackRepo != null)
             {
                 Task.Run(async () =>
                 {
-                    var entity = await _trackRepo.GetByIdAsync(trkId).ConfigureAwait(false);
-                    if (entity != null)
+                    _currentDbTrackId = await EnsureTrackEntityIdAsync(track).ConfigureAwait(false);
+                    if (_currentDbTrackId > 0)
                     {
-                        var disp = Application.Current?.Dispatcher;
-                        if (disp != null)
+                        var entity = await _trackRepo.GetByIdAsync(_currentDbTrackId).ConfigureAwait(false);
+                        if (entity != null)
                         {
-                            disp.Invoke(() => IsCurrentTrackFavorite = entity.IsFavorite);
+                            var disp = Application.Current?.Dispatcher;
+                            if (disp != null)
+                            {
+                                disp.InvokeAsync(() => IsCurrentTrackFavorite = entity.IsFavorite);
+                            }
                         }
                     }
                 });
@@ -448,9 +491,10 @@ namespace MusicApp.ViewModels
                 {
                     if (TrackDurationSeconds > 0 && CurrentPositionSeconds >= Math.Max(0, TrackDurationSeconds - 2))
                     {
-                        if (CurrentTrack != null && int.TryParse(CurrentTrack.Id, out int tId))
+                        if (_currentDbTrackId > 0)
                         {
-                            Task.Run(() => _recEngine?.LogActionAsync(tId, "play_complete", (int)TrackDurationSeconds));
+                            int trackId = _currentDbTrackId;
+                            Task.Run(() => _recEngine?.LogActionAsync(trackId, "play_complete", (int)TrackDurationSeconds));
                         }
                         PlayNextAction?.Invoke();
                     }

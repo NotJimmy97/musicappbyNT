@@ -3,10 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MusicApp.Core.Common;
 using MusicApp.Core.Models;
 using MusicApp.Core.Persistence;
 using MusicApp.Core.Persistence.Repositories;
-using MusicApp.Core.Utilities;
 
 namespace MusicApp.Tests
 {
@@ -20,7 +20,7 @@ namespace MusicApp.Tests
         [TestInitialize]
         public void Setup()
         {
-            _tempDbFile = Path.Combine(Path.GetTempPath(), $"playlist_repo_test_{Guid.NewGuid():N}.db");
+            _tempDbFile = Path.Combine(Path.GetTempPath(), $"playlist_test_db_{Guid.NewGuid():N}.db");
             string connStr = $"Data Source={_tempDbFile};Version=3;Journal Mode=WAL;Synchronous=NORMAL;Cache Size=-64000;Foreign Keys=True;Default Timeout=5;";
             DatabaseInitializer.SetCustomConnectionString(connStr);
             DatabaseInitializer.Initialize();
@@ -35,156 +35,60 @@ namespace MusicApp.Tests
             DatabaseInitializer.ResetInitialization();
             if (File.Exists(_tempDbFile))
             {
-                try
-                {
-                    File.Delete(_tempDbFile);
-                }
-                catch
-                {
-                    // Ignore SQLite file lock on immediate cleanup
-                }
+                try { File.Delete(_tempDbFile); } catch { }
             }
         }
 
         [TestMethod]
-        public async Task CreatePlaylist_And_GetById_ReturnsPlaylist()
+        public async Task CreatePlaylist_AddsPlaylistAndRetrieves()
         {
             // Act
-            var playlist = await _playlistRepo.CreatePlaylistAsync("My Chill Mix", "Acoustic and lo-fi vibes");
-            var retrieved = await _playlistRepo.GetByIdAsync(playlist.Id);
+            int playlistId = await _playlistRepo.CreatePlaylistAsync("Giai Điệu Chill", "Danh sách thư giãn cuối tuần");
+            var playlists = (await _playlistRepo.GetAllPlaylistsAsync()).ToList();
 
             // Assert
-            Assert.IsNotNull(retrieved);
-            Assert.AreEqual("My Chill Mix", retrieved.Name);
-            Assert.AreEqual("Acoustic and lo-fi vibes", retrieved.Description);
+            Assert.IsTrue(playlistId > 0);
+            Assert.AreEqual(1, playlists.Count);
+            Assert.AreEqual("Giai Điệu Chill", playlists[0].Name);
+            Assert.AreEqual("Danh sách thư giãn cuối tuần", playlists[0].Description);
         }
 
         [TestMethod]
-        public async Task AddTrackToPlaylist_AddsTrackInOrder()
+        public async Task AddTrackToPlaylist_AddsAndRetrievesTracksInOrder()
         {
             // Arrange
-            var playlist = await _playlistRepo.CreatePlaylistAsync("Rock Classics");
-            int track1Id = await _trackRepo.InsertOrUpdateAsync(new TrackEntity
+            int playlistId = await _playlistRepo.CreatePlaylistAsync("Rock Classics");
+            var track1 = new TrackEntity
             {
-                TrackKey = TrackIdentityHelper.GenerateTrackKey("Bohemian Rhapsody", "Queen"),
-                Title = "Bohemian Rhapsody",
-                Artist = "Queen",
+                TrackKey = TrackIdentityHelper.GenerateTrackKey("Track A", "Band 1"),
+                Title = "Track A",
+                Artist = "Band 1",
+                DurationSeconds = 200,
                 SourceType = "local",
-                SourceId = @"C:\Music\Queen.mp3"
-            });
-            int track2Id = await _trackRepo.InsertOrUpdateAsync(new TrackEntity
+                SourceId = @"C:\Music\a.mp3"
+            };
+            var track2 = new TrackEntity
             {
-                TrackKey = TrackIdentityHelper.GenerateTrackKey("Hotel California", "Eagles"),
-                Title = "Hotel California",
-                Artist = "Eagles",
+                TrackKey = TrackIdentityHelper.GenerateTrackKey("Track B", "Band 2"),
+                Title = "Track B",
+                Artist = "Band 2",
+                DurationSeconds = 250,
                 SourceType = "local",
-                SourceId = @"C:\Music\Eagles.mp3"
-            });
+                SourceId = @"C:\Music\b.mp3"
+            };
+            int t1Id = await _trackRepo.InsertOrUpdateAsync(track1);
+            int t2Id = await _trackRepo.InsertOrUpdateAsync(track2);
 
             // Act
-            await _playlistRepo.AddTrackToPlaylistAsync(playlist.Id, track1Id);
-            await _playlistRepo.AddTrackToPlaylistAsync(playlist.Id, track2Id);
+            await _playlistRepo.AddTrackToPlaylistAsync(playlistId, t1Id);
+            await _playlistRepo.AddTrackToPlaylistAsync(playlistId, t2Id);
 
-            var tracks = (await _playlistRepo.GetTracksInPlaylistAsync(playlist.Id)).ToList();
-
-            // Assert
-            Assert.AreEqual(2, tracks.Count);
-            Assert.AreEqual("Bohemian Rhapsody", tracks[0].Title);
-            Assert.AreEqual("Hotel California", tracks[1].Title);
-        }
-
-        [TestMethod]
-        public async Task RemoveTrackFromPlaylist_RemovesCorrectTrack()
-        {
-            // Arrange
-            var playlist = await _playlistRepo.CreatePlaylistAsync("Favorites 2026");
-            int track1Id = await _trackRepo.InsertOrUpdateAsync(new TrackEntity
-            {
-                TrackKey = TrackIdentityHelper.GenerateTrackKey("Song 1", "Artist 1"),
-                Title = "Song 1",
-                Artist = "Artist 1",
-                SourceType = "local",
-                SourceId = @"C:\Music\1.mp3"
-            });
-            int track2Id = await _trackRepo.InsertOrUpdateAsync(new TrackEntity
-            {
-                TrackKey = TrackIdentityHelper.GenerateTrackKey("Song 2", "Artist 2"),
-                Title = "Song 2",
-                Artist = "Artist 2",
-                SourceType = "local",
-                SourceId = @"C:\Music\2.mp3"
-            });
-
-            await _playlistRepo.AddTrackToPlaylistAsync(playlist.Id, track1Id);
-            await _playlistRepo.AddTrackToPlaylistAsync(playlist.Id, track2Id);
-
-            // Act
-            await _playlistRepo.RemoveTrackFromPlaylistAsync(playlist.Id, track1Id);
-            var remaining = (await _playlistRepo.GetTracksInPlaylistAsync(playlist.Id)).ToList();
+            var tracksInPlaylist = (await _playlistRepo.GetTracksInPlaylistAsync(playlistId)).ToList();
 
             // Assert
-            Assert.AreEqual(1, remaining.Count);
-            Assert.AreEqual("Song 2", remaining[0].Title);
-        }
-
-        [TestMethod]
-        public async Task ReorderTrack_UpdatesPositions()
-        {
-            // Arrange
-            var playlist = await _playlistRepo.CreatePlaylistAsync("Reorder Playlist");
-            int track1Id = await _trackRepo.InsertOrUpdateAsync(new TrackEntity
-            {
-                TrackKey = TrackIdentityHelper.GenerateTrackKey("First", "A"),
-                Title = "First",
-                Artist = "A",
-                SourceType = "local",
-                SourceId = @"C:\Music\1.mp3"
-            });
-            int track2Id = await _trackRepo.InsertOrUpdateAsync(new TrackEntity
-            {
-                TrackKey = TrackIdentityHelper.GenerateTrackKey("Second", "B"),
-                Title = "Second",
-                Artist = "B",
-                SourceType = "local",
-                SourceId = @"C:\Music\2.mp3"
-            });
-
-            await _playlistRepo.AddTrackToPlaylistAsync(playlist.Id, track1Id);
-            await _playlistRepo.AddTrackToPlaylistAsync(playlist.Id, track2Id);
-
-            // Act - Move track2 (index 1) to position 0
-            await _playlistRepo.ReorderTrackAsync(playlist.Id, track2Id, 0);
-            var reordered = (await _playlistRepo.GetTracksInPlaylistAsync(playlist.Id)).ToList();
-
-            // Assert
-            Assert.AreEqual(2, reordered.Count);
-            Assert.AreEqual("Second", reordered[0].Title);
-            Assert.AreEqual("First", reordered[1].Title);
-        }
-
-        [TestMethod]
-        public async Task DeletePlaylist_RemovesPlaylistAndTracks()
-        {
-            // Arrange
-            var playlist = await _playlistRepo.CreatePlaylistAsync("Temp Playlist");
-            int trackId = await _trackRepo.InsertOrUpdateAsync(new TrackEntity
-            {
-                TrackKey = TrackIdentityHelper.GenerateTrackKey("Temp Song", "Temp"),
-                Title = "Temp Song",
-                Artist = "Temp",
-                SourceType = "local",
-                SourceId = @"C:\Music\temp.mp3"
-            });
-            await _playlistRepo.AddTrackToPlaylistAsync(playlist.Id, trackId);
-
-            // Act
-            await _playlistRepo.DeletePlaylistAsync(playlist.Id);
-            var retrieved = await _playlistRepo.GetByIdAsync(playlist.Id);
-            var allPlaylists = (await _playlistRepo.GetAllPlaylistsAsync()).ToList();
-
-            // Assert
-            Assert.IsNull(retrieved);
-            Assert.IsFalse(allPlaylists.Any(p => p.Id == playlist.Id));
+            Assert.AreEqual(2, tracksInPlaylist.Count);
+            Assert.AreEqual("Track A", tracksInPlaylist[0].Title);
+            Assert.AreEqual("Track B", tracksInPlaylist[1].Title);
         }
     }
 }

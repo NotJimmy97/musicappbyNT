@@ -180,24 +180,71 @@
             </TextBox>
         </Grid>
 
-        <!-- Row 2: Favorite Tracks Virtualized List -->
+        <!-- Row 2: Favorite Tracks Virtualized List & Empty State -->
         <Border Grid.Row="2"
                 Background="{DynamicResource CardBackgroundBrush}"
                 BorderBrush="{DynamicResource CardBorderBrush}"
                 BorderThickness="1"
                 CornerRadius="12"
                 Padding="8">
-            <ListBox ItemsSource="{Binding FavoriteTracks}"
-                     SelectedItem="{Binding SelectedTrack, Mode=TwoWay}"
-                     Background="Transparent"
-                     BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     ScrollViewer.VerticalScrollBarVisibility="Auto"
-                     ScrollViewer.CanContentScroll="True"
-                     VirtualizingStackPanel.IsVirtualizing="True"
-                     VirtualizingStackPanel.VirtualizationMode="Recycling"
-                     MouseDoubleClick="ListBox_MouseDoubleClick">
-                <ListBox.ItemContainerStyle>
+            <Grid>
+                <!-- Empty State -->
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Margin="32">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding FavoriteTracks.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <Path Data="{StaticResource IconHeartFilled}"
+                          Fill="{DynamicResource MutedForegroundBrush}"
+                          Stretch="Uniform"
+                          Width="54" Height="54"
+                          Opacity="0.4"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,16" />
+                    <TextBlock Text="Chưa có bài hát yêu thích nào"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TitleForegroundBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,6" />
+                    <TextBlock Text="Nhấn vào biểu tượng trái tim khi đang phát một bài hát để lưu vào danh sách này."
+                               FontSize="13"
+                               Foreground="{DynamicResource SubtitleForegroundBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               MaxWidth="360" />
+                </StackPanel>
+
+                <!-- Virtualized List -->
+                <ListBox ItemsSource="{Binding FavoriteTracks}"
+                         SelectedItem="{Binding SelectedTrack, Mode=TwoWay}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         ScrollViewer.CanContentScroll="True"
+                         VirtualizingStackPanel.IsVirtualizing="True"
+                         VirtualizingStackPanel.VirtualizationMode="Recycling"
+                         MouseDoubleClick="ListBox_MouseDoubleClick">
+                    <ListBox.Style>
+                        <Style TargetType="ListBox">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding FavoriteTracks.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.Style>
+                    <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="8,6" />
                         <Setter Property="Margin" Value="0,1" />

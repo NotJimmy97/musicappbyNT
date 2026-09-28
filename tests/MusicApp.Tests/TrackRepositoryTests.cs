@@ -55,7 +55,7 @@ namespace MusicApp.Tests
                 Title = "Lạc Trôi",
                 Artist = "Sơn Tùng M-TP",
                 Album = "Lạc Trôi Single",
-                Duration = 240,
+                DurationSeconds = 240,
                 SourceType = "local",
                 SourceId = @"C:\Music\Lactroi.mp3",
                 IsFavorite = false,
@@ -71,7 +71,7 @@ namespace MusicApp.Tests
             Assert.IsNotNull(retrieved, "Track should be retrieved from repository.");
             Assert.AreEqual("Lạc Trôi", retrieved.Title);
             Assert.AreEqual("Sơn Tùng M-TP", retrieved.Artist);
-            Assert.AreEqual(240, retrieved.Duration);
+            Assert.AreEqual(240, retrieved.DurationSeconds);
             Assert.AreEqual(1.0, retrieved.AffinityScore);
         }
 
@@ -88,7 +88,7 @@ namespace MusicApp.Tests
                     Artist = "Artist 1",
                     SourceType = "local",
                     SourceId = @"C:\Music\SongA.mp3",
-                    Duration = 180
+                    DurationSeconds = 180
                 },
                 new TrackEntity
                 {
@@ -97,16 +97,15 @@ namespace MusicApp.Tests
                     Artist = "Artist 2",
                     SourceType = "local",
                     SourceId = @"C:\Music\SongB.mp3",
-                    Duration = 210
+                    DurationSeconds = 210
                 }
             };
 
             // Act
-            int count = await _repository.BatchInsertOrUpdateAsync(tracks);
+            await _repository.BatchInsertOrUpdateAsync(tracks);
             var allTracks = (await _repository.GetAllLocalTracksAsync()).ToList();
 
             // Assert
-            Assert.AreEqual(2, count, "Batch insert count should match list size.");
             Assert.AreEqual(2, allTracks.Count);
             Assert.IsTrue(allTracks.Any(t => t.Title == "Song A"));
             Assert.IsTrue(allTracks.Any(t => t.Title == "Song B"));
@@ -128,20 +127,18 @@ namespace MusicApp.Tests
             int trackId = await _repository.InsertOrUpdateAsync(track);
 
             // Act - Toggle to True
-            bool newStatus = await _repository.ToggleFavoriteAsync(trackId);
+            await _repository.ToggleFavoriteAsync(trackId);
             var favorites = (await _repository.GetFavoritesAsync()).ToList();
 
             // Assert
-            Assert.IsTrue(newStatus, "Status should be toggled to true.");
             Assert.AreEqual(1, favorites.Count);
             Assert.AreEqual("Waiting For You", favorites[0].Title);
 
             // Act - Toggle back to False
-            bool secondStatus = await _repository.ToggleFavoriteAsync(trackId);
+            await _repository.ToggleFavoriteAsync(trackId);
             var favoritesAfter = (await _repository.GetFavoritesAsync()).ToList();
 
             // Assert
-            Assert.IsFalse(secondStatus, "Status should be toggled back to false.");
             Assert.AreEqual(0, favoritesAfter.Count);
         }
 

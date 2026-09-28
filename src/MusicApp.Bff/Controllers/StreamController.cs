@@ -31,6 +31,7 @@ namespace MusicApp.Bff.Controllers
     {
         private static readonly MusicSourceRouter Router = new MusicSourceRouter();
         private static readonly HttpClient ProxyClient;
+        private static readonly HttpClient BackgroundDownloadClient;
         private static readonly LocalAudioCacheService CacheService;
         private static readonly ConcurrentDictionary<string, bool> ActiveDownloads = new ConcurrentDictionary<string, bool>();
 
@@ -48,6 +49,17 @@ namespace MusicApp.Bff.Controllers
             ProxyClient = new HttpClient(handler)
             {
                 Timeout = TimeSpan.FromSeconds(30)
+            };
+
+            var downloadHandler = new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.None,
+                AllowAutoRedirect = true
+            };
+
+            BackgroundDownloadClient = new HttpClient(downloadHandler)
+            {
+                Timeout = TimeSpan.FromMinutes(3)
             };
 
             try
@@ -218,8 +230,7 @@ namespace MusicApp.Bff.Controllers
             {
                 try
                 {
-                    using (var downloadClient = new HttpClient { Timeout = TimeSpan.FromMinutes(3) })
-                    using (var response = await downloadClient.GetAsync(audioUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
+                    using (var response = await BackgroundDownloadClient.GetAsync(audioUrl, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false))
                     {
                         if (response.IsSuccessStatusCode)
                         {

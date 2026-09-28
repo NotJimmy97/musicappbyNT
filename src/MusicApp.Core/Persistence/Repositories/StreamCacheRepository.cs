@@ -125,19 +125,27 @@ namespace MusicApp.Core.Persistence.Repositories
 
                     foreach (var item in toDelete)
                     {
+                        bool deleted = false;
                         try
                         {
                             if (File.Exists(item.Item2))
                             {
                                 File.Delete(item.Item2);
                             }
+                            deleted = !File.Exists(item.Item2);
                         }
-                        catch { }
-
-                        using (var delCmd = new SQLiteCommand("DELETE FROM stream_cache WHERE track_hash = @hash", conn))
+                        catch
                         {
-                            delCmd.Parameters.AddWithValue("@hash", item.Item1);
-                            delCmd.ExecuteNonQuery();
+                            deleted = false;
+                        }
+
+                        if (deleted)
+                        {
+                            using (var delCmd = new SQLiteCommand("DELETE FROM stream_cache WHERE track_hash = @hash", conn))
+                            {
+                                delCmd.Parameters.AddWithValue("@hash", item.Item1);
+                                delCmd.ExecuteNonQuery();
+                            }
                         }
                     }
                 }

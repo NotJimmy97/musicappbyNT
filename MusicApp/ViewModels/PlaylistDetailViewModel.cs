@@ -117,9 +117,12 @@ namespace MusicApp.ViewModels
                     Title = e.Title,
                     Artist = e.Artist,
                     Album = e.Album,
-                    DurationSeconds = e.DurationSeconds,
                     CoverImageUrl = e.CoverUri,
-                    StreamUrl = e.SourceType == "local" ? e.SourceId : e.SourceId,
+                    StreamUrl = e.SourceType == "local"
+                        ? e.SourceId
+                        : (e.SourceId != null && e.SourceId.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                            ? e.SourceId
+                            : $"http://localhost:5245/api/v1/stream/{e.SourceId}"),
                     Genre = e.Genre
                 }).ToList();
 

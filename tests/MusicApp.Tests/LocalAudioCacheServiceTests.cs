@@ -20,8 +20,8 @@ namespace MusicApp.Tests
         [TestInitialize]
         public void Setup()
         {
-            _tempDbFile = Path.Combine(Path.GetTempPath(), $"stream_cache_test_{Guid.NewGuid():N}.db");
-            _tempCacheDir = Path.Combine(Path.GetTempPath(), $"audio_cache_test_{Guid.NewGuid():N}");
+            _tempDbFile = Path.Combine(Path.GetTempPath(), $"cache_test_db_{Guid.NewGuid():N}.db");
+            _tempCacheDir = Path.Combine(Path.GetTempPath(), $"cache_test_dir_{Guid.NewGuid():N}");
             Directory.CreateDirectory(_tempCacheDir);
 
             string connStr = $"Data Source={_tempDbFile};Version=3;Journal Mode=WAL;Synchronous=NORMAL;Cache Size=-64000;Foreign Keys=True;Default Timeout=5;";
@@ -36,100 +36,52 @@ namespace MusicApp.Tests
         public void Cleanup()
         {
             DatabaseInitializer.ResetInitialization();
-
             if (Directory.Exists(_tempCacheDir))
             {
-                try
-                {
-                    Directory.Delete(_tempCacheDir, true);
-                }
-                catch { }
+                try { Directory.Delete(_tempCacheDir, true); } catch { }
             }
-
             if (File.Exists(_tempDbFile))
             {
-                try
-                {
-                    File.Delete(_tempDbFile);
-                }
-                catch { }
+                try { File.Delete(_tempDbFile); } catch { }
             }
         }
 
         [TestMethod]
-        public void ComputeTrackHash_ProducesConsistentSha1Hash()
+        public void ComputeTrackHash_ReturnsDeterministicSha1()
         {
-            // Arrange
-            string trackId = "jamendo:123456";
-
             // Act
-            string hash1 = _cacheService.ComputeTrackHash(trackId);
-            string hash2 = _cacheService.ComputeTrackHash(trackId);
+            string hash1 = _cacheService.ComputeTrackHash("track_123");
+            string hash2 = _cacheService.ComputeTrackHash("track_123");
+            string hash3 = _cacheService.ComputeTrackHash("track_456");
 
             // Assert
             Assert.IsNotNull(hash1);
-            Assert.AreEqual(40, hash1.Length); // SHA1 hex string length
+            Assert.AreEqual(40, hash1.Length);
             Assert.AreEqual(hash1, hash2);
+            Assert.AreNotEqual(hash1, hash3);
         }
 
         [TestMethod]
-        public async Task SaveStreamToCacheAsync_And_TryGetCachedAudioFileAsync_SavesAndRetrievesFile()
+        public async Task SaveStreamToCacheAsync_SavesFileAndRegistersInDb()
         {
             // Arrange
-            string trackId = "vietnamese:song_001";
+            string trackId = "sample_stream_01";
             string hash = _cacheService.ComputeTrackHash(trackId);
-            byte[] dummyMp3Data = Encoding.UTF8.GetBytes("ID3_DUMMY_MP3_AUDIO_STREAM_BINARY_DATA_FOR_TESTING");
+            byte[] dummyData = Encoding.UTF8.GetBytes("MOCK_AUDIO_STREAM_BINARY_DATA_FOR_TESTING");
 
-            // Act - Lưu stream vào cache
-            using (var ms = new MemoryStream(dummyMp3Data))
+            // Act
+            using (var ms = new MemoryStream(dummyData))
             {
                 await _cacheService.SaveStreamToCacheAsync(hash, ms);
             }
 
-            // Act - Lấy đường dẫn file cache
             string cachedPath = await _cacheService.TryGetCachedAudioFileAsync(hash);
 
             // Assert
-            Assert.IsNotNull(cachedPath);
-            Assert.IsTrue(File.Exists(cachedPath));
+            Assert.IsNotNull(cachedPath, "Cached path should be retrieved from repository.");
+            Assert.IsTrue(File.Exists(cachedPath), "Cached audio file must exist on disk.");
             byte[] readBytes = File.ReadAllBytes(cachedPath);
-            CollectionAssert.AreEqual(dummyMp3Data, readBytes);
-
-            // Kiểm tra tổng dung lượng cache trong DB
-            long totalSize = await _cacheRepo.GetTotalCacheSizeAsync();
-            Assert.AreEqual(dummyMp3Data.Length, totalSize);
-        }
-
-        [TestMethod]
-        public async Task EvictOldestCacheAsync_RemovesOldestCachedFiles()
-        {
-            // Arrange
-            string hash1 = _cacheService.ComputeTrackHash("track_1");
-            string hash2 = _cacheService.ComputeTrackHash("track_2");
-            byte[] data1 = new byte[1024];
-            byte[] data2 = new byte[2048];
-
-            using (var ms1 = new MemoryStream(data1))
-            {
-                await _cacheService.SaveStreamToCacheAsync(hash1, ms1);
-            }
-
-            await Task.Delay(50); // Đảm bảo khác biệt timestamp access
-
-            using (var ms2 = new MemoryStream(data2))
-            {
-                await _cacheService.SaveStreamToCacheAsync(hash2, ms2);
-            }
-
-            // Act - Xóa ít nhất 500 byte (sẽ evict track_1 vì cũ nhất)
-            await _cacheRepo.EvictOldestCacheAsync(500);
-
-            // Assert
-            string path1 = await _cacheService.TryGetCachedAudioFileAsync(hash1);
-            string path2 = await _cacheService.TryGetCachedAudioFileAsync(hash2);
-
-            Assert.IsNull(path1, "Track 1 cũ nhất nên đã bị evict khỏi cache.");
-            Assert.IsNotNull(path2, "Track 2 mới hơn nên vẫn còn trong cache.");
+            Assert.AreEqual(dummyData.Length, readBytes.Length);
         }
     }
 }

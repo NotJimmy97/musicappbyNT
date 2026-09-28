@@ -105,14 +105,61 @@
                 </Grid>
             </Border>
 
-            <!-- Playlists Bento / Card Grid -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Playlists}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
+            <!-- Playlists Bento / Card Grid & Empty State -->
+            <Grid Grid.Row="1">
+                <!-- Empty State -->
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Margin="32">
+                    <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Playlists.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </StackPanel.Style>
+                    <Path Data="{StaticResource IconPlaylists}"
+                          Fill="{DynamicResource MutedForegroundBrush}"
+                          Stretch="Uniform"
+                          Width="54" Height="54"
+                          Opacity="0.4"
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,16" />
+                    <TextBlock Text="Chưa có danh sách phát nào"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TitleForegroundBrush}"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,6" />
+                    <TextBlock Text="Nhấn nút '+ Tạo Playlist' ở góc trên để tạo danh sách phát đầu tiên của bạn."
+                               FontSize="13"
+                               Foreground="{DynamicResource SubtitleForegroundBrush}"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               MaxWidth="360" />
+                </StackPanel>
+
+                <!-- Scrollable Grid -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer.Style>
+                        <Style TargetType="ScrollViewer">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Playlists.Count}" Value="0">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ScrollViewer.Style>
+                    <ItemsControl ItemsSource="{Binding Playlists}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
 
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -195,6 +242,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+            </Grid>
         </Grid>
 
         <!-- Chế độ 2: Chi tiết Playlist được chọn -->

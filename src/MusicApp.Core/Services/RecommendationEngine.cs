@@ -8,18 +8,14 @@ using MusicApp.Core.Models;
 namespace MusicApp.Core.Services
 {
     /// <summary>
-    /// Động cơ gợi ý bài hát thông minh.
+    /// Dong co goi y bai hat thong minh chay hoan toan cuc bo (Client-Side Affinity Recommendation Engine).
+    /// Hoc gu nguoi dung tu hanh vi Click, Play, Skip, Heart va thuc thi thuat toan Smart Shuffle Boltzmann.
     /// </summary>
-    /// <remarks>
-    /// Chịu trách nhiệm: Tính toán và đề xuất bài hát mới dựa trên lịch sử nghe.
-    /// KHÔNG chịu trách nhiệm: Ghi log tương tác trực tiếp (dùng InteractionRepository).
-    /// Vòng đời: Transient/Scoped.
-    /// Luồng: Thao tác DB và tính toán bất đồng bộ qua Task.
-    /// </remarks>
     public class RecommendationEngine
     {
         private readonly ITrackRepository _trackRepo;
         private readonly IInteractionRepository _interactionRepo;
+        private readonly object _randomLock = new object();
         private readonly Random _random = new Random();
 
         public RecommendationEngine(ITrackRepository trackRepo, IInteractionRepository interactionRepo)
@@ -99,9 +95,9 @@ namespace MusicApp.Core.Services
             // Nhiet do Boltzmann (Temperature tau): cang nho thi cang thien vi bai diem cao, cang lon thi cang ngau nhien
             const double tau = 5.0;
 
-            // Tinh tong e^(Score / tau)
-            double sumExp = 0.0;
-            double[] expScores = new double[candidates.Count];
+            // Tinh toan diem tho va tim maxScore de on dinh so hoc (Max-subtraction Softmax Invariant)
+            double[] rawScores = new double[candidates.Count];
+            double maxScore = double.MinValue;
 
             for (int i = 0; i < candidates.Count; i++)
             {
@@ -111,13 +107,35 @@ namespace MusicApp.Core.Services
                 // Neu bài chưa từng nghe (play_count = 0), bonus 2.0 để ưu tiên khám phá
                 if (candidates[i].PlayCount == 0) score += 2.0;
 
-                double expVal = Math.Exp(score / tau);
+                rawScores[i] = score;
+                if (score > maxScore) maxScore = score;
+            }
+
+            // Tinh tong e^((Score - maxScore) / tau) - Triet tieu hoan toan tran so duong Infinity / NaN
+            double sumExp = 0.0;
+            double[] expScores = new double[candidates.Count];
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                double expVal = Math.Exp((rawScores[i] - maxScore) / tau);
                 expScores[i] = expVal;
                 sumExp += expVal;
             }
 
+            if (sumExp <= 0.0 || double.IsNaN(sumExp) || double.IsInfinity(sumExp))
+            {
+                lock (_randomLock)
+                {
+                    return candidates[_random.Next(candidates.Count)];
+                }
+            }
+
             // Bốc thăm ngẫu nhiên theo trọng số phân phối xác suất tích lũy (Cumulative Probability Distribution)
-            double target = _random.NextDouble() * sumExp;
+            double target;
+            lock (_randomLock)
+            {
+                target = _random.NextDouble() * sumExp;
+            }
             double cumulative = 0.0;
 
             for (int i = 0; i < candidates.Count; i++)

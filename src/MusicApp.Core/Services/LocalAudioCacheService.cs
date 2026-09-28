@@ -9,14 +9,9 @@ using MusicApp.Core.Persistence;
 namespace MusicApp.Core.Services
 {
     /// <summary>
-    /// Dịch vụ quản lý bộ nhớ đệm luồng âm thanh trực tuyến.
+    /// Dich vu quan ly bo nho dem luong am thanh truc tuyen (Spotify CAS Audio Cache Service).
+    /// Tu dong luu tru tep nhị phan tren dia cuc bo de nghe lai khong can mang internet.
     /// </summary>
-    /// <remarks>
-    /// Chịu trách nhiệm: Ghi/đọc/xóa file âm thanh trên đĩa vật lý.
-    /// KHÔNG chịu trách nhiệm: Truy xuất database (giao lại cho StreamCacheRepository).
-    /// Vòng đời: Singleton/Scoped, tái sử dụng directory path.
-    /// Luồng: Thực hiện I/O bất đồng bộ. Phải đảm bảo an toàn ghi đè.
-    /// </remarks>
     public class LocalAudioCacheService
     {
         private readonly IStreamCacheRepository _cacheRepo;
@@ -78,7 +73,7 @@ namespace MusicApp.Core.Services
             if (string.IsNullOrWhiteSpace(trackHash) || sourceStream == null) return;
 
             string targetPath = GetTargetCacheFilePath(trackHash);
-            string tempPath = targetPath + ".tmp";
+            string tempPath = Path.Combine(_cacheDirectory, $"{trackHash}.{Guid.NewGuid():N}.tmp");
 
             await Task.Run(async () =>
             {
@@ -89,11 +84,16 @@ namespace MusicApp.Core.Services
                         await sourceStream.CopyToAsync(fs).ConfigureAwait(false);
                     }
 
-                    if (File.Exists(targetPath))
+                    // Nếu file target đã tồn tại và hoàn chỉnh, chỉ cần cập nhật DB
+                    if (!File.Exists(targetPath))
                     {
-                        File.Delete(targetPath);
+                        File.Move(tempPath, targetPath);
                     }
-                    File.Move(tempPath, targetPath);
+                    else
+                    {
+                        // File target đã có từ request khác, dọn dẹp temp
+                        try { File.Delete(tempPath); } catch { }
+                    }
 
                     var fileInfo = new FileInfo(targetPath);
                     await _cacheRepo.RegisterCacheFileAsync(trackHash, targetPath, fileInfo.Length, true).ConfigureAwait(false);
