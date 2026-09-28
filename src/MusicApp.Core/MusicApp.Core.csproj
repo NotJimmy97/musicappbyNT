@@ -17,6 +17,7 @@
     <PackageReference Include="TagLibSharp" Version="2.2.0" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>

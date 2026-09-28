@@ -5,7 +5,9 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using MusicApp.Core.Interfaces;
+using MusicApp.Core.Interfaces.Persistence;
 using MusicApp.Core.Models;
+using MusicApp.Core.Persistence;
 
 namespace MusicApp.Core.Services
 {
