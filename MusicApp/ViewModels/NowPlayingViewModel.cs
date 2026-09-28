@@ -5,7 +5,9 @@ using System.Windows;
 using System.Windows.Threading;
 using MusicApp.Core.Common;
 using MusicApp.Core.Interfaces;
+using MusicApp.Core.Interfaces.Persistence;
 using MusicApp.Core.Models;
+using MusicApp.Core.Services;
 
 namespace MusicApp.ViewModels
 {
@@ -34,6 +36,8 @@ namespace MusicApp.ViewModels
     public class NowPlayingViewModel : ObservableObject, IDisposable
     {
         private readonly IAudioService _audioService;
+        private readonly RecommendationEngine _recEngine;
+        private readonly ITrackRepository _trackRepo;
 
         /// <summary>
         /// Tham chieu toi dich vu am thanh Audio Engine ben duoi.
@@ -277,13 +281,26 @@ namespace MusicApp.ViewModels
         /// </summary>
         public RelayCommand ToggleRainbowCommand { get; }
 
+        private bool _isCurrentTrackFavorite;
+        public bool IsCurrentTrackFavorite
+        {
+            get => _isCurrentTrackFavorite;
+            set => SetProperty(ref _isCurrentTrackFavorite, value);
+        }
+
+        public RelayCommand ToggleFavoriteCommand { get; }
+
         /// <summary>
         /// Khoi tao NowPlayingViewModel va cau hinh 16 cot visualizer kem bo dem timer.
         /// </summary>
         /// <param name="audioService">Dich vu am thanh Audio Engine.</param>
-        public NowPlayingViewModel(IAudioService audioService)
+        /// <param name="recEngine">Dong co goi y thong minh.</param>
+        /// <param name="trackRepo">Kho luu tru bai hat SQLite.</param>
+        public NowPlayingViewModel(IAudioService audioService, RecommendationEngine recEngine = null, ITrackRepository trackRepo = null)
         {
             _audioService = audioService ?? throw new ArgumentNullException(nameof(audioService));
+            _recEngine = recEngine;
+            _trackRepo = trackRepo;
 
             for (int i = 0; i < 16; i++)
             {
@@ -304,10 +321,38 @@ namespace MusicApp.ViewModels
                 }
             });
 
-            NextTrackCommand = new RelayCommand(_ => PlayNextAction?.Invoke());
+            NextTrackCommand = new RelayCommand(_ =>
+            {
+                // Neu skip truoc 30 giay, ghi nhan hanh vi skip de ha diem affinity
+                if (CurrentTrack != null && int.TryParse(CurrentTrack.Id, out int tId))
+                {
+                    if (CurrentPositionSeconds < 30)
+                    {
+                        Task.Run(() => _recEngine?.LogActionAsync(tId, "skip", (int)CurrentPositionSeconds));
+                    }
+                }
+                PlayNextAction?.Invoke();
+            });
+
             PreviousTrackCommand = new RelayCommand(_ => PlayPreviousAction?.Invoke());
             ToggleSpinCommand = new RelayCommand(_ => IsSpinEnabled = !IsSpinEnabled);
             ToggleRainbowCommand = new RelayCommand(_ => IsRainbowEq = !IsRainbowEq);
+
+            ToggleFavoriteCommand = new RelayCommand(async _ =>
+            {
+                if (CurrentTrack != null && int.TryParse(CurrentTrack.Id, out int tId))
+                {
+                    IsCurrentTrackFavorite = !IsCurrentTrackFavorite;
+                    if (_trackRepo != null)
+                    {
+                        await _trackRepo.ToggleFavoriteAsync(tId).ConfigureAwait(false);
+                    }
+                    if (_recEngine != null)
+                    {
+                        await _recEngine.LogActionAsync(tId, IsCurrentTrackFavorite ? "favorite" : "unfavorite").ConfigureAwait(false);
+                    }
+                }
+            });
 
             _audioService.SpectrumDataReady += OnSpectrumDataReady;
             _audioService.StateChanged += OnAudioStateChanged;
@@ -340,6 +385,22 @@ namespace MusicApp.ViewModels
 
             CurrentTrack = track;
             CurrentPositionSeconds = 0;
+
+            if (_trackRepo != null && int.TryParse(track.Id, out int trkId))
+            {
+                Task.Run(async () =>
+                {
+                    var entity = await _trackRepo.GetByIdAsync(trkId).ConfigureAwait(false);
+                    if (entity != null)
+                    {
+                        var disp = Application.Current?.Dispatcher;
+                        if (disp != null)
+                        {
+                            disp.Invoke(() => IsCurrentTrackFavorite = entity.IsFavorite);
+                        }
+                    }
+                });
+            }
 
             try
             {
@@ -396,6 +457,10 @@ namespace MusicApp.ViewModels
                 {
                     if (TrackDurationSeconds > 0 && CurrentPositionSeconds >= Math.Max(0, TrackDurationSeconds - 2))
                     {
+                        if (CurrentTrack != null && int.TryParse(CurrentTrack.Id, out int tId))
+                        {
+                            Task.Run(() => _recEngine?.LogActionAsync(tId, "play_complete", (int)TrackDurationSeconds));
+                        }
                         PlayNextAction?.Invoke();
                     }
                 }

@@ -7,6 +7,8 @@
     <SolidColorBrush x:Key="CardSurfaceBrush" Color="#21262D" />
     <SolidColorBrush x:Key="CardBorderBrush" Color="#30363D" />
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#0D1117" />
+    <SolidColorBrush x:Key="VinylBaseBrush" Color="#121212" />
+    <SolidColorBrush x:Key="VinylBorderBrush" Color="#282828" />
 
     <!-- Typography Brushes -->
     <SolidColorBrush x:Key="TitleForegroundBrush" Color="#FFFFFF" />

@@ -4,6 +4,9 @@ using System.Net;
 using System.Windows;
 using MusicApp.AudioEngine;
 using MusicApp.Bff;
+using MusicApp.Core.Persistence;
+using MusicApp.Core.Persistence.Repositories;
+using MusicApp.Core.Services;
 using MusicApp.Services;
 using MusicApp.ViewModels;
 
@@ -34,7 +37,9 @@ namespace MusicApp
     {
         private IDisposable _bffHost;
         private NAudioService _audioService;
+        private NowPlayingViewModel _nowPlayingViewModel;
         private MainViewModel _mainViewModel;
+        private SettingsRepository _settingsRepo;
 
         /// <summary>
         /// Phuong thuc khoi dong ung dung: Thiet lap moi truong, khoi dong may chu BFF va khoi tao giao dien chinh.
@@ -49,6 +54,16 @@ namespace MusicApp
             ServicePointManager.DefaultConnectionLimit = 64;
 
             SetupExceptionHandling();
+
+            // 1. Khoi tao co so du lieu SQLite nhung toc do cao (Phase 6)
+            try
+            {
+                DatabaseInitializer.Initialize();
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("Loi khoi tao SQLite Database: {0}", ex);
+            }
 
             try
             {
@@ -68,11 +83,26 @@ namespace MusicApp
                 return;
             }
 
+            // Khoi tao cac Repositories va Core Services
+            var trackRepo = new TrackRepository();
+            var playlistRepo = new PlaylistRepository();
+            var queueRepo = new QueueRepository();
+            _settingsRepo = new SettingsRepository();
+            var interactionRepo = new InteractionRepository();
+            var recEngine = new RecommendationEngine(trackRepo, interactionRepo);
+
             // Khoi tao cac dich vu va ViewModel theo mo hinh Dependency Injection (Composition Root)
             _audioService = new NAudioService();
             var apiClient = new MusicApiClient("http://localhost:5245/api/v1");
-            var nowPlayingViewModel = new NowPlayingViewModel(_audioService);
-            _mainViewModel = new MainViewModel(apiClient, nowPlayingViewModel);
+            _nowPlayingViewModel = new NowPlayingViewModel(_audioService, recEngine, trackRepo);
+            _mainViewModel = new MainViewModel(
+                apiClient, 
+                _nowPlayingViewModel, 
+                trackRepo: trackRepo, 
+                playlistRepo: playlistRepo, 
+                queueRepo: queueRepo, 
+                settingsRepo: _settingsRepo, 
+                recEngine: recEngine);
 
             // Khoi tao cua so chinh va gan DataContext
             var mainWindow = new MainWindow
@@ -119,6 +149,27 @@ namespace MusicApp
         /// </summary>
         private void ReleaseResources()
         {
+            try
+            {
+                if (_settingsRepo != null)
+                {
+                    if (_nowPlayingViewModel != null)
+                    {
+                        _settingsRepo.SetSettingAsync("Volume", _nowPlayingViewModel.Volume.ToString("F2")).Wait(500);
+                    }
+                    if (_mainViewModel != null)
+                    {
+                        _settingsRepo.SetSettingAsync("Theme", _mainViewModel.IsDarkTheme ? "Dark" : "Light").Wait(500);
+                        _settingsRepo.SetSettingAsync("LastView", _mainViewModel.CurrentViewName).Wait(500);
+                        _mainViewModel.PlayQueue?.PersistQueueToDatabase();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning("Loi khi luu Settings truoc khi thoat: {0}", ex);
+            }
+
             try
             {
                 _mainViewModel?.Dispose();

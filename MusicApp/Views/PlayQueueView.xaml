@@ -94,6 +94,44 @@
 
                 <!-- Quick Actions -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Smart Shuffle Toggle Button -->
+                    <Button Command="{Binding ToggleSmartShuffleCommand}"
+                            Height="34"
+                            Padding="12,0"
+                            Margin="0,0,8,0"
+                            BorderThickness="1"
+                            Cursor="Hand"
+                            ToolTip="Smart Shuffle: Lựa chọn bài hát dựa trên gu nghe nhạc (Boltzmann Sampling)">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Background" Value="{DynamicResource CardSurfaceBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource SubtitleForegroundBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsSmartShuffle}" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource CardSurfaceBrush}" />
+                                        <Setter Property="Foreground" Value="{DynamicResource AccentBrandBrush}" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrandBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="6"
+                                        Padding="{TemplateBinding Padding}">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource IconShuffle}" Fill="{TemplateBinding Foreground}" Stretch="Uniform" Width="13" Height="13" Margin="0,0,6,0" />
+                                        <TextBlock Text="Smart Shuffle" FontSize="12" FontWeight="SemiBold" Foreground="{TemplateBinding Foreground}" />
+                                    </StackPanel>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
                     <!-- Play Next in Queue Button -->
                     <Button Command="{Binding PlayNextInQueueCommand}"
                             Content="Phát bài tiếp theo"

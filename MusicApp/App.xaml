@@ -23,6 +23,7 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MusicApp;component/Resources/Icons.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MusicApp;component/Resources/Themes/DarkTheme.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

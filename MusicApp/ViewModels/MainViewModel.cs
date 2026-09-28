@@ -10,7 +10,10 @@ using System.Windows;
 using MusicApp.Core.Common;
 using MusicApp.Core.Dtos;
 using MusicApp.Core.Interfaces;
+using MusicApp.Core.Interfaces.Persistence;
 using MusicApp.Core.Models;
+using MusicApp.Core.Persistence.Repositories;
+using MusicApp.Core.Services;
 
 namespace MusicApp.ViewModels
 {
@@ -102,10 +105,16 @@ namespace MusicApp.ViewModels
 
         public string ThemeButtonText => IsDarkTheme ? "Light Mode" : "Dark Mode";
 
+        private readonly ISettingsRepository _settingsRepo;
+        private readonly ITrackRepository _trackRepo;
+        private readonly RecommendationEngine _recEngine;
+
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; } = new ObservableCollection<NavigationItemViewModel>
         {
             new NavigationItemViewModel { Title = "Khám Phá", ViewKey = "Explore", IconSymbol = "✦", Category = "MENU CHÍNH" },
             new NavigationItemViewModel { Title = "Nhạc Việt Nam", ViewKey = "VietnameseMusic", IconSymbol = "♫", Category = "MENU CHÍNH" },
+            new NavigationItemViewModel { Title = "Bài Hát Yêu Thích", ViewKey = "Favorites", IconSymbol = "♥", Category = "THƯ VIỆN" },
+            new NavigationItemViewModel { Title = "Danh Sách Phát", ViewKey = "Playlists", IconSymbol = "♬", Category = "THƯ VIỆN" },
             new NavigationItemViewModel { Title = "Thư Viện Cá Nhân", ViewKey = "LocalLibrary", IconSymbol = "☷", Category = "THƯ VIỆN" },
             new NavigationItemViewModel { Title = "Hàng Đợi", ViewKey = "PlayQueue", IconSymbol = "☰", Category = "THƯ VIỆN" },
             new NavigationItemViewModel { Title = "Lời Bài Hát", ViewKey = "Lyrics", IconSymbol = "♫", Category = "TRÌNH PHÁT" },
@@ -138,6 +147,8 @@ namespace MusicApp.ViewModels
             }
         }
 
+        public FavoritesViewModel Favorites { get; }
+        public PlaylistsViewModel Playlists { get; }
         public LocalLibraryViewModel LocalLibrary { get; }
         public PlayQueueViewModel PlayQueue { get; }
         public LyricsViewModel Lyrics { get; }
@@ -151,14 +162,32 @@ namespace MusicApp.ViewModels
         public RelayCommand OpenEqualizerCommand => new RelayCommand(_ => NavigationCommand.Execute("Equalizer"));
         public RelayCommand EnqueueCommand => PlayQueue.EnqueueCommand;
 
-        public MainViewModel(IMusicApiClient apiClient, NowPlayingViewModel nowPlaying, ILocalLibraryService localLibraryService = null, IDspEqualizerService equalizerService = null)
+        public MainViewModel(
+            IMusicApiClient apiClient,
+            NowPlayingViewModel nowPlaying,
+            ILocalLibraryService localLibraryService = null,
+            IDspEqualizerService equalizerService = null,
+            ITrackRepository trackRepo = null,
+            IPlaylistRepository playlistRepo = null,
+            IQueueRepository queueRepo = null,
+            ISettingsRepository settingsRepo = null,
+            RecommendationEngine recEngine = null)
         {
             _apiClient = apiClient ?? throw new ArgumentNullException(nameof(apiClient));
             NowPlaying = nowPlaying ?? throw new ArgumentNullException(nameof(nowPlaying));
+            _trackRepo = trackRepo ?? new TrackRepository();
+            _settingsRepo = settingsRepo ?? new SettingsRepository();
+            _recEngine = recEngine;
 
-            PlayQueue = new PlayQueueViewModel(PlayTrack);
-            var libraryService = localLibraryService ?? new MusicApp.Core.Services.LocalLibraryService();
+            PlayQueue = new PlayQueueViewModel(PlayTrack, queueRepo, _recEngine);
+            Favorites = new FavoritesViewModel(_trackRepo, PlayTrack);
+            Playlists = new PlaylistsViewModel(playlistRepo ?? new PlaylistRepository(), _trackRepo, PlayTrack);
+
+            var libraryService = localLibraryService ?? new MusicApp.Core.Services.LocalLibraryService(_trackRepo);
             LocalLibrary = new LocalLibraryViewModel(libraryService, PlayTrack);
+
+            // Restore persistent queue from SQLite in background
+            Task.Run(() => PlayQueue.RestoreQueueFromDatabaseAsync());
 
             var lyricsService = new MusicApp.Core.Services.LyricsService();
             Lyrics = new LyricsViewModel(lyricsService, pos => NowPlaying.SeekCommand.Execute(pos.TotalSeconds));
@@ -555,6 +584,14 @@ namespace MusicApp.ViewModels
             {
                 SelectedGenre = "All";
             }
+            else if (viewKey == "Favorites")
+            {
+                Task.Run(async () => await Favorites.LoadFavoritesAsync().ConfigureAwait(false));
+            }
+            else if (viewKey == "Playlists")
+            {
+                Task.Run(async () => await Playlists.LoadPlaylistsAsync().ConfigureAwait(false));
+            }
 
             System.Diagnostics.Debug.WriteLine("[Navigation] Current view changed to: " + viewKey);
         }
@@ -697,8 +734,14 @@ namespace MusicApp.ViewModels
         /// </summary>
         private void PlayNextTrack()
         {
-            // Uu tien 1: Lay bai hat tiep theo trong hang doi PlayQueue neu co
-            var nextQueued = PlayQueue?.DequeueNext();
+            // Uu tien 1: Lay bai hat tiep theo trong hang doi PlayQueue neu co (ho tro Smart Shuffle)
+            int currentTrackId = 0;
+            if (NowPlaying.CurrentTrack != null)
+            {
+                int.TryParse(NowPlaying.CurrentTrack.Id, out currentTrackId);
+            }
+
+            var nextQueued = PlayQueue?.DequeueNext(currentTrackId);
             if (nextQueued != null)
             {
                 PlayTrack(nextQueued);

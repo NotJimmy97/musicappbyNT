@@ -43,6 +43,42 @@ namespace MusicApp.Core.Services
             ".ogg"
         };
 
+        private readonly ITrackRepository _trackRepo;
+
+        public LocalLibraryService(ITrackRepository trackRepo = null)
+        {
+            _trackRepo = trackRepo;
+        }
+
+        /// <summary>
+        /// Nap toan bo danh sach bai hat cuc bo truc tiep tu Database SQLite nhung (Cold Start < 80ms khong can doc dia).
+        /// </summary>
+        public async Task<IReadOnlyList<TrackModel>> LoadCachedTracksAsync()
+        {
+            if (_trackRepo == null) return new List<TrackModel>();
+
+            var entities = await _trackRepo.GetAllLocalTracksAsync().ConfigureAwait(false);
+            var result = new List<TrackModel>();
+
+            foreach (var e in entities)
+            {
+                result.Add(new TrackModel
+                {
+                    Id = e.SourceId != null ? "local_" + Math.Abs(e.SourceId.ToLowerInvariant().GetHashCode()).ToString("X8") : "local_" + e.Id,
+                    Title = e.Title,
+                    Artist = e.Artist,
+                    Album = e.Album,
+                    Genre = e.Genre,
+                    DurationSeconds = e.DurationSeconds,
+                    CoverImageUrl = e.CoverUri,
+                    StreamUrl = e.SourceId,
+                    License = "Offline Local Media"
+                });
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Quet thu muc bat dong bo tren luong Worker Thread, lien tuc phat bao cao tien do qua progress.
         /// </summary>
@@ -65,9 +101,11 @@ namespace MusicApp.Core.Services
                 throw new DirectoryNotFoundException("Thu muc chi dinh khong ton tai: " + directoryPath);
             }
 
-            return Task.Run<IReadOnlyList<TrackModel>>(() =>
+            return Task.Run<IReadOnlyList<TrackModel>>(async () =>
             {
                 var tracks = new List<TrackModel>();
+                var entitiesToSave = new List<TrackEntity>();
+                var allFoundFiles = new List<string>();
                 int filesScanned = 0;
 
                 // Duyet an toan qua tung tap tin am thanh
@@ -78,10 +116,32 @@ namespace MusicApp.Core.Services
                     cancellationToken.ThrowIfCancellationRequested();
 
                     filesScanned++;
+                    allFoundFiles.Add(filePath);
                     TrackModel track = ExtractTrackFromFile(filePath);
                     if (track != null)
                     {
                         tracks.Add(track);
+
+                        if (_trackRepo != null)
+                        {
+                            string mtime = null;
+                            try { mtime = File.GetLastWriteTimeUtc(filePath).ToString("o"); } catch { }
+
+                            entitiesToSave.Add(new TrackEntity
+                            {
+                                TrackKey = Common.TrackIdentityHelper.GenerateTrackKey(track.Title, track.Artist),
+                                SourceType = "local",
+                                SourceId = filePath,
+                                Title = track.Title,
+                                Artist = track.Artist,
+                                Album = track.Album,
+                                Genre = track.Genre,
+                                DurationSeconds = track.DurationSeconds,
+                                CoverUri = track.CoverImageUrl,
+                                FileMTime = mtime,
+                                CreatedAt = DateTime.UtcNow.ToString("o")
+                            });
+                        }
                     }
 
                     // Phat tin hieu cap nhat tien do len UI thread
@@ -91,6 +151,13 @@ namespace MusicApp.Core.Services
                         TracksFound = tracks.Count,
                         CurrentFile = Path.GetFileName(filePath)
                     });
+                }
+
+                // Luu cache vao database de lan sau khong can scan lai
+                if (_trackRepo != null && entitiesToSave.Count > 0)
+                {
+                    await _trackRepo.BatchInsertOrUpdateAsync(entitiesToSave).ConfigureAwait(false);
+                    await _trackRepo.DeleteTracksNotInFilesAsync(allFoundFiles).ConfigureAwait(false);
                 }
 
                 return tracks;

@@ -17,6 +17,9 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Microsoft.Owin.Testing" Version="4.2.2" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.10" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.10" />
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.118.0" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -43,10 +46,6 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsBase" />
-    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-      <HintPath>C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\PublicAssemblies\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\MusicApp.Core\MusicApp.Core.csproj">
@@ -75,6 +74,12 @@
     <Compile Include="PlayQueueTests.cs" />
     <Compile Include="LyricsTests.cs" />
     <Compile Include="DspEqualizerTests.cs" />
+    <Compile Include="DatabaseInitializerTests.cs" />
+    <Compile Include="TrackRepositoryTests.cs" />
+    <Compile Include="PlaylistRepositoryTests.cs" />
+    <Compile Include="QueueRepositoryTests.cs" />
+    <Compile Include="RecommendationEngineTests.cs" />
+    <Compile Include="LocalAudioCacheServiceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -91,8 +91,8 @@
                         <!-- Outer Vinyl Base -->
                         <Border Width="120" Height="120"
                                 CornerRadius="60"
-                                Background="#121212"
-                                BorderBrush="#282828"
+                                Background="{DynamicResource VinylBaseBrush}"
+                                BorderBrush="{DynamicResource VinylBorderBrush}"
                                 BorderThickness="2">
                             <Grid>
                                 <!-- Grooves -->
@@ -141,6 +141,31 @@
                                    TextTrimming="CharacterEllipsis"
                                    MaxWidth="380"
                                    VerticalAlignment="Center" />
+
+                        <!-- Heart Favorite Button -->
+                        <Button Command="{Binding ToggleFavoriteCommand}"
+                                Width="26" Height="26"
+                                Margin="10,0,0,0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                VerticalAlignment="Center"
+                                ToolTip="Thêm/Xóa khỏi danh sách yêu thích">
+                            <Path Stretch="Uniform" Width="14" Height="14">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Data" Value="{StaticResource IconHeartOutline}" />
+                                        <Setter Property="Fill" Value="{DynamicResource SubtitleForegroundBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsCurrentTrackFavorite}" Value="True">
+                                                <Setter Property="Data" Value="{StaticResource IconHeartFilled}" />
+                                                <Setter Property="Fill" Value="{DynamicResource AccentBrandBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                        </Button>
                     </StackPanel>
 
                     <!-- Subtitle: Artist & Album (16px per widget.html p) -->

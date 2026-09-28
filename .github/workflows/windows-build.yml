@@ -1,0 +1,48 @@
+name: Windows Desktop Build & Verification
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    name: Build & Test on Windows
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup NuGet
+      uses: nuget/setup-nuget@v2
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Setup VSTest
+      uses: darenm/Setup-VSTest@v1.2
+
+    - name: Restore NuGet Packages
+      run: nuget restore MusicApp.sln -Verbosity normal
+
+    - name: Build Solution (Release)
+      run: msbuild MusicApp.sln /p:Configuration=Release /p:Platform="Any CPU" /m /v:m
+
+    - name: Run Unit Tests
+      run: vstest.console.exe tests\MusicApp.Tests\bin\Release\MusicApp.Tests.dll /Platform:x86 /TestCaseFilter:"TestCategory!=Integration"
+
+    - name: Package Release Binaries
+      if: success()
+      run: |
+        powershell Compress-Archive -Path "MusicApp\bin\Release\*" -DestinationPath "MusicApp-Windows-Release.zip" -Force
+
+    - name: Upload Build Artifacts
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: MusicApp-Windows-Release
+        path: MusicApp-Windows-Release.zip
+        retention-days: 14

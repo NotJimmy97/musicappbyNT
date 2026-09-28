@@ -2,9 +2,12 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading.Tasks;
 using GongSolutions.Wpf.DragDrop;
 using MusicApp.Core.Common;
+using MusicApp.Core.Interfaces.Persistence;
 using MusicApp.Core.Models;
+using MusicApp.Core.Services;
 
 namespace MusicApp.ViewModels
 {
@@ -30,6 +33,17 @@ namespace MusicApp.ViewModels
     public class PlayQueueViewModel : ObservableObject, IDropTarget
     {
         private readonly Action<TrackModel> _onPlayTrack;
+        private readonly IQueueRepository _queueRepo;
+        private readonly RecommendationEngine _recEngine;
+
+        private bool _isSmartShuffle;
+        public bool IsSmartShuffle
+        {
+            get => _isSmartShuffle;
+            set => SetProperty(ref _isSmartShuffle, value);
+        }
+
+        public RelayCommand ToggleSmartShuffleCommand { get; }
 
         /// <summary>
         /// Danh sach cac bai hat dang nam trong hang doi phat.
@@ -118,11 +132,17 @@ namespace MusicApp.ViewModels
         /// Khoi tao PlayQueueViewModel voi callback phat nhac va dang ky su kien thay doi danh sach.
         /// </summary>
         /// <param name="onPlayTrack">Callback phat bai hat.</param>
-        public PlayQueueViewModel(Action<TrackModel> onPlayTrack)
+        /// <param name="queueRepo">Kho luu tru hang doi SQLite.</param>
+        /// <param name="recEngine">Dong co de xuat thong minh.</param>
+        public PlayQueueViewModel(Action<TrackModel> onPlayTrack, IQueueRepository queueRepo = null, RecommendationEngine recEngine = null)
         {
             _onPlayTrack = onPlayTrack;
+            _queueRepo = queueRepo;
+            _recEngine = recEngine;
 
             QueueTracks.CollectionChanged += OnQueueTracksCollectionChanged;
+
+            ToggleSmartShuffleCommand = new RelayCommand(_ => IsSmartShuffle = !IsSmartShuffle);
 
             EnqueueCommand = new RelayCommand(p =>
             {
@@ -184,19 +204,110 @@ namespace MusicApp.ViewModels
             });
 
             QueueTracks.Add(itemVm);
+            PersistQueueToDatabase();
         }
 
         /// <summary>
-        /// Lay ra va xoa ban nhac dau tien trong hang doi (FIFO) de bat dau phat.
+        /// Lay ra va xoa ban nhac tiep theo trong hang doi de bat dau phat.
+        /// Neu Smart Shuffle duoc bat, lua chon dua tren phan phoi xac suat Boltzmann.
         /// </summary>
-        /// <returns>Doi tuong TrackModel dau hang doi, hoac null neu hang doi rong.</returns>
-        public TrackModel DequeueNext()
+        /// <returns>Doi tuong TrackModel tiep theo, hoac null neu hang doi rong.</returns>
+        public TrackModel DequeueNext(int currentTrackId = 0)
         {
             if (QueueTracks.Count == 0) return null;
 
+            if (IsSmartShuffle && _recEngine != null && QueueTracks.Count > 1)
+            {
+                var pool = QueueTracks.Select(q =>
+                {
+                    int.TryParse(q.Track.Id, out int id);
+                    return new TrackEntity
+                    {
+                        Id = id,
+                        Title = q.Track.Title,
+                        Artist = q.Track.Artist
+                    };
+                }).ToList();
+
+                var chosen = _recEngine.PickSmartShuffleNext(pool, currentTrackId);
+                if (chosen != null)
+                {
+                    var found = QueueTracks.FirstOrDefault(q => q.Track.Id == chosen.Id.ToString()) ?? QueueTracks[0];
+                    QueueTracks.Remove(found);
+                    PersistQueueToDatabase();
+                    return found.Track;
+                }
+            }
+
             var first = QueueTracks[0];
             QueueTracks.RemoveAt(0);
+            PersistQueueToDatabase();
             return first.Track;
+        }
+
+        /// <summary>
+        /// Luu tru danh sach ID cac bai hat trong hang doi vao SQLite.
+        /// </summary>
+        public void PersistQueueToDatabase()
+        {
+            if (_queueRepo == null) return;
+            var ids = QueueTracks
+                .Select(q => int.TryParse(q.Track.Id, out int id) ? (int?)id : null)
+                .Where(id => id.HasValue)
+                .Select(id => id.Value)
+                .ToList();
+
+            Task.Run(() => _queueRepo.SaveQueueAsync(ids));
+        }
+
+        /// <summary>
+        /// Khoi phuc hang doi tu SQLite khi ung dung khoi dong.
+        /// </summary>
+        public async Task RestoreQueueFromDatabaseAsync()
+        {
+            if (_queueRepo == null) return;
+            try
+            {
+                var entities = await _queueRepo.LoadQueueAsync().ConfigureAwait(false);
+                var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                Action populate = () =>
+                {
+                    foreach (var e in entities)
+                    {
+                        var track = new TrackModel
+                        {
+                            Id = e.Id.ToString(),
+                            Title = e.Title,
+                            Artist = e.Artist,
+                            Album = e.Album,
+                            DurationSeconds = e.DurationSeconds,
+                            CoverImageUrl = e.CoverUri,
+                            StreamUrl = e.SourceType == "local" ? e.SourceId : e.SourceId,
+                            Genre = e.Genre
+                        };
+                        var itemVm = new TrackItemViewModel(track, t =>
+                        {
+                            var found = QueueTracks.FirstOrDefault(q => q.Track.Id == t.Id);
+                            if (found != null) QueueTracks.Remove(found);
+                            _onPlayTrack?.Invoke(t);
+                        });
+                        QueueTracks.Add(itemVm);
+                    }
+                };
+
+                if (dispatcher != null && !dispatcher.CheckAccess())
+                {
+                    dispatcher.Invoke(populate);
+                }
+                else
+                {
+                    populate();
+                }
+            }
+            catch
+            {
+                // Bo qua loi nap queue khi khoi dong
+            }
         }
 
         /// <summary>
@@ -208,6 +319,7 @@ namespace MusicApp.ViewModels
             if (item != null && QueueTracks.Contains(item))
             {
                 QueueTracks.Remove(item);
+                PersistQueueToDatabase();
             }
         }
 
@@ -223,6 +335,7 @@ namespace MusicApp.ViewModels
                 oldIndex != newIndex)
             {
                 QueueTracks.Move(oldIndex, newIndex);
+                PersistQueueToDatabase();
             }
         }
 
@@ -232,6 +345,7 @@ namespace MusicApp.ViewModels
         public void Clear()
         {
             QueueTracks.Clear();
+            PersistQueueToDatabase();
         }
 
         /// <summary>
@@ -274,6 +388,7 @@ namespace MusicApp.ViewModels
         {
             GongSolutions.Wpf.DragDrop.DragDrop.DefaultDropHandler.Drop(dropInfo);
             UpdateQueueStats();
+            PersistQueueToDatabase();
         }
     }
 }
