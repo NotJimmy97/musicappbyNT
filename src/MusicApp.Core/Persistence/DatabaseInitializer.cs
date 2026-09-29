@@ -5,14 +5,9 @@ using System.IO;
 namespace MusicApp.Core.Persistence
 {
     /// <summary>
-    /// Khởi tạo và quản lý cấu trúc cơ sở dữ liệu SQLite.
+    /// Lop khoi tao va quan ly vong doi co so du lieu SQLite nhung (SQLite Database Initializer).
+    /// Tu dong thiet lap cau hinh WAL mode toc do cao, tao 9 bang schema va seed cac preset ban dau.
     /// </summary>
-    /// <remarks>
-    /// Chịu trách nhiệm: Đảm bảo tạo bảng và migrate schema khi app khởi động.
-    /// KHÔNG chịu trách nhiệm: Chứa logic truy vấn dữ liệu CRUD.
-    /// Vòng đời: Các phương thức tĩnh, chạy một lần khi startup.
-    /// Luồng/DB: Quản lý ConnectionString tĩnh và thực thi đồng bộ khi khởi động.
-    /// </remarks>
     public static class DatabaseInitializer
     {
         private static string _customConnectionString;

@@ -9,15 +9,6 @@ using MusicApp.Core.Models;
 
 namespace MusicApp.Core.Persistence.Repositories
 {
-    /// <summary>
-    /// Repository quản lý dữ liệu bài hát.
-    /// </summary>
-    /// <remarks>
-    /// Chịu trách nhiệm: Lưu trữ metadata bản nhạc offline và cache trực tuyến.
-    /// KHÔNG chịu trách nhiệm: Tải stream hay quét thư mục.
-    /// Vòng đời: Transient/Scoped.
-    /// Luồng/DB: Thao tác DB qua Task bất đồng bộ.
-    /// </remarks>
     public class TrackRepository : ITrackRepository
     {
         private readonly string _connectionString;

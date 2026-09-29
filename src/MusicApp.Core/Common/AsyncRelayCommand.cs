@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -47,6 +48,7 @@ namespace MusicApp.Core.Common
         {
             if (!CanExecute(parameter)) return;
 
+            var syncContext = SynchronizationContext.Current;
             try
             {
                 _isExecuting = true;
@@ -56,7 +58,14 @@ namespace MusicApp.Core.Common
             finally
             {
                 _isExecuting = false;
-                RaiseCanExecuteChanged();
+                if (syncContext != null)
+                {
+                    syncContext.Post(_ => RaiseCanExecuteChanged(), null);
+                }
+                else
+                {
+                    RaiseCanExecuteChanged();
+                }
             }
         }
 

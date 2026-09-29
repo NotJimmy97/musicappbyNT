@@ -73,7 +73,18 @@ namespace MusicApp.ViewModels
         public bool IsSearching
         {
             get => _isSearching;
-            set => SetProperty(ref _isSearching, value);
+            set
+            {
+                var dispatcher = Application.Current?.Dispatcher;
+                if (dispatcher != null && !dispatcher.CheckAccess())
+                {
+                    dispatcher.InvokeAsync(() => SetProperty(ref _isSearching, value));
+                }
+                else
+                {
+                    SetProperty(ref _isSearching, value);
+                }
+            }
         }
 
         private bool _isDarkTheme = true;
@@ -620,6 +631,8 @@ namespace MusicApp.ViewModels
             }
         }
 
+        private Task _activeSearchTask;
+
         /// <summary>
         /// Xu ly khi tu khoa tim kiem thay doi kem theo co che Debounce 400ms.
         /// </summary>
@@ -634,7 +647,7 @@ namespace MusicApp.ViewModels
             _debounceCts = new CancellationTokenSource();
 
             var token = _debounceCts.Token;
-            Task.Run(async () =>
+            _activeSearchTask = Task.Run(async () =>
             {
                 try
                 {
@@ -645,6 +658,14 @@ namespace MusicApp.ViewModels
                 {
                 }
             }, token);
+
+            _activeSearchTask.ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    System.Diagnostics.Debug.WriteLine("Search debounce task faulted: " + t.Exception);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         /// <summary>
@@ -659,7 +680,14 @@ namespace MusicApp.ViewModels
             _debounceCts = new CancellationTokenSource();
 
             var token = _debounceCts.Token;
-            Task.Run(async () => await ExecuteSearchAsync(SearchKeyword, token).ConfigureAwait(false));
+            _activeSearchTask = ExecuteSearchAsync(SearchKeyword, token);
+            _activeSearchTask.ContinueWith(t =>
+            {
+                if (t.IsFaulted)
+                {
+                    System.Diagnostics.Debug.WriteLine("Immediate search task faulted: " + t.Exception);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         /// <summary>
@@ -788,6 +816,8 @@ namespace MusicApp.ViewModels
             {
                 Application.Current.Resources.MergedDictionaries.Clear();
                 Application.Current.Resources.MergedDictionaries.Add(newDict);
+                var iconsUri = new Uri("pack://application:,,,/MusicApp;component/Resources/Icons.xaml", UriKind.Absolute);
+                Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = iconsUri });
             }
         }
 

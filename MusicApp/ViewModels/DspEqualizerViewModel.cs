@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using MusicApp.Core.Common;
 using MusicApp.Core.Interfaces;
+using MusicApp.Core.Models;
 
 namespace MusicApp.ViewModels
 {
@@ -24,23 +25,12 @@ namespace MusicApp.ViewModels
         private readonly IDspEqualizerService _equalizerService;
         private bool _isUpdatingInternally;
 
-        // Bang cac duong cong am thanh cai dat san (Preset Curves) tinh theo do loi dB tren 10 bang tan
-        private static readonly Dictionary<string, float[]> PresetCurves = new Dictionary<string, float[]>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "Flat", new float[] { 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f } },
-            { "Rock", new float[] { 4.5f, 3.5f, 2.0f, -1.0f, -1.5f, 1.0f, 2.5f, 3.5f, 4.5f, 4.5f } },
-            { "Pop", new float[] { -1.5f, -1.0f, 1.0f, 2.5f, 3.5f, 3.0f, 1.5f, 0.5f, -0.5f, -1.0f } },
-            { "Jazz", new float[] { 3.0f, 2.5f, 1.0f, 1.5f, -1.0f, -1.0f, 0.0f, 1.5f, 2.5f, 3.0f } },
-            { "Classical", new float[] { 4.0f, 3.5f, 3.0f, 2.0f, -1.5f, -1.5f, 0.0f, 2.0f, 3.0f, 3.5f } },
-            { "Bass Boost", new float[] { 7.0f, 6.0f, 5.0f, 3.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f } },
-            { "Vocal Boost", new float[] { -2.0f, -2.0f, -1.0f, 1.5f, 3.5f, 3.5f, 2.5f, 1.0f, 0.0f, -1.0f } }
-        };
+        // Bang cac duong cong am thanh cai dat san (Preset Curves) doc tu EqPresetCatalog (Single Source of Truth)
+        private static readonly Dictionary<string, float[]> PresetCurves =
+            EqPresetCatalog.AllPresets.ToDictionary(p => p.Name, p => p.Gains, StringComparer.OrdinalIgnoreCase);
 
         // Nhan van ban tan so trung tam hien thi phia duoi tung Slider
-        private static readonly string[] BandLabels = new string[]
-        {
-            "32Hz", "64Hz", "125Hz", "250Hz", "500Hz", "1kHz", "2kHz", "4kHz", "8kHz", "16kHz"
-        };
+        private static readonly string[] BandLabels = EqPresetCatalog.BandLabels;
 
         /// <summary>
         /// Tap hop 10 ViewModel dai dien cho 10 dai tan so Slider tren giao dien.

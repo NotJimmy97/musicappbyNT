@@ -26,8 +26,20 @@ namespace MusicApp.Bff.Providers
     /// </remarks>
     public class JamendoSourceProvider : IMusicSourceProvider
     {
-        private const string JamendoClientId = "c4eead12";
+        public const string DefaultJamendoClientId = "c4eead12";
+        public string ClientId { get; }
         private const string BaseApiUrl = "https://api.jamendo.com/v3.0/tracks/";
+
+        /// <summary>
+        /// Khoi tao JamendoSourceProvider voi ClientId tuy chon hoac doc tu bien moi truong / app.config.
+        /// </summary>
+        public JamendoSourceProvider(string clientId = null)
+        {
+            ClientId = clientId
+                ?? Environment.GetEnvironmentVariable("JAMENDO_CLIENT_ID")
+                ?? System.Configuration.ConfigurationManager.AppSettings["JamendoClientId"]
+                ?? DefaultJamendoClientId;
+        }
 
         private static readonly HttpClient HttpClientInstance;
 
@@ -220,7 +232,7 @@ namespace MusicApp.Bff.Providers
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token))
                 {
                     string encodedQuery = Uri.EscapeDataString(query ?? string.Empty);
-                    string url = $"{BaseApiUrl}?client_id={JamendoClientId}&format=jsonpretty&limit={limit}&namesearch={encodedQuery}&include=musicinfo";
+                    string url = $"{BaseApiUrl}?client_id={ClientId}&format=jsonpretty&limit={limit}&namesearch={encodedQuery}&include=musicinfo";
 
                     using (var response = await HttpClientInstance.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, linkedCts.Token).ConfigureAwait(false))
                     {

@@ -392,6 +392,16 @@
         <DataTemplate x:Key="EqualizerTemplate">
             <views:DspEqualizerView DataContext="{Binding Equalizer}" />
         </DataTemplate>
+
+        <!-- Template 6: Favorites View -->
+        <DataTemplate x:Key="FavoritesTemplate">
+            <views:FavoritesView DataContext="{Binding Favorites}" />
+        </DataTemplate>
+
+        <!-- Template 7: Playlists View -->
+        <DataTemplate x:Key="PlaylistsTemplate">
+            <views:PlaylistsView DataContext="{Binding Playlists}" />
+        </DataTemplate>
     </Window.Resources>
 
     <!-- Master Shell Layout: 2-Row Grid (Row 0: 2-Column Work Area, Row 1: Fixed Bottom Player Bar) -->
@@ -427,6 +437,12 @@
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentViewName}" Value="VietnameseMusic">
                                     <Setter Property="ContentTemplate" Value="{StaticResource ExploreCatalogTemplate}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentViewName}" Value="Favorites">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource FavoritesTemplate}" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CurrentViewName}" Value="Playlists">
+                                    <Setter Property="ContentTemplate" Value="{StaticResource PlaylistsTemplate}" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding CurrentViewName}" Value="LocalLibrary">
                                     <Setter Property="ContentTemplate" Value="{StaticResource LocalLibraryTemplate}" />

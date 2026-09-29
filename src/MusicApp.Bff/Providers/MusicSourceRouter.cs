@@ -34,12 +34,12 @@ namespace MusicApp.Bff.Providers
         public VietnameseMusicSourceProvider Vietnamese { get; }
 
         /// <summary>
-        /// Khoi tao bo dinh tuyen nguon nhac va cac provider thanh phan.
+        /// Khoi tao bo dinh tuyen nguon nhac va cac provider thanh phan (ho tro dependency injection).
         /// </summary>
-        public MusicSourceRouter()
+        public MusicSourceRouter(JamendoSourceProvider jamendo = null, VietnameseMusicSourceProvider vietnamese = null)
         {
-            Jamendo = new JamendoSourceProvider();
-            Vietnamese = new VietnameseMusicSourceProvider();
+            Jamendo = jamendo ?? new JamendoSourceProvider();
+            Vietnamese = vietnamese ?? new VietnameseMusicSourceProvider();
         }
 
         /// <summary>

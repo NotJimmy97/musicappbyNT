@@ -45,6 +45,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MusicApp.Core\MusicApp.Core.csproj">

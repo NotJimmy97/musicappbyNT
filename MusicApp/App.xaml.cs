@@ -153,15 +153,20 @@ namespace MusicApp
             {
                 if (_settingsRepo != null)
                 {
+                    var tasks = new List<Task>();
                     if (_nowPlayingViewModel != null)
                     {
-                        _settingsRepo.SetSettingAsync("Volume", _nowPlayingViewModel.Volume.ToString("F2")).Wait(500);
+                        tasks.Add(_settingsRepo.SetSettingAsync("Volume", _nowPlayingViewModel.Volume.ToString("F2")));
                     }
                     if (_mainViewModel != null)
                     {
-                        _settingsRepo.SetSettingAsync("Theme", _mainViewModel.IsDarkTheme ? "Dark" : "Light").Wait(500);
-                        _settingsRepo.SetSettingAsync("LastView", _mainViewModel.CurrentViewName).Wait(500);
+                        tasks.Add(_settingsRepo.SetSettingAsync("Theme", _mainViewModel.IsDarkTheme ? "Dark" : "Light"));
+                        tasks.Add(_settingsRepo.SetSettingAsync("LastView", _mainViewModel.CurrentViewName));
                         _mainViewModel.PlayQueue?.PersistQueueToDatabase();
+                    }
+                    if (tasks.Count > 0)
+                    {
+                        Task.WaitAll(tasks.ToArray(), 1500);
                     }
                 }
             }

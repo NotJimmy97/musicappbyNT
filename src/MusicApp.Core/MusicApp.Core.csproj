@@ -60,6 +60,7 @@
     <Compile Include="Models\StreamCacheEntity.cs" />
     <Compile Include="Models\UserInteractionEntity.cs" />
     <Compile Include="Models\EqPresetEntity.cs" />
+    <Compile Include="Models\EqPresetCatalog.cs" />
     <Compile Include="Dtos\SearchResponseDto.cs" />
     <Compile Include="Dtos\TrackDto.cs" />
     <Compile Include="Interfaces\IAudioService.cs" />

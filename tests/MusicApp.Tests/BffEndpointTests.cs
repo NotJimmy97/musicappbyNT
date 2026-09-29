@@ -31,6 +31,7 @@ namespace MusicApp.Tests
     ///   4. Cleanup(): Giai phong HttpClient va TestServer sau moi ca kiem thu de tranh ro ri bo nho.
     /// </summary>
     [TestClass]
+    [TestCategory("Integration")]
     public class BffEndpointTests
     {
         private TestServer _server;
@@ -61,6 +62,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task SearchEndpoint_WithValidQuery_Returns200OkWithStreamEndpoint()
         {
             var response = await _client.GetAsync("api/v1/search?query=electronic&limit=3");
@@ -82,6 +84,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task SearchEndpoint_WithEmptyQuery_Returns400BadRequest()
         {
             var response = await _client.GetAsync("api/v1/search?query=&limit=10");
@@ -89,6 +92,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task StreamEndpoint_WithRangeHeader_ProxiesAudioContent()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/stream/jamendo_track_1849201");
@@ -104,6 +108,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task SearchEndpoint_WithVietnameseQuery_ReturnsVietnameseTracks()
         {
             var response = await _client.GetAsync("api/v1/search?query=vietnam&limit=5");
@@ -124,6 +129,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task SearchEndpoint_WithAccentInsensitiveQuery_MatchesVietnameseTitle()
         {
             var response = await _client.GetAsync("api/v1/search?query=diem%20xua&limit=1");
@@ -139,6 +145,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task StreamEndpoint_WithVietnameseTrack_ProxiesAudioContent()
         {
             var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/stream/vn_track_01");
