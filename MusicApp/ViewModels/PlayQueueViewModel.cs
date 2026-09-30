@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using GongSolutions.Wpf.DragDrop;
 using MusicApp.Core.Common;
@@ -28,6 +29,7 @@ namespace MusicApp.ViewModels
         private readonly Action<TrackModel> _onPlayTrack;
         private readonly IQueueRepository _queueRepo;
         private readonly RecommendationEngine _recEngine;
+        private readonly SemaphoreSlim _queueSaveLock = new SemaphoreSlim(1, 1);
 
         private bool _isSmartShuffle;
         public bool IsSmartShuffle
@@ -239,9 +241,9 @@ namespace MusicApp.ViewModels
         }
 
         /// <summary>
-        /// Luu tru danh sach ID cac bai hat trong hang doi vao SQLite.
+        /// Luu tru danh sach ID cac bai hat trong hang doi vao SQLite bat dong bo, tuan tu hoa qua SemaphoreSlim.
         /// </summary>
-        public void PersistQueueToDatabase()
+        public async Task PersistQueueToDatabaseAsync()
         {
             if (_queueRepo == null) return;
             var ids = QueueTracks
@@ -250,7 +252,23 @@ namespace MusicApp.ViewModels
                 .Select(id => id.Value)
                 .ToList();
 
-            Task.Run(() => _queueRepo.SaveQueueAsync(ids));
+            await _queueSaveLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                await _queueRepo.SaveQueueAsync(ids).ConfigureAwait(false);
+            }
+            finally
+            {
+                _queueSaveLock.Release();
+            }
+        }
+
+        /// <summary>
+        /// Luu tru danh sach ID cac bai hat trong hang doi vao SQLite (fire-and-forget an toan).
+        /// </summary>
+        public void PersistQueueToDatabase()
+        {
+            Task.Run(async () => await PersistQueueToDatabaseAsync().ConfigureAwait(false));
         }
 
         /// <summary>

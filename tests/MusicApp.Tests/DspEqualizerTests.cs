@@ -301,8 +301,8 @@ namespace MusicApp.Tests
             using (var nowPlayingVm = new NowPlayingViewModel(fakeAudio))
             using (var mainVm = new MainViewModel(fakeApi, nowPlayingVm))
             {
-                // Verify 6 navigation items
-                Assert.AreEqual(6, mainVm.NavigationItems.Count);
+                // Verify 8 navigation items
+                Assert.AreEqual(8, mainVm.NavigationItems.Count);
                 Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Equalizer"));
 
                 // Navigate to Equalizer view

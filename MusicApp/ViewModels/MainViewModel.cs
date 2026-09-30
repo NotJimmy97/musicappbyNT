@@ -105,6 +105,7 @@ namespace MusicApp.ViewModels
         private readonly ISettingsRepository _settingsRepo;
         private readonly ITrackRepository _trackRepo;
         private readonly RecommendationEngine _recEngine;
+        private CancellationTokenSource _playbackCts;
 
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; } = new ObservableCollection<NavigationItemViewModel>
         {
@@ -599,11 +600,20 @@ namespace MusicApp.ViewModels
         /// <param name="track">Ban nhac can phat.</param>
         public void PlayTrack(TrackModel track)
         {
-            if (track != null)
+            if (track == null) return;
+
+            _playbackCts?.Cancel();
+            _playbackCts?.Dispose();
+            _playbackCts = new CancellationTokenSource();
+            var token = _playbackCts.Token;
+
+            Task.Run(async () =>
             {
-                Task.Run(async () => await NowPlaying.PlayTrackAsync(track).ConfigureAwait(false));
-                Task.Run(async () => await Lyrics.LoadLyricsForTrackAsync(track).ConfigureAwait(false));
-            }
+                if (token.IsCancellationRequested) return;
+                await NowPlaying.PlayTrackAsync(track).ConfigureAwait(false);
+                if (token.IsCancellationRequested) return;
+                await Lyrics.LoadLyricsForTrackAsync(track).ConfigureAwait(false);
+            }, token);
         }
 
         /// <summary>
@@ -857,6 +867,8 @@ namespace MusicApp.ViewModels
         {
             _debounceCts?.Cancel();
             _debounceCts?.Dispose();
+            _playbackCts?.Cancel();
+            _playbackCts?.Dispose();
             NowPlaying?.Dispose();
             _apiClient?.Dispose();
         }

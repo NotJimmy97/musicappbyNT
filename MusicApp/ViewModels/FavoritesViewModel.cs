@@ -88,8 +88,8 @@ namespace MusicApp.ViewModels
         }
 
         public RelayCommand PlayAllCommand { get; }
-        public RelayCommand RefreshCommand { get; }
-        public RelayCommand RemoveFavoriteCommand { get; }
+        public AsyncRelayCommand RefreshCommand { get; }
+        public AsyncRelayCommand RemoveFavoriteCommand { get; }
 
         public FavoritesViewModel(ITrackRepository trackRepo, Action<TrackModel> onPlayTrack)
         {
@@ -104,9 +104,9 @@ namespace MusicApp.ViewModels
                 }
             }, _ => FavoriteTracks.Count > 0);
 
-            RefreshCommand = new RelayCommand(async _ => await LoadFavoritesAsync());
+            RefreshCommand = new AsyncRelayCommand(async _ => await LoadFavoritesAsync());
 
-            RemoveFavoriteCommand = new RelayCommand(async p =>
+            RemoveFavoriteCommand = new AsyncRelayCommand(async p =>
             {
                 if (p is TrackItemViewModel itemVm)
                 {
@@ -189,8 +189,19 @@ namespace MusicApp.ViewModels
                 totalSec += t.DurationSeconds;
             }
 
+            RecalculateStatistics();
+        }
+
+        private void RecalculateStatistics()
+        {
             TotalTracksCount = FavoriteTracks.Count;
+            int totalSec = 0;
+            for (int i = 0; i < FavoriteTracks.Count; i++)
+            {
+                totalSec += FavoriteTracks[i].Track.DurationSeconds;
+            }
             TotalDuration = TimeSpan.FromSeconds(totalSec);
+            OnPropertyChanged(nameof(FormattedTotalDuration));
             PlayAllCommand?.RaiseCanExecuteChanged();
         }
 
@@ -202,23 +213,21 @@ namespace MusicApp.ViewModels
                 await _trackRepo.ToggleFavoriteAsync(trackId).ConfigureAwait(false);
             }
 
-            var dispatcher = System.Windows.Application.Current?.Dispatcher;
-            if (dispatcher != null && !dispatcher.CheckAccess())
-            {
-                dispatcher.Invoke(() =>
-                {
-                    _allFavorites.RemoveAll(t => t.Id == itemVm.Track.Id);
-                    FavoriteTracks.Remove(itemVm);
-                    TotalTracksCount = FavoriteTracks.Count;
-                    PlayAllCommand?.RaiseCanExecuteChanged();
-                });
-            }
-            else
+            Action updateAction = () =>
             {
                 _allFavorites.RemoveAll(t => t.Id == itemVm.Track.Id);
                 FavoriteTracks.Remove(itemVm);
-                TotalTracksCount = FavoriteTracks.Count;
-                PlayAllCommand?.RaiseCanExecuteChanged();
+                RecalculateStatistics();
+            };
+
+            var dispatcher = System.Windows.Application.Current?.Dispatcher;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.Invoke(updateAction);
+            }
+            else
+            {
+                updateAction();
             }
         }
     }

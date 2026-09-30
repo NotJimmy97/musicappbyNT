@@ -56,10 +56,10 @@ namespace MusicApp.ViewModels
             set => SetProperty(ref _isLoading, value);
         }
 
-        public RelayCommand CreatePlaylistCommand { get; }
-        public RelayCommand DeletePlaylistCommand { get; }
-        public RelayCommand OpenPlaylistCommand { get; }
-        public RelayCommand RefreshCommand { get; }
+        public AsyncRelayCommand CreatePlaylistCommand { get; }
+        public AsyncRelayCommand DeletePlaylistCommand { get; }
+        public AsyncRelayCommand OpenPlaylistCommand { get; }
+        public AsyncRelayCommand RefreshCommand { get; }
 
         public PlaylistsViewModel(IPlaylistRepository playlistRepo, ITrackRepository trackRepo, Action<TrackModel> onPlayTrack)
         {
@@ -67,9 +67,9 @@ namespace MusicApp.ViewModels
             _trackRepo = trackRepo ?? throw new ArgumentNullException(nameof(trackRepo));
             _onPlayTrack = onPlayTrack;
 
-            RefreshCommand = new RelayCommand(async _ => await LoadPlaylistsAsync());
+            RefreshCommand = new AsyncRelayCommand(async _ => await LoadPlaylistsAsync());
 
-            OpenPlaylistCommand = new RelayCommand(async p =>
+            OpenPlaylistCommand = new AsyncRelayCommand(async p =>
             {
                 if (p is PlaylistEntity entity)
                 {
@@ -77,7 +77,7 @@ namespace MusicApp.ViewModels
                 }
             });
 
-            DeletePlaylistCommand = new RelayCommand(async p =>
+            DeletePlaylistCommand = new AsyncRelayCommand(async p =>
             {
                 if (p is PlaylistEntity entity)
                 {
@@ -85,7 +85,7 @@ namespace MusicApp.ViewModels
                 }
             });
 
-            CreatePlaylistCommand = new RelayCommand(async _ =>
+            CreatePlaylistCommand = new AsyncRelayCommand(async _ =>
             {
                 // Prompt UI dialog for name
                 var dialog = new MusicApp.Views.CreatePlaylistDialog();

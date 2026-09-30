@@ -208,6 +208,7 @@ namespace MusicApp.Tests
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         public async Task NAudioService_InitializeAsync_WithLocalAudioFile_InitializesWavePlayer()
         {
             string wavFile = CreateDummyWavFile(_testDirectory, "LocalPlaybackTest.wav", 2);

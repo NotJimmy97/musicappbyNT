@@ -121,7 +121,7 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
-                    <Path Data="{StaticResource IconPlaylists}"
+                    <Path Data="{StaticResource IconPlaylist}"
                           Fill="{DynamicResource MutedForegroundBrush}"
                           Stretch="Uniform"
                           Width="54" Height="54"

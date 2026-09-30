@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -279,9 +280,10 @@ namespace MusicApp.ViewModels
             set => SetProperty(ref _isCurrentTrackFavorite, value);
         }
 
-        public RelayCommand ToggleFavoriteCommand { get; }
+        public AsyncRelayCommand ToggleFavoriteCommand { get; }
 
         private int _currentDbTrackId;
+        private long _playGeneration;
 
         private async Task<int> EnsureTrackEntityIdAsync(TrackModel track)
         {
@@ -367,7 +369,7 @@ namespace MusicApp.ViewModels
             ToggleSpinCommand = new RelayCommand(_ => IsSpinEnabled = !IsSpinEnabled);
             ToggleRainbowCommand = new RelayCommand(_ => IsRainbowEq = !IsRainbowEq);
 
-            ToggleFavoriteCommand = new RelayCommand(async _ =>
+            ToggleFavoriteCommand = new AsyncRelayCommand(async _ =>
             {
                 if (_currentDbTrackId > 0)
                 {
@@ -413,6 +415,7 @@ namespace MusicApp.ViewModels
         {
             if (track == null) return;
 
+            var generation = Interlocked.Increment(ref _playGeneration);
             CurrentTrack = track;
             CurrentPositionSeconds = 0;
 
@@ -420,11 +423,14 @@ namespace MusicApp.ViewModels
             {
                 Task.Run(async () =>
                 {
-                    _currentDbTrackId = await EnsureTrackEntityIdAsync(track).ConfigureAwait(false);
-                    if (_currentDbTrackId > 0)
+                    int dbId = await EnsureTrackEntityIdAsync(track).ConfigureAwait(false);
+                    if (Interlocked.Read(ref _playGeneration) != generation) return;
+
+                    _currentDbTrackId = dbId;
+                    if (dbId > 0)
                     {
-                        var entity = await _trackRepo.GetByIdAsync(_currentDbTrackId).ConfigureAwait(false);
-                        if (entity != null)
+                        var entity = await _trackRepo.GetByIdAsync(dbId).ConfigureAwait(false);
+                        if (entity != null && Interlocked.Read(ref _playGeneration) == generation)
                         {
                             var disp = Application.Current?.Dispatcher;
                             if (disp != null)
@@ -439,10 +445,12 @@ namespace MusicApp.ViewModels
             try
             {
                 await _audioService.InitializeAsync(track.StreamUrl).ConfigureAwait(true);
+                if (Interlocked.Read(ref _playGeneration) != generation) return;
                 _audioService.Play();
             }
             catch (Exception ex)
             {
+                if (Interlocked.Read(ref _playGeneration) != generation) return;
                 PlaybackState = PlaybackState.Faulted;
                 MessageBox.Show($"Lỗi khởi tạo âm thanh: {ex.Message}", "Lỗi Phát Nhạc", MessageBoxButton.OK, MessageBoxImage.Error);
             }

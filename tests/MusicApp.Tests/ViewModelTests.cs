@@ -281,8 +281,13 @@ namespace MusicApp.Tests
             {
                 Assert.AreEqual("Explore", mainVm.CurrentViewName);
                 Assert.IsNotNull(mainVm.SelectedNavigationItem);
-                Assert.AreEqual("Explore", mainVm.SelectedNavigationItem.ViewKey);
-                Assert.AreEqual(6, mainVm.NavigationItems.Count);
+                Assert.AreEqual(8, mainVm.NavigationItems.Count);
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Explore"));
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "VietnameseMusic"));
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Favorites"));
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Playlists"));
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "LocalLibrary"));
+                Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "PlayQueue"));
                 Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Lyrics"));
                 Assert.IsTrue(mainVm.NavigationItems.Any(n => n.ViewKey == "Equalizer"));
             }

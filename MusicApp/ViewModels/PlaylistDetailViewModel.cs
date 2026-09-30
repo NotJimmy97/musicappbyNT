@@ -73,7 +73,7 @@ namespace MusicApp.ViewModels
 
         public RelayCommand BackCommand { get; }
         public RelayCommand PlayAllCommand { get; }
-        public RelayCommand RemoveTrackCommand { get; }
+        public AsyncRelayCommand RemoveTrackCommand { get; }
 
         public PlaylistDetailViewModel(
             PlaylistEntity playlist,
@@ -96,7 +96,7 @@ namespace MusicApp.ViewModels
                 }
             }, _ => PlaylistTracks.Count > 0);
 
-            RemoveTrackCommand = new RelayCommand(async p =>
+            RemoveTrackCommand = new AsyncRelayCommand(async p =>
             {
                 if (p is TrackItemViewModel itemVm)
                 {
@@ -145,15 +145,25 @@ namespace MusicApp.ViewModels
         private void PopulateTracks(System.Collections.Generic.IList<TrackModel> tracks)
         {
             PlaylistTracks.Clear();
-            int totalSec = 0;
             foreach (var t in tracks)
             {
                 PlaylistTracks.Add(new TrackItemViewModel(t, _onPlayTrack));
-                totalSec += t.DurationSeconds;
+            }
+
+            RecalculateStatistics();
+        }
+
+        private void RecalculateStatistics()
+        {
+            int totalSec = 0;
+            for (int i = 0; i < PlaylistTracks.Count; i++)
+            {
+                totalSec += PlaylistTracks[i].Track.DurationSeconds;
             }
 
             TotalDuration = TimeSpan.FromSeconds(totalSec);
             OnPropertyChanged(nameof(TracksCount));
+            OnPropertyChanged(nameof(FormattedTotalDuration));
             PlayAllCommand?.RaiseCanExecuteChanged();
         }
 
@@ -165,21 +175,20 @@ namespace MusicApp.ViewModels
                 await _playlistRepo.RemoveTrackFromPlaylistAsync(Playlist.Id, trackId).ConfigureAwait(false);
             }
 
+            Action updateAction = () =>
+            {
+                PlaylistTracks.Remove(itemVm);
+                RecalculateStatistics();
+            };
+
             var dispatcher = System.Windows.Application.Current?.Dispatcher;
             if (dispatcher != null && !dispatcher.CheckAccess())
             {
-                dispatcher.Invoke(() =>
-                {
-                    PlaylistTracks.Remove(itemVm);
-                    OnPropertyChanged(nameof(TracksCount));
-                    PlayAllCommand?.RaiseCanExecuteChanged();
-                });
+                dispatcher.Invoke(updateAction);
             }
             else
             {
-                PlaylistTracks.Remove(itemVm);
-                OnPropertyChanged(nameof(TracksCount));
-                PlayAllCommand?.RaiseCanExecuteChanged();
+                updateAction();
             }
         }
     }

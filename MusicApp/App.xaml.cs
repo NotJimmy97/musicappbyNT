@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Threading.Tasks;
 using System.Windows;
 using MusicApp.AudioEngine;
 using MusicApp.Bff;
@@ -110,8 +112,47 @@ namespace MusicApp
                 DataContext = _mainViewModel
             };
 
+            // Khoi phuc cai dat nguoi dung (Volume, Theme, LastView)
+            RestoreAppSettings();
+
             MainWindow = mainWindow;
             mainWindow.Show();
+        }
+
+        /// <summary>
+        /// Khoi phuc cac cai dat nguoi dung (Volume, Theme, LastView) tu SettingsRepository.
+        /// </summary>
+        private void RestoreAppSettings()
+        {
+            if (_settingsRepo == null) return;
+
+            try
+            {
+                var volTask = _settingsRepo.GetAsync<string>("Volume", "0.80");
+                var themeTask = _settingsRepo.GetAsync<string>("Theme", "Dark");
+                var viewTask = _settingsRepo.GetAsync<string>("LastView", "Explore");
+
+                Task.WaitAll(new Task[] { volTask, themeTask, viewTask }, 1000);
+
+                if (volTask.IsCompleted && float.TryParse(volTask.Result, out float vol) && _nowPlayingViewModel != null)
+                {
+                    _nowPlayingViewModel.Volume = Math.Max(0.0f, Math.Min(1.0f, vol));
+                }
+
+                if (themeTask.IsCompleted && themeTask.Result == "Light" && _mainViewModel != null && _mainViewModel.IsDarkTheme)
+                {
+                    _mainViewModel.ToggleThemeCommand?.Execute(null);
+                }
+
+                if (viewTask.IsCompleted && !string.IsNullOrWhiteSpace(viewTask.Result) && _mainViewModel != null)
+                {
+                    _mainViewModel.NavigationCommand?.Execute(viewTask.Result);
+                }
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceWarning("Khong the khoi phuc cai dat nguoi dung: {0}", ex);
+            }
         }
 
         /// <summary>
@@ -133,7 +174,11 @@ namespace MusicApp
             DispatcherUnhandledException += (s, args) =>
             {
                 Trace.TraceError("Unhandled Dispatcher Exception: {0}", args.Exception);
+#if DEBUG
+                args.Handled = false;
+#else
                 args.Handled = true;
+#endif
             };
 
             // Bat ngoai le tren cac luong Worker Thread thuoc AppDomain
@@ -156,17 +201,20 @@ namespace MusicApp
                     var tasks = new List<Task>();
                     if (_nowPlayingViewModel != null)
                     {
-                        tasks.Add(_settingsRepo.SetSettingAsync("Volume", _nowPlayingViewModel.Volume.ToString("F2")));
+                        tasks.Add(_settingsRepo.SetAsync("Volume", _nowPlayingViewModel.Volume.ToString("F2")));
                     }
                     if (_mainViewModel != null)
                     {
-                        tasks.Add(_settingsRepo.SetSettingAsync("Theme", _mainViewModel.IsDarkTheme ? "Dark" : "Light"));
-                        tasks.Add(_settingsRepo.SetSettingAsync("LastView", _mainViewModel.CurrentViewName));
-                        _mainViewModel.PlayQueue?.PersistQueueToDatabase();
+                        tasks.Add(_settingsRepo.SetAsync("Theme", _mainViewModel.IsDarkTheme ? "Dark" : "Light"));
+                        tasks.Add(_settingsRepo.SetAsync("LastView", _mainViewModel.CurrentViewName));
+                        if (_mainViewModel.PlayQueue != null)
+                        {
+                            tasks.Add(_mainViewModel.PlayQueue.PersistQueueToDatabaseAsync());
+                        }
                     }
                     if (tasks.Count > 0)
                     {
-                        Task.WaitAll(tasks.ToArray(), 1500);
+                        Task.WaitAll(tasks.ToArray(), 2500);
                     }
                 }
             }

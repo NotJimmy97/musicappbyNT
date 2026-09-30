@@ -175,10 +175,30 @@ namespace MusicApp.Bff.Controllers
             if (Request.Headers.Range != null && Request.Headers.Range.Ranges.Count > 0)
             {
                 var range = Request.Headers.Range.Ranges.FirstOrDefault();
-                long from = range?.From ?? 0;
-                long to = range?.To ?? (totalLength - 1);
+                long from = 0;
+                long to = totalLength - 1;
 
-                if (from >= totalLength)
+                if (range != null)
+                {
+                    if (range.From.HasValue && range.To.HasValue)
+                    {
+                        from = range.From.Value;
+                        to = range.To.Value;
+                    }
+                    else if (range.From.HasValue)
+                    {
+                        from = range.From.Value;
+                        to = totalLength - 1;
+                    }
+                    else if (range.To.HasValue)
+                    {
+                        // RFC 7233: Suffix byte range (bytes=-N) tra ve N byte cuoi cung cua tep
+                        from = Math.Max(0, totalLength - range.To.Value);
+                        to = totalLength - 1;
+                    }
+                }
+
+                if (from >= totalLength || from > to)
                 {
                     var invalidResponse = Request.CreateResponse((HttpStatusCode)416); // RequestedRangeNotSatisfiable
                     invalidResponse.Content = new StringContent("Pham vi byte yeu cau vuot qua tong kich thuoc tep.");

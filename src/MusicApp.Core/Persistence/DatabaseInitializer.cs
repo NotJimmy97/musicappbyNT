@@ -62,6 +62,18 @@ namespace MusicApp.Core.Persistence
         }
 
         /// <summary>
+        /// Dat lai trang thai khoi tao va chuoi ket noi tuy bien (dung trong TestCleanup cua Unit Tests).
+        /// </summary>
+        public static void ResetInitialization()
+        {
+            lock (_initLock)
+            {
+                _customConnectionString = null;
+                _isInitialized = false;
+            }
+        }
+
+        /// <summary>
         /// Khoi tao co so du lieu: tao thu muc, tao bang, thiet lap PRAGMA va seed du lieu mac dinh.
         /// Thao tac nay la Idempotent (co the chay nhieu lan an toan).
         /// </summary>

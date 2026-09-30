@@ -173,12 +173,33 @@ namespace MusicApp.ViewModels
             }
             catch (Exception)
             {
-                Lines.Clear();
-                HasLyrics = false;
+                var dispatcher = Application.Current != null ? Application.Current.Dispatcher : null;
+                Action clearAction = () =>
+                {
+                    Lines.Clear();
+                    HasLyrics = false;
+                };
+
+                if (dispatcher != null && !dispatcher.CheckAccess())
+                {
+                    dispatcher.Invoke(clearAction);
+                }
+                else
+                {
+                    clearAction();
+                }
             }
             finally
             {
-                IsLoading = false;
+                var dispatcher = Application.Current != null ? Application.Current.Dispatcher : null;
+                if (dispatcher != null && !dispatcher.CheckAccess())
+                {
+                    dispatcher.Invoke(() => IsLoading = false);
+                }
+                else
+                {
+                    IsLoading = false;
+                }
             }
         }
 
