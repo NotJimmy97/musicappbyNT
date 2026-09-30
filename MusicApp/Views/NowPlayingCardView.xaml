@@ -51,7 +51,7 @@
                     <!-- Column 1: Info (Logo + Title + Artist) & Equalizer Bars -->
                     <ColumnDefinition Width="*" />
                     <!-- Column 2: Player Controls & Quick Settings -->
-                    <ColumnDefinition Width="220" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Column 0: Cover Image with Vinyl Spin or Rounded Cover -->
@@ -190,7 +190,7 @@
                 </StackPanel>
 
                 <!-- Column 2: Controls & Options -->
-                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,120,0">
                     <!-- Transport Buttons (Previous, Play/Pause, Next, Stop) -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
                         <!-- Previous Button -->
