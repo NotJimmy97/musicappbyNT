@@ -225,6 +225,19 @@ MusicApp/
 ├── MusicApp.sln                               # Tệp giải pháp Master Visual Studio
 ├── README.md                                  # Tài liệu kiến trúc và hướng dẫn kỹ thuật
 ├── .gitignore                                 # Quy tắc loại trừ tệp nhị phân cho .NET & VS
+├── build_report.py                            # Trình biên soạn báo cáo Word (.docx) & Markdown
+├── report_gen/                                # Module Python hỗ trợ sinh báo cáo học thuật
+├── docs/                                      # Thư mục tài liệu đồ án & báo cáo kỹ thuật
+│   ├── THUYET_TRINH_DU_AN_MUSICAPP.md         # Kịch bản thuyết trình bảo vệ đồ án (13 slide)
+│   ├── BAO_CAO_DO_AN_MUSICAPP.docx            # Thuyết minh báo cáo đồ án môn học (Word chuẩn)
+│   ├── BAO_CAO_DO_AN_MUSICAPP.md              # Thuyết minh báo cáo đồ án môn học (Markdown)
+│   ├── DOCS_XAY_DUNG_VA_TOI_UU_MUSICAPP.md    # Cẩm nang kỹ thuật Master & tối ưu hóa
+│   ├── TECHNICAL_DESIGN_DOCUMENT.md           # Tài liệu thiết kế kỹ thuật (TDD)
+│   ├── HUONG_DAN_TRIEN_KHAI_CHI_TIET.md       # Hướng dẫn biên dịch & triển khai chi tiết
+│   ├── THIET_KE_KIEN_TRUC_DATABASE_VA_GOI_Y_SPOTIFY.md # Thiết kế CSDL & Động cơ gợi ý
+│   ├── DANH_GIA_CHUC_NANG_VA_HIEN_TRANG.md    # Đánh giá kiểm kê chức năng & audit
+│   ├── PLAN_BAO_CAO_DO_AN.md                  # Kế hoạch chi tiết biên soạn báo cáo
+│   └── PLAN_NANG_CAP_TOAN_DIEN.md             # Kế hoạch nâng cấp hệ thống toàn diện
 ├── MusicApp/                                  # Ứng dụng Desktop WPF (Presentation Layer)
 │   ├── App.xaml / App.xaml.cs                 # Điểm khởi đầu ứng dụng, cấu hình Theme, dọn dẹp tài nguyên
 │   ├── MainWindow.xaml / MainWindow.xaml.cs   # Khung giao diện chính (bố cục 2 cột)
@@ -348,3 +361,22 @@ Khi khởi động, ứng dụng tự động thực hiện chuỗi khởi tạo
 - **An toàn bộ nhớ hình ảnh (Memory Safety)**: Mọi dữ liệu hình ảnh chuyển đổi sang `BitmapImage` đều được đóng băng bằng `Freeze()` để đảm bảo an toàn truy cập đa luồng và giải phóng ngay bộ đệm thô.
 - **Tính toàn vẹn dữ liệu quan hệ (ACID Compliance)**: Cơ sở dữ liệu SQLite được bảo vệ bằng chế độ WAL (Write-Ahead Logging) và các giao dịch nguyên tử (`SQLiteTransaction`), ngăn chặn triệt để tình trạng khóa cơ sở dữ liệu (Database Locked) khi ghi song song từ nhiều luồng.
 - **Tương thích ngược**: Toàn bộ mã nguồn tuân thủ nghiêm ngặt chuẩn nền tảng .NET Framework 4.6.1 và ngôn ngữ C# 7.3.
+
+---
+
+## 7. Danh Mục Tài Liệu Kỹ Thuật & Thuyết Trình (`docs/`)
+
+Toàn bộ tài liệu phân tích, thiết kế, hướng dẫn triển khai và kịch bản bảo vệ đồ án được quản lý tập trung trong thư mục [`docs/`](docs/):
+
+| Tệp tài liệu | Định dạng | Mô tả nội dung chi tiết |
+|---|:---:|---|
+| [**THUYET_TRINH_DU_AN_MUSICAPP.md**](docs/THUYET_TRINH_DU_AN_MUSICAPP.md) | `.md` | **Kịch bản thuyết trình bảo vệ đồ án (13 slide):** Cấu trúc từng slide, nội dung trình chiếu, lời thoại thuyết minh chi tiết của sinh viên và bộ 5 câu hỏi phản biện trọng tâm của Hội đồng. |
+| [**BAO_CAO_DO_AN_MUSICAPP.docx**](docs/BAO_CAO_DO_AN_MUSICAPP.docx) | `.docx` | **Báo cáo đồ án môn học chuẩn thể thức Word:** Times New Roman 13, lề 3.2-2-2-2cm, bìa nhận xét GV, cam đoan, 3 chương nội dung, kết luận và phụ lục. |
+| [**BAO_CAO_DO_AN_MUSICAPP.md**](docs/BAO_CAO_DO_AN_MUSICAPP.md) | `.md` | **Bản Markdown học thuật hoàn chỉnh của Báo cáo đồ án:** Hơn 1,200 dòng thuyết minh chi tiết kèm sơ đồ và bảng số liệu thực nghiệm. |
+| [**DOCS_XAY_DUNG_VA_TOI_UU_MUSICAPP.md**](docs/DOCS_XAY_DUNG_VA_TOI_UU_MUSICAPP.md) | `.md` | **Cẩm nang kỹ thuật Master (v2.0.0):** Hướng dẫn kiến trúc, CSDL SQLite WAL, động cơ gợi ý Boltzmann và chiến lược tối ưu tốc độ Zero-Latency. |
+| [**TECHNICAL_DESIGN_DOCUMENT.md**](docs/TECHNICAL_DESIGN_DOCUMENT.md) | `.md` | **Tài liệu thiết kế kỹ thuật (TDD):** Đặc tả chi tiết các tầng MVVM, AudioEngine, OWIN Self-Host và hợp đồng API ban đầu. |
+| [**HUONG_DAN_TRIEN_KHAI_CHI_TIET.md**](docs/HUONG_DAN_TRIEN_KHAI_CHI_TIET.md) | `.md` | **Hướng dẫn triển khai & kiểm thử chi tiết:** Hướng dẫn cấu hình môi trường Windows, Visual Studio, MSBuild và VSTest. |
+| [**THIET_KE_KIEN_TRUC_DATABASE_VA_GOI_Y_SPOTIFY.md**](docs/THIET_KE_KIEN_TRUC_DATABASE_VA_GOI_Y_SPOTIFY.md) | `.md` | **Thiết kế CSDL & Động cơ gợi ý:** Phân tích mô hình dữ liệu đa nguồn học hỏi từ Spotify, 9 bảng SQLite và thuật toán Softmax Sampling. |
+| [**DANH_GIA_CHUC_NANG_VA_HIEN_TRANG.md**](docs/DANH_GIA_CHUC_NANG_VA_HIEN_TRANG.md) | `.md` | **Đánh giá hiện trạng & Audit chức năng:** Bảng đối soát tính năng thực tế mã nguồn so với tài liệu lý thuyết. |
+| [**PLAN_BAO_CAO_DO_AN.md**](docs/PLAN_BAO_CAO_DO_AN.md) | `.md` | **Kế hoạch biên soạn báo cáo đồ án:** Đề cương chi tiết 3 chương và tiêu chuẩn trình bày học thuật. |
+| [**PLAN_NANG_CAP_TOAN_DIEN.md**](docs/PLAN_NANG_CAP_TOAN_DIEN.md) | `.md` | **Kế hoạch nâng cấp hệ thống toàn diện:** Kế hoạch triển khai mở rộng các phase của dự án. |

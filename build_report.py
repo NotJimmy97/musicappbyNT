@@ -41,13 +41,13 @@ def main():
     print("-> Đang dựng Phần kết thúc (Kết luận, Tài liệu tham khảo, Phụ lục A, B, C)...")
     render_back_matter(builder, md_lines)
 
-    # Xuất tệp Word (.docx)
-    docx_path = "BAO_CAO_DO_AN_MUSICAPP.docx"
+    # Xuất tệp Word (.docx) và Markdown (.md) vào thư mục docs/
+    os.makedirs("docs", exist_ok=True)
+    docx_path = os.path.join("docs", "BAO_CAO_DO_AN_MUSICAPP.docx")
     print(f"-> Đang lưu tệp Word: {docx_path}...")
     builder.save(docx_path)
 
-    # Xuất tệp Markdown (.md)
-    md_path = "BAO_CAO_DO_AN_MUSICAPP.md"
+    md_path = os.path.join("docs", "BAO_CAO_DO_AN_MUSICAPP.md")
     print(f"-> Đang lưu tệp Markdown: {md_path}...")
     with open(md_path, "w", encoding="utf-8") as f:
         f.writelines(md_lines)
