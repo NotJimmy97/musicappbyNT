@@ -43,11 +43,12 @@ namespace MusicApp.Tests
         public async Task CreatePlaylist_AddsPlaylistAndRetrieves()
         {
             // Act
-            int playlistId = await _playlistRepo.CreatePlaylistAsync("Giai Điệu Chill", "Danh sách thư giãn cuối tuần");
+            var created = await _playlistRepo.CreatePlaylistAsync("Giai Điệu Chill", "Danh sách thư giãn cuối tuần");
             var playlists = (await _playlistRepo.GetAllPlaylistsAsync()).ToList();
 
             // Assert
-            Assert.IsTrue(playlistId > 0);
+            Assert.IsNotNull(created);
+            Assert.IsTrue(created.Id > 0);
             Assert.AreEqual(1, playlists.Count);
             Assert.AreEqual("Giai Điệu Chill", playlists[0].Name);
             Assert.AreEqual("Danh sách thư giãn cuối tuần", playlists[0].Description);
@@ -57,7 +58,8 @@ namespace MusicApp.Tests
         public async Task AddTrackToPlaylist_AddsAndRetrievesTracksInOrder()
         {
             // Arrange
-            int playlistId = await _playlistRepo.CreatePlaylistAsync("Rock Classics");
+            var created = await _playlistRepo.CreatePlaylistAsync("Rock Classics");
+            int playlistId = created.Id;
             var track1 = new TrackEntity
             {
                 TrackKey = TrackIdentityHelper.GenerateTrackKey("Track A", "Band 1"),

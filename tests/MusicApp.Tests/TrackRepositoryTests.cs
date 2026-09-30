@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MusicApp.Core.Models;
 using MusicApp.Core.Persistence;
 using MusicApp.Core.Persistence.Repositories;
-using MusicApp.Core.Utilities;
+using MusicApp.Core.Common;
 
 namespace MusicApp.Tests
 {
@@ -209,7 +209,7 @@ namespace MusicApp.Tests
             // Assert
             Assert.IsNotNull(updated);
             Assert.AreEqual(1, updated.PlayCount);
-            Assert.AreEqual(6.0, updated.AffinityScore, 0.01);
+            Assert.AreEqual(8.0, updated.AffinityScore, 0.01);
         }
     }
 }

@@ -421,7 +421,7 @@ namespace MusicApp.ViewModels
 
             if (_trackRepo != null)
             {
-                Task.Run(async () =>
+                _ = Task.Run(async () =>
                 {
                     int dbId = await EnsureTrackEntityIdAsync(track).ConfigureAwait(false);
                     if (Interlocked.Read(ref _playGeneration) != generation) return;
@@ -435,7 +435,7 @@ namespace MusicApp.ViewModels
                             var disp = Application.Current?.Dispatcher;
                             if (disp != null)
                             {
-                                disp.InvokeAsync(() => IsCurrentTrackFavorite = entity.IsFavorite);
+                                await disp.InvokeAsync(() => IsCurrentTrackFavorite = entity.IsFavorite);
                             }
                         }
                     }
